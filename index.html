@@ -413,7 +413,7 @@
                 console.log('✅ وجد المستخدم:', data.full_name);
                 
                 // التحقق من كلمة المرور
-                if (data.password_hash === password || data.password === password) {
+                if (data.password_hash === password) {
                     return { 
                         success: true, 
                         user: data 
