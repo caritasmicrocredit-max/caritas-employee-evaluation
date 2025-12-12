@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>تسجيل الدخول - Caritas</title>
   <style>
-    /* ----------------------- CSS ----------------------- */
     body {
       font-family: Arial, sans-serif;
       background-color: #f5f5f5;
@@ -15,136 +14,140 @@
       height: 100vh;
       margin: 0;
     }
-
     .container {
       background-color: #fff;
-      padding: 40px;
+      padding: 30px 40px;
       border-radius: 12px;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
       text-align: center;
       width: 320px;
     }
-
     .container img {
-      width: 80px;
+      width: 100px;
       margin-bottom: 20px;
     }
-
     .container h1 {
-      font-size: 22px;
       margin-bottom: 20px;
-      color: #003f66;
+      font-size: 24px;
+      color: #00477B; /* لون يتناسب مع شعار Caritas */
     }
-
-    input[type="text"], input[type="password"] {
+    .container input {
       width: 100%;
       padding: 10px;
-      margin: 8px 0;
+      margin-bottom: 15px;
       border-radius: 6px;
       border: 1px solid #ccc;
-      box-sizing: border-box;
+      font-size: 16px;
     }
-
-    button {
+    .container button {
       width: 100%;
       padding: 10px;
-      background-color: #0077b6;
+      background-color: #00477B;
       color: white;
       border: none;
       border-radius: 6px;
       font-size: 16px;
       cursor: pointer;
-      margin-top: 10px;
     }
-
-    button:hover {
-      background-color: #005f87;
+    .container button:hover {
+      background-color: #0066a1;
     }
-
     #message {
-      margin-top: 15px;
+      margin-top: 10px;
       font-size: 14px;
-      min-height: 20px;
+      color: red;
     }
   </style>
 </head>
 <body>
-
   <div class="container">
     <img src="logo_caritas.png" alt="Caritas Logo">
     <h1>تسجيل الدخول</h1>
+
     <input type="text" id="username" placeholder="اسم المستخدم">
     <input type="password" id="password" placeholder="كلمة المرور">
     <button id="loginBtn">تسجيل الدخول</button>
-    <div id="message"></div>
+    <p id="message"></p>
   </div>
 
-  <!-- ---------------- Supabase JS ---------------- -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
-  <script>
-    const supabaseUrl = 'https://pzsxhypigslcvduegvpa.supabase.co';
-    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB6c3hoeXBpZ3NsY3ZkdWVndnBhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU0OTMxOTQsImV4cCI6MjA4MTA2OTE5NH0.0LC452nPLSywGh1mKxNQedm3M_yWZ4srck-gK67iZag';
-    const supabase = supabaseJs.createClient(supabaseUrl, supabaseKey);
+  <script type="module">
+    import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm'
 
-    document.getElementById('loginBtn').addEventListener('click', async () => {
-      const username = document.getElementById('username').value.trim();
-      const password = document.getElementById('password').value.trim();
-      const messageEl = document.getElementById('message');
+    const supabaseUrl = 'https://pzsxhypigslcvduegvpa.supabase.co'
+    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB6c3hoeXBpZ3NsY3ZkdWVndnBhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU0OTMxOTQsImV4cCI6MjA4MTA2OTE5NH0.0LC452nPLSywGh1mKxNQedm3M_yWZ4srck-gK67iZag'
+
+    const supabase = createClient(supabaseUrl, supabaseKey)
+
+    const loginBtn = document.getElementById('loginBtn')
+    const messageEl = document.getElementById('message')
+
+    loginBtn.addEventListener('click', async () => {
+      const username = document.getElementById('username').value.trim()
+      const password = document.getElementById('password').value.trim()
 
       if (!username || !password) {
-        messageEl.textContent = 'يرجى إدخال اسم المستخدم وكلمة المرور';
-        messageEl.style.color = 'red';
-        return;
+        messageEl.textContent = 'يرجى إدخال اسم المستخدم وكلمة المرور'
+        return
       }
 
-      messageEl.textContent = 'جاري التحقق...';
-      messageEl.style.color = 'blue';
+      messageEl.style.color = 'blue'
+      messageEl.textContent = 'جاري تسجيل الدخول...'
 
       try {
+        // تسجيل الدخول عبر Supabase Auth
+        const { data: userData, error: authError } = await supabase.auth.signInWithPassword({
+          email: username + '@placeholder.com', // لو البريد فارغ نستخدم placeholder
+          password: password
+        })
+
+        if (authError || !userData) {
+          messageEl.style.color = 'red'
+          messageEl.textContent = 'المستخدم أو كلمة المرور غير صحيحة'
+          return
+        }
+
+        // جلب بيانات الموظف من جدول employees
         const { data, error } = await supabase
           .from('employees')
           .select('*')
           .eq('username', username)
-          .single();
+          .single()
 
         if (error || !data) {
-          messageEl.textContent = 'اسم المستخدم غير صحيح';
-          messageEl.style.color = 'red';
-          return;
+          messageEl.style.color = 'red'
+          messageEl.textContent = 'خطأ في جلب بيانات الموظف'
+          return
         }
 
-        if (data.password_hash === password) { // مؤقت للتحقق باليوزر والباس
-          messageEl.textContent = 'تم تسجيل الدخول بنجاح!';
-          messageEl.style.color = 'green';
+        messageEl.style.color = 'green'
+        messageEl.textContent = 'تم تسجيل الدخول بنجاح!'
 
-          localStorage.setItem('user', JSON.stringify(data));
+        // حفظ بيانات الجلسة
+        localStorage.setItem('user', JSON.stringify(data))
 
-          setTimeout(() => {
-            switch(data.role_id) {
-              case 5:
-                window.location.href = 'adminDashboard.html';
-                break;
-              case 2:
-                window.location.href = 'teamManagerDashboard.html';
-                break;
-              case 1:
-                window.location.href = 'specialistDashboard.html';
-                break;
-              default:
-                messageEl.textContent = 'الدور غير معروف';
-            }
-          }, 1000);
-        } else {
-          messageEl.textContent = 'كلمة المرور غير صحيحة';
-          messageEl.style.color = 'red';
-        }
+        // التوجيه حسب الدور
+        setTimeout(() => {
+          switch(data.role_id) {
+            case 5:
+              window.location.href = 'adminDashboard.html'
+              break
+            case 2:
+              window.location.href = 'teamManagerDashboard.html'
+              break
+            case 1:
+              window.location.href = 'specialistDashboard.html'
+              break
+            default:
+              messageEl.style.color = 'red'
+              messageEl.textContent = 'الدور غير معروف'
+          }
+        }, 1000)
 
-      } catch (err) {
-        console.error('Login error:', err);
-        messageEl.textContent = 'خطأ في تسجيل الدخول: ' + err.message;
-        messageEl.style.color = 'red';
+      } catch (error) {
+        messageEl.style.color = 'red'
+        messageEl.textContent = 'خطأ في تسجيل الدخول: ' + error.message
       }
-    });
+    })
   </script>
 </body>
 </html>
