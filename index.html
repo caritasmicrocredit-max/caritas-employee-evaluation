@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+  <meta charset="UTF-8">
+  <title>تسجيل الدخول - Caritas</title>
+</head>
+<body>
+  <h1>تسجيل الدخول</h1>
+
+  <label for="username">اسم المستخدم:</label>
+  <input type="text" id="username" placeholder="أدخل اسم المستخدم">
+  <br><br>
+
+  <label for="password">كلمة المرور:</label>
+  <input type="password" id="password" placeholder="أدخل كلمة المرور">
+  <br><br>
+
+  <button onclick="login()">تسجيل الدخول</button>
+
+  <!-- استدعاء supabaseClient.js -->
+  <script src="supabaseClient.js"></script>
+  <script>
+    async function login() {
+      const username = document.getElementById('username').value;
+      const password = document.getElementById('password').value;
+
+      // استعلام للتحقق من الـ username و password_hash في جدول employees
+      const { data, error } = await supabase
+        .from('employees')
+        .select('*')
+        .eq('username', username)
+        .eq('password_hash', password)
+        .single();
+
+      if (error || !data) {
+        alert('خطأ في تسجيل الدخول: المستخدم أو كلمة المرور غير صحيحة');
+      } else {
+        alert('تم تسجيل الدخول بنجاح!');
+        console.log(data); // بيانات المستخدم كاملة، ممكن تستخدم role_id لتوجيهه
+        // مثال لتوجيه حسب الدور:
+        switch (data.role_id) {
+          case 5:
+            window.location.href = 'adminDashboard.html';
+            break;
+          case 2:
+            window.location.href = 'teamManagerDashboard.html';
+            break;
+          case 1:
+            window.location.href = 'specialistDashboard.html';
+            break;
+          default:
+            alert('الدور غير معروف!');
+        }
+      }
+    }
+  </script>
+</body>
+</html>
