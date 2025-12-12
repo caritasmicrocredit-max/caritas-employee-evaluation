@@ -475,22 +475,23 @@
         
         // ==================== توجيه المستخدم حسب الدور ====================
         function redirectToDashboard(roleId) {
-            console.log(`🔄 توجيه الدور ${roleId}`);
-            
-            const dashboards = {
-                1: 'specialistDashboard.html',      // أخصائي ميداني
-                2: 'teamManagerDashboard.html',    // مسؤول فريق
-                3: 'branchManagerDashboard.html',  // مدير فرع
-                4: 'projectManagerDashboard.html', // مدير نشاط (مايكل عزوز)
-                5: 'adminDashboard.html',          // إداري
-                6: 'headquarterDashboard.html'     // المركز الرئيسي
-            };
-            
-            const targetPage = dashboards[roleId] || 'dashboard.html';
-            console.log(`📍 التحويل إلى: ${targetPage}`);
-            
-            window.location.href = targetPage;
-        }
+    console.log(`🔄 توجيه الدور ${roleId}`);
+    
+    const dashboards = {
+        1: 'specialistDashboard.html',      // أخصائي ميداني
+        2: 'teamManagerDashboard.html',    // مسؤول فريق
+        3: 'branchManagerDashboard.html',  // مدير فرع
+        4: 'projectManagerDashboard.html', // مدير نشاط (مايكل عزوز)
+        5: 'adminDashboard.html',          // إداري
+        6: 'headquarterDashboard.html',    // المركز الرئيسي
+        7: 'dashboard.html'                // مسئول النظام ⬅️ الجديد
+    };
+    
+    const targetPage = dashboards[roleId] || 'index.html';
+    console.log(`📍 التحويل إلى: ${targetPage}`);
+    
+    window.location.href = targetPage;
+}
         
         // ==================== الحصول على اسم الدور بالعربية ====================
         function getRoleName(roleId) {
