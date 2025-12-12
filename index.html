@@ -1,142 +1,158 @@
-<script type="module">
-  import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm'
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>تسجيل الدخول - Caritas</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container">
+    <!-- تمت إضافة صورة بديلة في حالة عدم وجود اللوجو -->
+    <img src="logo_caritas.png" alt="Caritas Logo" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTIwIiBoZWlnaHQ9IjEyMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTIwIiBoZWlnaHQ9IjEyMCIgZmlsbD0iIzAwNzdCNiIvPjx0ZXh0IHg9IjYwIiB5PSI2MCIgZm9udC1zaXplPSIxNCIgZmlsbD0iI2ZmZiIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPkNhcml0YXM8L3RleHQ+PC9zdmc+'">
+    <h1>تسجيل الدخول</h1>
 
-  const supabaseUrl = 'https://pzsxhypigslcvduegvpa.supabase.co'
-  const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB6c3hoeXBpZ3NsY3ZkdWVndnBhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU0OTMxOTQsImV4cCI6MjA4MTA2OTE5NH0.0LC452nPLSywGh1mKxNQedm3M_yWZ4srck-gK67iZag'
-  const supabase = createClient(supabaseUrl, supabaseKey)
+    <input type="text" id="username" placeholder="اسم المستخدم" value="admin">
+    <input type="password" id="password" placeholder="كلمة المرور" value="123456">
+    <button id="loginBtn">تسجيل الدخول</button>
+    <p>أدخل بياناتك للولوج للنظام</p>
+    <p id="message" style="color: red; font-size: 14px; margin-top: 10px;"></p>
+  </div>
 
-  // تحقق من الاتصال أولاً
-  async function testConnection() {
-    console.log('جاري اختبار الاتصال بقاعدة البيانات...')
-    
-    // 1. تحقق من وجود الجدول
-    const { data: tables, error: tablesError } = await supabase
-      .from('employees')
-      .select('*')
-      .limit(1)
-    
-    if (tablesError) {
-      console.error('خطأ في الاتصال:', tablesError)
-      alert('خطأ في الاتصال بقاعدة البيانات: ' + tablesError.message)
-      return false
-    }
-    
-    console.log('الاتصال ناجح! البيانات:', tables)
-    return true
-  }
-
-  // 2. تحقق من بيانات المستخدمين
-  async function checkUsers() {
-    const { data: users, error } = await supabase
-      .from('employees')
-      .select('username, role_id')
-    
-    if (error) {
-      console.error('خطأ في جلب المستخدمين:', error)
-      return
-    }
-    
-    console.log('المستخدمون المتاحون:', users)
-    alert('المستخدمون في النظام: ' + users.map(u => u.username).join(', '))
-  }
-
-  // 3. دالة تسجيل الدخول المعدلة
-  async function login() {
-    const username = document.getElementById('username').value.trim()
-    const password = document.getElementById('password').value.trim()
-
-    if (!username || !password) {
-      alert('يرجى إدخال اسم المستخدم وكلمة المرور');
-      return;
-    }
-
-    console.log('محاولة تسجيل دخول باسم:', username)
-
-    // جرب أولاً: البحث عن المستخدم فقط
-    const { data: user, error: userError } = await supabase
-      .from('employees')
-      .select('*')
-      .eq('username', username)
-      .single()
-
-    console.log('نتيجة البحث عن المستخدم:', user)
-    console.log('خطأ البحث:', userError)
-
-    if (userError || !user) {
-      alert('اسم المستخدم غير صحيح')
-      return
-    }
-
-    // جرب ثانياً: التحقق من كلمة المرور
-    // ملاحظة: إذا كانت كلمة المرور مشفرة، تحتاج لمقارنة مختلفة
-    const { data, error } = await supabase
-      .from('employees')
-      .select('*')
-      .eq('username', username)
-      .eq('password_hash', password)
-      .single()
-
-    if (error || !data) {
-      // جرب بدون تشفير (إذا كان الحقل اسمه password)
-      const { data: data2, error: error2 } = await supabase
-        .from('employees')
-        .select('*')
-        .eq('username', username)
-        .eq('password', password)  // اسم حقل مختلف
-        .single()
+  <script>
+    // كود JavaScript بسيط للتحقق
+    document.addEventListener('DOMContentLoaded', function() {
+      console.log('صفحة تسجيل الدخول تم تحميلها');
       
-      if (error2 || !data2) {
-        alert('كلمة المرور غير صحيحة')
-        return
+      // اختبار بسيط للتأكد من أن JavaScript يعمل
+      document.getElementById('loginBtn').addEventListener('click', function() {
+        const username = document.getElementById('username').value;
+        const password = document.getElementById('password').value;
+        const message = document.getElementById('message');
+        
+        console.log('محاولة دخول:', username, password);
+        
+        if (!username || !password) {
+          message.textContent = 'يرجى إدخال اسم المستخدم وكلمة المرور';
+          return;
+        }
+        
+        // محاكاة تسجيل الدخول للاختبار
+        message.textContent = 'جاري محاولة تسجيل الدخول...';
+        message.style.color = 'blue';
+        
+        // جرب الاتصال بـ Supabase
+        testSupabaseConnection();
+      });
+      
+      // اختبار الاتصال بـ Supabase
+      async function testSupabaseConnection() {
+        try {
+          // تحميل Supabase ديناميكياً
+          const script = document.createElement('script');
+          script.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
+          script.type = 'module';
+          
+          script.onload = async () => {
+            console.log('Supabase loaded successfully');
+            await initializeSupabase();
+          };
+          
+          script.onerror = () => {
+            document.getElementById('message').textContent = 'خطأ في تحميل Supabase';
+          };
+          
+          document.head.appendChild(script);
+        } catch (error) {
+          console.error('Error:', error);
+          document.getElementById('message').textContent = 'خطأ: ' + error.message;
+        }
       }
       
-      // نجح مع password
-      proceedLogin(data2)
-    } else {
-      // نجح مع password_hash
-      proceedLogin(data)
-    }
-  }
-
-  function proceedLogin(userData) {
-    console.log('تم تسجيل الدخول بنجاح!', userData)
-    alert('مرحباً ' + userData.username + '! تم تسجيل الدخول بنجاح')
-    
-    // حفظ بيانات الجلسة
-    localStorage.setItem('user', JSON.stringify(userData))
-    
-    // التوجيه حسب الدور
-    switch (userData.role_id) {
-      case 5:
-        window.location.href = 'adminDashboard.html'
-        break
-      case 2:
-        window.location.href = 'teamManagerDashboard.html'
-        break
-      case 1:
-        window.location.href = 'specialistDashboard.html'
-        break
-      default:
-        alert('الدور غير معروف!')
-    }
-  }
-
-  // ربط الأحداث
-  document.addEventListener('DOMContentLoaded', async () => {
-    // اختبر الاتصال عند تحميل الصفحة
-    const connected = await testConnection()
-    if (connected) {
-      await checkUsers()
-    }
-    
-    // ربط زر الدخول
-    document.getElementById('loginBtn').addEventListener('click', login)
-    
-    // تفعيل الدخول بالضغط على Enter
-    document.getElementById('password').addEventListener('keypress', (e) => {
-      if (e.key === 'Enter') {
-        login()
+      async function initializeSupabase() {
+        try {
+          const { createClient } = window.supabase;
+          
+          const supabaseUrl = 'https://pzsxhypigslcvduegvpa.supabase.co';
+          const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB6c3hoeXBpZ3NsY3ZkdWVndnBhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU0OTMxOTQsImV4cCI6MjA4MTA2OTE5NH0.0LC452nPLSywGh1mKxNQedm3M_yWZ4srck-gK67iZag';
+          
+          const supabase = createClient(supabaseUrl, supabaseKey);
+          window.supabaseClient = supabase;
+          
+          console.log('Supabase initialized');
+          document.getElementById('message').textContent = 'الاتجاه جاهز، جرب تسجيل الدخول';
+          
+          // تحديث دالة الدخول
+          document.getElementById('loginBtn').onclick = async () => {
+            await login(supabase);
+          };
+          
+        } catch (error) {
+          console.error('Initialization error:', error);
+          document.getElementById('message').textContent = 'خطأ في تهيئة Supabase: ' + error.message;
+        }
       }
-    })
-  })
-</script>
+      
+      async function login(supabase) {
+        const username = document.getElementById('username').value.trim();
+        const password = document.getElementById('password').value.trim();
+        const message = document.getElementById('message');
+        
+        message.textContent = 'جاري التحقق...';
+        message.style.color = 'blue';
+        
+        try {
+          // جرب البحث في employees
+          const { data, error } = await supabase
+            .from('employees')
+            .select('*')
+            .eq('username', username)
+            .single();
+          
+          console.log('Query result:', data, error);
+          
+          if (error || !data) {
+            message.textContent = 'اسم المستخدم غير صحيح';
+            message.style.color = 'red';
+            return;
+          }
+          
+          // تحقق من كلمة المرور (مؤقتاً - غير آمن)
+          if (data.password_hash === password || data.password === password) {
+            message.textContent = 'تم تسجيل الدخول بنجاح!';
+            message.style.color = 'green';
+            
+            // حفظ بيانات الجلسة
+            localStorage.setItem('user', JSON.stringify(data));
+            
+            // توجيه حسب الدور
+            setTimeout(() => {
+              switch(data.role_id) {
+                case 5:
+                  window.location.href = 'adminDashboard.html';
+                  break;
+                case 2:
+                  window.location.href = 'teamManagerDashboard.html';
+                  break;
+                case 1:
+                  window.location.href = 'specialistDashboard.html';
+                  break;
+                default:
+                  message.textContent = 'الدور غير معروف';
+              }
+            }, 1000);
+          } else {
+            message.textContent = 'كلمة المرور غير صحيحة';
+            message.style.color = 'red';
+          }
+          
+        } catch (error) {
+          console.error('Login error:', error);
+          message.textContent = 'خطأ في تسجيل الدخول: ' + error.message;
+          message.style.color = 'red';
+        }
+      }
+    });
+  </script>
+</body>
+</html>
