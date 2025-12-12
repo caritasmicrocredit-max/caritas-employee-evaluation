@@ -6,30 +6,26 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body class="loginPage">
+  <div class="container">
+    <!-- اللوجو -->
+    <img src="logo_caritas.png" alt="Caritas Logo">
 
-  <!-- اللوجو -->
-  <img src="logo_caritas.png" alt="Caritas Logo" style="width:150px; margin-bottom:20px;">
+    <h1>تسجيل الدخول</h1>
 
-  <h1>تسجيل الدخول</h1>
+    <input type="text" id="username" placeholder="اسم المستخدم">
+    <input type="password" id="password" placeholder="كلمة المرور">
 
-  <label for="username">اسم المستخدم:</label>
-  <input type="text" id="username" placeholder="أدخل اسم المستخدم">
-  <br><br>
+    <button onclick="login()">تسجيل الدخول</button>
 
-  <label for="password">كلمة المرور:</label>
-  <input type="password" id="password" placeholder="أدخل كلمة المرور">
-  <br><br>
+    <p>أدخل بياناتك للولوج للنظام</p>
+  </div>
 
-  <button onclick="login()">تسجيل الدخول</button>
-
-  <!-- استدعاء supabaseClient.js -->
   <script src="supabaseClient.js"></script>
   <script>
     async function login() {
       const username = document.getElementById('username').value;
       const password = document.getElementById('password').value;
 
-      // استعلام للتحقق من الـ username و password_hash في جدول employees
       const { data, error } = await supabase
         .from('employees')
         .select('*')
@@ -41,9 +37,6 @@
         alert('خطأ في تسجيل الدخول: المستخدم أو كلمة المرور غير صحيحة');
       } else {
         alert('تم تسجيل الدخول بنجاح!');
-        console.log(data); // بيانات المستخدم كاملة، ممكن تستخدم role_id لتوجيهه
-
-        // توجيه حسب الدور
         switch (data.role_id) {
           case 5:
             window.location.href = 'adminDashboard.html';
@@ -60,6 +53,6 @@
       }
     }
   </script>
-
 </body>
+
 </html>
