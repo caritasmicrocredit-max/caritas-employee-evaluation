@@ -478,13 +478,13 @@
     console.log(`🔄 توجيه الدور ${roleId}`);
     
     const dashboards = {
-        1: 'specialistDashboard.html',      // أخصائي ميداني
-        2: 'teamManagerDashboard.html',    // مسؤول فريق
-        3: 'branchManagerDashboard.html',  // مدير فرع
-        4: 'projectManagerDashboard.html', // مدير نشاط (مايكل عزوز)
-        5: 'adminDashboard.html',          // إداري
-        6: 'headquarterDashboard.html',    // المركز الرئيسي
-        7: 'dashboard.html'                // مسئول النظام ⬅️ الجديد
+         1: 'specialistDashboard.html',      // أخصائي ميداني (48 مستخدم)
+        2: 'teamManagerDashboard.html',     // مسؤول فريق (6 مستخدمين)
+        3: 'branchManagerDashboard.html',   // مدير فرع (6 مستخدمين)
+        4: 'projectManagerDashboard.html',  // مدير نشاط (مايكل عزوز)
+        5: 'staffDashboard.html',           // إداري (18 مستخدم) ← تغيير هنا
+        6: 'staffDashboard.html',           // المركز الرئيسي (3 مستخدمين) ← تغيير هنا
+        7: 'dashboard.html'                 // مسئول النظام
     };
     
     const targetPage = dashboards[roleId] || 'index.html';
