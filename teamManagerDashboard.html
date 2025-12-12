@@ -468,6 +468,79 @@
             transition: width 0.5s ease;
         }
 
+        /* قسم التقارير */
+        .reports-section {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            margin-top: 30px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            display: none;
+        }
+
+        .reports-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .report-card {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            border: 2px solid #e2e8f0;
+        }
+
+        /* زر التقارير العائم */
+        .floating-reports-btn {
+            position: fixed;
+            bottom: 30px;
+            left: 30px;
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            color: white;
+            border: none;
+            border-radius: 50px;
+            padding: 15px 25px;
+            cursor: pointer;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            z-index: 100;
+            transition: all 0.3s;
+        }
+
+        .floating-reports-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+        }
+
+        /* نافذة التقرير المودال */
+        .report-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .report-modal-content {
+            background: white;
+            width: 90%;
+            max-width: 800px;
+            max-height: 90vh;
+            border-radius: 15px;
+            padding: 30px;
+            overflow-y: auto;
+        }
+
         /* التصميم المتجاوب */
         @media (max-width: 1024px) {
             .main-container {
@@ -479,6 +552,10 @@
             }
             
             .rating-options {
+                grid-template-columns: 1fr;
+            }
+            
+            .reports-grid {
                 grid-template-columns: 1fr;
             }
         }
@@ -510,6 +587,14 @@
                 width: 100%;
                 justify-content: center;
             }
+            
+            .floating-reports-btn {
+                bottom: 20px;
+                left: 20px;
+                right: 20px;
+                border-radius: 10px;
+                justify-content: center;
+            }
         }
 
         @keyframes fadeIn {
@@ -518,21 +603,25 @@
         }
 
         /* تخصيص شريط التمرير */
-        .employee-list::-webkit-scrollbar {
+        .employee-list::-webkit-scrollbar,
+        .report-modal-content::-webkit-scrollbar {
             width: 8px;
         }
 
-        .employee-list::-webkit-scrollbar-track {
+        .employee-list::-webkit-scrollbar-track,
+        .report-modal-content::-webkit-scrollbar-track {
             background: #f1f1f1;
             border-radius: 10px;
         }
 
-        .employee-list::-webkit-scrollbar-thumb {
+        .employee-list::-webkit-scrollbar-thumb,
+        .report-modal-content::-webkit-scrollbar-thumb {
             background: var(--secondary-color);
             border-radius: 10px;
         }
 
-        .employee-list::-webkit-scrollbar-thumb:hover {
+        .employee-list::-webkit-scrollbar-thumb:hover,
+        .report-modal-content::-webkit-scrollbar-thumb:hover {
             background: var(--primary-color);
         }
     </style>
@@ -588,103 +677,6 @@
             </div>
         </aside>
 
-
-        <div id="reportsSection" style="display: none; margin-top: 40px; padding-top: 30px; border-top: 2px solid #f0f0f0;">
-    <div class="section-title">
-        📊 التقارير والإحصائيات
-    </div>
-    
-    <div class="reports-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin-top: 20px;">
-        
-        <div class="report-card" style="background: white; border-radius: 12px; padding: 25px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); border: 2px solid #e2e8f0;">
-            <h4 style="color: var(--primary-color); margin-bottom: 15px; display: flex; align-items: center; gap: 10px;">
-                📈 ملخص الفريق
-            </h4>
-            <div id="teamSummaryReport">
-                <p style="color: #666; text-align: center; padding: 20px;">جاري تحميل البيانات...</p>
-            </div>
-            <button onclick="printTeamSummary()" style="width: 100%; margin-top: 15px; padding: 12px; background: var(--primary-color); color: white; border: none; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px;">
-                🖨️ طباعة التقرير
-            </button>
-        </div>
-        
-        <div class="report-card" style="background: white; border-radius: 12px; padding: 25px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); border: 2px solid #e2e8f0;">
-            <h4 style="color: var(--primary-color); margin-bottom: 15px; display: flex; align-items: center; gap: 10px;">
-                👤 تقرير فردي
-            </h4>
-            <div style="margin-bottom: 15px;">
-                <label style="display: block; margin-bottom: 8px; color: #666;">اختر الأخصائي:</label>
-                <select id="employeeSelectForReport" style="width: 100%; padding: 10px; border: 2px solid #e2e8f0; border-radius: 8px; font-size: 14px;">
-                    <option value="">اختر أخصائياً</option>
-                    </select>
-            </div>
-            <button onclick="generateIndividualReport()" id="individualReportBtn" disabled style="width: 100%; padding: 12px; background: var(--secondary-color); color: white; border: none; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px;">
-                📄 عرض التقرير
-            </button>
-            <button onclick="printIndividualReport()" id="printIndividualBtn" disabled style="width: 100%; margin-top: 10px; padding: 12px; background: var(--accent-color); color: white; border: none; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px;">
-                🖨️ طباعة التقرير
-            </button>
-        </div>
-        
-        <div class="report-card" style="background: white; border-radius: 12px; padding: 25px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); border: 2px solid #e2e8f0;">
-            <h4 style="color: var(--primary-color); margin-bottom: 15px; display: flex; align-items: center; gap: 10px;">
-                📊 إحصائيات التقييم
-            </h4>
-            <div id="statisticsReport">
-                <div style="text-align: center; padding: 15px;">
-                    <div class="stat-number" style="font-size: 32px; font-weight: bold; color: var(--primary-color);">0%</div>
-                    <div class="stat-label" style="color: #666; margin-top: 5px;">متوسط التقييم</div>
-                </div>
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 15px;">
-                    <div style="text-align: center;">
-                        <div class="stat-number" style="font-size: 24px; font-weight: bold; color: var(--success-color);">0</div>
-                        <div class="stat-label" style="font-size: 12px; color: #666;">ممتاز</div>
-                    </div>
-                    <div style="text-align: center;">
-                        <div class="stat-number" style="font-size: 24px; font-weight: bold; color: #3b82f6;">0</div>
-                        <div class="stat-label" style="font-size: 12px; color: #666;">جيد جداً</div>
-                    </div>
-                    <div style="text-align: center;">
-                        <div class="stat-number" style="font-size: 24px; font-weight: bold; color: var(--warning-color);">0</div>
-                        <div class="stat-label" style="font-size: 12px; color: #666;">جيد</div>
-                    </div>
-                    <div style="text-align: center;">
-                        <div class="stat-number" style="font-size: 24px; font-weight: bold; color: var(--danger-color);">0</div>
-                        <div class="stat-label" style="font-size: 12px; color: #666;">يحتاج تحسين</div>
-                    </div>
-                </div>
-            </div>
-            <button onclick="refreshStatistics()" style="width: 100%; margin-top: 15px; padding: 12px; background: #8b5cf6; color: white; border: none; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px;">
-                🔄 تحديث الإحصائيات
-            </button>
-        </div>
-        
-    </div>
-    
-    <div id="reportModal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: center;">
-        <div style="background: white; width: 90%; max-width: 800px; max-height: 90vh; border-radius: 15px; padding: 30px; overflow-y: auto;">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
-                <h3 style="color: var(--primary-color);">📋 تقرير التقييم الفردي</h3>
-                <button onclick="closeReportModal()" style="background: none; border: none; font-size: 24px; cursor: pointer; color: #666;">&times;</button>
-            </div>
-            <div id="reportContent">
-                </div>
-            <div style="margin-top: 30px; display: flex; gap: 15px; justify-content: flex-end;">
-                <button onclick="closeReportModal()" style="padding: 12px 25px; background: #64748b; color: white; border: none; border-radius: 8px; cursor: pointer;">
-                    إغلاق
-                </button>
-                <button onclick="printCurrentReport()" style="padding: 12px 25px; background: var(--primary-color); color: white; border: none; border-radius: 8px; cursor: pointer; display: flex; align-items: center; gap: 10px;">
-                    🖨️ طباعة التقرير
-                </button>
-            </div>
-        </div>
-    </div>
-</div>
-
-<button id="toggleReportsBtn" onclick="toggleReportsSection()" style="position: fixed; bottom: 30px; left: 30px; background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%); color: white; border: none; border-radius: 50px; padding: 15px 25px; cursor: pointer; box-shadow: 0 5px 20px rgba(0,0,0,0.2); display: flex; align-items: center; gap: 10px; z-index: 100;">
-    📊 التقارير
-</button>
-
         <main class="evaluation-area">
             <div id="alertBox" class="alert"></div>
 
@@ -707,7 +699,8 @@
                 </div>
                 
                 <div id="questionsContainer">
-                    </div>
+                    <!-- سيتم إضافة الأسئلة هنا -->
+                </div>
 
                 <div class="controls">
                     <button class="btn btn-save" id="saveBtn" onclick="saveEvaluation()" disabled>
@@ -724,6 +717,104 @@
                 <p style="margin-top: 10px;">يجب أن يكون لديك أخصائيين ميدانيين تحت إشرافك لتتمكن من تقييمهم.</p>
             </div>
         </main>
+    </div>
+
+    <!-- قسم التقارير -->
+    <div class="reports-section" id="reportsSection">
+        <div class="section-title">
+            📊 التقارير والإحصائيات
+        </div>
+        
+        <div class="reports-grid">
+            <div class="report-card">
+                <h4 style="color: var(--primary-color); margin-bottom: 15px; display: flex; align-items: center; gap: 10px;">
+                    📈 ملخص الفريق
+                </h4>
+                <div id="teamSummaryReport">
+                    <p style="color: #666; text-align: center; padding: 20px;">جاري تحميل البيانات...</p>
+                </div>
+                <button onclick="printTeamSummary()" style="width: 100%; margin-top: 15px; padding: 12px; background: var(--primary-color); color: white; border: none; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px;">
+                    🖨️ طباعة التقرير
+                </button>
+            </div>
+            
+            <div class="report-card">
+                <h4 style="color: var(--primary-color); margin-bottom: 15px; display: flex; align-items: center; gap: 10px;">
+                    👤 تقرير فردي
+                </h4>
+                <div style="margin-bottom: 15px;">
+                    <label style="display: block; margin-bottom: 8px; color: #666;">اختر الأخصائي:</label>
+                    <select id="employeeSelectForReport" style="width: 100%; padding: 10px; border: 2px solid #e2e8f0; border-radius: 8px; font-size: 14px;">
+                        <option value="">اختر أخصائياً</option>
+                    </select>
+                </div>
+                <button onclick="generateIndividualReport()" id="individualReportBtn" disabled style="width: 100%; padding: 12px; background: var(--secondary-color); color: white; border: none; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px;">
+                    📄 عرض التقرير
+                </button>
+                <button onclick="printIndividualReport()" id="printIndividualBtn" disabled style="width: 100%; margin-top: 10px; padding: 12px; background: var(--accent-color); color: white; border: none; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px;">
+                    🖨️ طباعة التقرير
+                </button>
+            </div>
+            
+            <div class="report-card">
+                <h4 style="color: var(--primary-color); margin-bottom: 15px; display: flex; align-items: center; gap: 10px;">
+                    📊 إحصائيات التقييم
+                </h4>
+                <div id="statisticsReport">
+                    <div style="text-align: center; padding: 15px;">
+                        <div class="stat-number" style="font-size: 32px; font-weight: bold; color: var(--primary-color);">0%</div>
+                        <div class="stat-label" style="color: #666; margin-top: 5px;">متوسط التقييم</div>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 15px;">
+                        <div style="text-align: center;">
+                            <div class="stat-number" style="font-size: 24px; font-weight: bold; color: var(--success-color);">0</div>
+                            <div class="stat-label" style="font-size: 12px; color: #666;">ممتاز</div>
+                        </div>
+                        <div style="text-align: center;">
+                            <div class="stat-number" style="font-size: 24px; font-weight: bold; color: #3b82f6;">0</div>
+                            <div class="stat-label" style="font-size: 12px; color: #666;">جيد جداً</div>
+                        </div>
+                        <div style="text-align: center;">
+                            <div class="stat-number" style="font-size: 24px; font-weight: bold; color: var(--warning-color);">0</div>
+                            <div class="stat-label" style="font-size: 12px; color: #666;">جيد</div>
+                        </div>
+                        <div style="text-align: center;">
+                            <div class="stat-number" style="font-size: 24px; font-weight: bold; color: var(--danger-color);">0</div>
+                            <div class="stat-label" style="font-size: 12px; color: #666;">يحتاج تحسين</div>
+                        </div>
+                    </div>
+                </div>
+                <button onclick="refreshStatistics()" style="width: 100%; margin-top: 15px; padding: 12px; background: #8b5cf6; color: white; border: none; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px;">
+                    🔄 تحديث الإحصائيات
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- زر التقارير العائم -->
+    <button id="toggleReportsBtn" class="floating-reports-btn">
+        📊 التقارير
+    </button>
+
+    <!-- نافذة التقرير المودال -->
+    <div id="reportModal" class="report-modal">
+        <div class="report-modal-content">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
+                <h3 style="color: var(--primary-color);">📋 تقرير التقييم الفردي</h3>
+                <button onclick="closeReportModal()" style="background: none; border: none; font-size: 24px; cursor: pointer; color: #666;">&times;</button>
+            </div>
+            <div id="reportContent">
+                <!-- محتوى التقرير سيتم إضافته هنا -->
+            </div>
+            <div style="margin-top: 30px; display: flex; gap: 15px; justify-content: flex-end;">
+                <button onclick="closeReportModal()" style="padding: 12px 25px; background: #64748b; color: white; border: none; border-radius: 8px; cursor: pointer;">
+                    إغلاق
+                </button>
+                <button onclick="printCurrentReport()" style="padding: 12px 25px; background: var(--primary-color); color: white; border: none; border-radius: 8px; cursor: pointer; display: flex; align-items: center; gap: 10px;">
+                    🖨️ طباعة التقرير
+                </button>
+            </div>
+        </div>
     </div>
 
     <script>
@@ -754,8 +845,28 @@
             console.log('🚀 بدء تحميل لوحة مسؤول الفريق...');
             
             try {
-                await initializeApp();
+                // التحقق من تسجيل الدخول
+                currentUser = JSON.parse(localStorage.getItem('caritas_user'));
+                if (!currentUser || currentUser.role_id !== 2) {
+                    window.location.href = 'index.html';
+                    return;
+                }
+
+                // عرض معلومات المستخدم
+                document.getElementById('userName').textContent = currentUser.full_name;
+                document.getElementById('userRole').textContent = `${currentUser.role_name_ar} - ${currentUser.branch}`;
+                document.getElementById('userAvatar').textContent = currentUser.full_name.charAt(0);
+
+                // تهيئة Supabase
+                await initializeSupabase();
+                
+                // تحميل البيانات
                 await loadData();
+                
+                // إعداد الأحداث
+                setupEventListeners();
+                
+                console.log('✅ تم تحميل الصفحة بنجاح');
                 
             } catch (error) {
                 console.error('❌ خطأ في تحميل الصفحة:', error);
@@ -763,26 +874,53 @@
             }
         });
 
-        // ==================== تهيئة التطبيق ====================
-        async function initializeApp() {
-            // التحقق من تسجيل الدخول
-            currentUser = JSON.parse(localStorage.getItem('caritas_user'));
-            if (!currentUser || currentUser.role_id !== 2) {
-                window.location.href = 'index.html';
-                return;
-            }
+        // ==================== تهيئة Supabase ====================
+        async function initializeSupabase() {
+            return new Promise((resolve, reject) => {
+                // إذا كانت المكتبة محملة بالفعل
+                if (window.supabase) {
+                    supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+                    console.log('✅ Supabase client initialized');
+                    resolve();
+                    return;
+                }
+                
+                // تحميل مكتبة Supabase
+                const script = document.createElement('script');
+                script.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js';
+                script.onload = () => {
+                    supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+                    console.log('✅ Supabase loaded and initialized');
+                    resolve();
+                };
+                script.onerror = () => {
+                    console.error('❌ Failed to load Supabase');
+                    reject(new Error('Failed to load Supabase'));
+                };
+                document.head.appendChild(script);
+            });
+        }
 
-            // عرض معلومات المستخدم
-            document.getElementById('userName').textContent = currentUser.full_name;
-            document.getElementById('userRole').textContent = `${currentUser.role_name_ar} - ${currentUser.branch}`;
-            document.getElementById('userAvatar').textContent = currentUser.full_name.charAt(0);
-
-            // تحميل Supabase
-            if (!window.supabase) {
-                await loadScript('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js');
-            }
+        // ==================== إعداد الأحداث ====================
+        function setupEventListeners() {
+            // زر التقارير العائم
+            document.getElementById('toggleReportsBtn').addEventListener('click', toggleReportsSection);
             
-            supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+            // اختيار موظف للتقرير
+            document.getElementById('employeeSelectForReport').addEventListener('change', function() {
+                const btn = document.getElementById('individualReportBtn');
+                const printBtn = document.getElementById('printIndividualBtn');
+                btn.disabled = !this.value;
+                printBtn.disabled = !this.value;
+            });
+            
+            // اختصارات لوحة المفاتيح
+            document.addEventListener('keydown', (e) => {
+                if (e.ctrlKey && e.key === 's') {
+                    e.preventDefault();
+                    saveEvaluation();
+                }
+            });
         }
 
         // ==================== تحميل البيانات ====================
@@ -846,12 +984,14 @@
 
                 // تنظيم التقييمات حسب الموظف
                 evaluations = {};
-                data.forEach(record => {
-                    if (!evaluations[record.evaluated_employee_id]) {
-                        evaluations[record.evaluated_employee_id] = {};
-                    }
-                    evaluations[record.evaluated_employee_id][record.question_id] = record;
-                });
+                if (data) {
+                    data.forEach(record => {
+                        if (!evaluations[record.evaluated_employee_id]) {
+                            evaluations[record.evaluated_employee_id] = {};
+                        }
+                        evaluations[record.evaluated_employee_id][record.question_id] = record;
+                    });
+                }
 
                 updateProgress();
 
@@ -882,9 +1022,6 @@
             myEmployees.forEach(employee => {
                 const li = document.createElement('li');
                 li.className = 'employee-item';
-                if (selectedEmployee?.id === employee.id) {
-                    li.classList.add('active');
-                }
                 
                 // حساب عدد الأسئلة المجابة لهذا الأخصائي
                 const employeeEvals = evaluations[employee.id] || {};
@@ -925,7 +1062,7 @@
             const info = document.getElementById('selectedEmployeeInfo');
             
             avatar.textContent = employee.full_name.charAt(0);
-            avatar.style.background = `linear-gradient(135deg, #${Math.floor(Math.random()*16777215).toString(16)} 0%, #${Math.floor(Math.random()*16777215).toString(16)} 100%)`;
+            avatar.style.background = `linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%)`;
             
             name.textContent = employee.full_name;
             info.textContent = `${employee.branch} • أخصائي ميداني`;
@@ -1076,11 +1213,12 @@
                 completed += Object.keys(employeeEvals).length;
             });
 
-            document.getElementById('completedEvaluations').textContent = 
-                myEmployees.filter(e => {
-                    const evals = evaluations[e.id] || {};
-                    return Object.keys(evals).length === questions.length;
-                }).length;
+            const completedEvaluations = myEmployees.filter(e => {
+                const evals = evaluations[e.id] || {};
+                return Object.keys(evals).length === questions.length;
+            }).length;
+            
+            document.getElementById('completedEvaluations').textContent = completedEvaluations;
 
             const progress = total > 0 ? (completed / total) * 100 : 0;
             document.getElementById('progressFill').style.width = `${progress}%`;
@@ -1098,7 +1236,6 @@
                 localStorage.setItem(`eval_${currentUser.id}_${selectedEmployee.id}`, 
                     JSON.stringify(evaluations[selectedEmployee.id]));
 
-                // يمكن إضافة حفظ في Supabase هنا إذا أردت
                 showAlert('✅ تم حفظ التقييم مؤقتاً', 'success');
                 
             } catch (error) {
@@ -1126,12 +1263,14 @@
 
             try {
                 showAlert('جاري إرسال التقييم...', 'info');
-                document.getElementById('submitBtn').disabled = true;
-                document.getElementById('submitBtn').textContent = 'جاري الإرسال...';
+                const submitBtn = document.getElementById('submitBtn');
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '⏳ جاري الإرسال...';
 
                 // إرسال كل تقييم إلى Supabase
                 const evaluationsToSubmit = Object.values(employeeEvals);
                 let successCount = 0;
+                let errorCount = 0;
 
                 for (const evalData of evaluationsToSubmit) {
                     // إضافة دورة التقييم إذا كانت موجودة
@@ -1148,13 +1287,14 @@
 
                     if (error) {
                         console.error('❌ خطأ في إرسال التقييم:', error);
+                        errorCount++;
                         continue;
                     }
                     successCount++;
                 }
 
-                if (successCount === evaluationsToSubmit.length) {
-                    showAlert('✅ تم إرسال التقييم بنجاح!', 'success');
+                if (errorCount === 0) {
+                    showAlert(`✅ تم إرسال ${successCount} تقييم بنجاح!`, 'success');
                     
                     // تحديث الواجهة
                     setTimeout(() => {
@@ -1162,7 +1302,7 @@
                     }, 1500);
                     
                 } else {
-                    showAlert(`⚠️ تم إرسال ${successCount} من ${evaluationsToSubmit.length} تقييم`, 'error');
+                    showAlert(`⚠️ تم إرسال ${successCount} من ${evaluationsToSubmit.length} تقييم، فشل ${errorCount}`, 'error');
                 }
 
             } catch (error) {
@@ -1170,9 +1310,428 @@
                 showAlert('حدث خطأ أثناء إرسال التقييم', 'error');
                 
             } finally {
-                document.getElementById('submitBtn').disabled = false;
-                document.getElementById('submitBtn').textContent = '✅ إرسال التقييم النهائي';
+                const submitBtn = document.getElementById('submitBtn');
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '✅ إرسال التقييم النهائي';
             }
+        }
+
+        // ==================== وظائف التقارير ====================
+
+        // عرض/إخفاء قسم التقارير
+        function toggleReportsSection() {
+            const reportsSection = document.getElementById('reportsSection');
+            const toggleBtn = document.getElementById('toggleReportsBtn');
+            
+            if (reportsSection.style.display === 'none' || !reportsSection.style.display) {
+                reportsSection.style.display = 'block';
+                toggleBtn.innerHTML = '📋 العودة للتقييم';
+                loadReportsData();
+                window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+            } else {
+                reportsSection.style.display = 'none';
+                toggleBtn.innerHTML = '📊 التقارير';
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+        }
+
+        // تحميل بيانات التقارير
+        async function loadReportsData() {
+            await loadEmployeesForReports();
+            await generateTeamSummaryReport();
+            await refreshStatistics();
+        }
+
+        // تحميل قائمة الأخصائيين للتقارير
+        async function loadEmployeesForReports() {
+            const select = document.getElementById('employeeSelectForReport');
+            select.innerHTML = '<option value="">اختر أخصائياً</option>';
+            
+            myEmployees.forEach(employee => {
+                const option = document.createElement('option');
+                option.value = employee.id;
+                option.textContent = `${employee.full_name} (${employee.branch})`;
+                select.appendChild(option);
+            });
+        }
+
+        // توليد تقرير ملخص الفريق
+        async function generateTeamSummaryReport() {
+            const container = document.getElementById('teamSummaryReport');
+            
+            if (myEmployees.length === 0) {
+                container.innerHTML = '<p style="color: #666; text-align: center; padding: 20px;">لا يوجد أخصائيين تحت إشرافك</p>';
+                return;
+            }
+            
+            let html = `
+                <div style="margin-bottom: 15px;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                        <span style="font-size: 14px; color: #666;">عدد الأخصائيين:</span>
+                        <span style="font-weight: bold; color: var(--primary-color);">${myEmployees.length}</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                        <span style="font-size: 14px; color: #666;">تاريخ التقرير:</span>
+                        <span style="font-weight: bold;">${new Date().toLocaleDateString('ar-SA')}</span>
+                    </div>
+                </div>
+                
+                <div style="max-height: 250px; overflow-y: auto;">
+                    <table style="width: 100%; border-collapse: collapse; font-size: 14px;">
+                        <thead>
+                            <tr style="background: #f8fafc;">
+                                <th style="padding: 10px; text-align: right; border-bottom: 2px solid #e2e8f0;">الأخصائي</th>
+                                <th style="padding: 10px; text-align: center; border-bottom: 2px solid #e2e8f0;">حالة التقييم</th>
+                                <th style="padding: 10px; text-align: center; border-bottom: 2px solid #e2e8f0;">المتوسط</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+            `;
+            
+            let totalAverage = 0;
+            let completedCount = 0;
+            
+            for (const employee of myEmployees) {
+                const employeeEvals = evaluations[employee.id] || {};
+                const answeredQuestions = Object.keys(employeeEvals).length;
+                const totalQuestions = questions.length;
+                
+                // حساب المتوسط
+                let average = 0;
+                let status = 'لم يبدأ';
+                let statusColor = '#64748b';
+                
+                if (answeredQuestions > 0) {
+                    const totalScore = Object.values(employeeEvals).reduce((sum, eval) => sum + eval.score, 0);
+                    average = Math.round((totalScore / (answeredQuestions * 10)) * 100);
+                    
+                    if (answeredQuestions === totalQuestions) {
+                        status = 'مكتمل ✅';
+                        statusColor = '#10b981';
+                        completedCount++;
+                    } else {
+                        status = `جاري (${answeredQuestions}/${totalQuestions})`;
+                        statusColor = '#f59e0b';
+                    }
+                }
+                
+                totalAverage += average;
+                
+                html += `
+                    <tr style="border-bottom: 1px solid #e2e8f0;">
+                        <td style="padding: 10px;">${employee.full_name}</td>
+                        <td style="padding: 10px; text-align: center; color: ${statusColor};">${status}</td>
+                        <td style="padding: 10px; text-align: center; font-weight: bold; color: ${getGradeColor(average)};">${average}%</td>
+                    </tr>
+                `;
+            }
+            
+            const overallAverage = myEmployees.length > 0 ? Math.round(totalAverage / myEmployees.length) : 0;
+            
+            html += `
+                        </tbody>
+                    </table>
+                </div>
+                
+                <div style="margin-top: 15px; padding-top: 15px; border-top: 2px solid #f0f0f0;">
+                    <div style="display: flex; justify-content: space-between;">
+                        <span style="font-weight: bold; color: var(--primary-color);">المتوسط العام:</span>
+                        <span style="font-weight: bold; font-size: 18px; color: ${getGradeColor(overallAverage)};">${overallAverage}%</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; margin-top: 5px;">
+                        <span style="color: #666;">التقييمات المكتملة:</span>
+                        <span style="font-weight: bold; color: ${completedCount === myEmployees.length ? '#10b981' : '#f59e0b'};">${completedCount}/${myEmployees.length}</span>
+                    </div>
+                </div>
+            `;
+            
+            container.innerHTML = html;
+        }
+
+        // تحديث الإحصائيات
+        async function refreshStatistics() {
+            const statistics = {
+                excellent: 0,
+                veryGood: 0,
+                good: 0,
+                needsImprovement: 0,
+                total: 0,
+                average: 0
+            };
+            
+            // جمع الإحصائيات من جميع التقييمات
+            for (const employee of myEmployees) {
+                const employeeEvals = evaluations[employee.id] || {};
+                const answeredQuestions = Object.keys(employeeEvals).length;
+                
+                if (answeredQuestions > 0) {
+                    const totalScore = Object.values(employeeEvals).reduce((sum, eval) => sum + eval.score, 0);
+                    const average = Math.round((totalScore / (answeredQuestions * 10)) * 100);
+                    statistics.total += answeredQuestions;
+                    statistics.average += average;
+                    
+                    // تصنيف حسب الدرجة
+                    if (average >= 90) statistics.excellent++;
+                    else if (average >= 80) statistics.veryGood++;
+                    else if (average >= 70) statistics.good++;
+                    else statistics.needsImprovement++;
+                }
+            }
+            
+            // تحديث الواجهة
+            const statsContainer = document.getElementById('statisticsReport');
+            const overallAverage = myEmployees.length > 0 ? Math.round(statistics.average / myEmployees.length) : 0;
+            
+            statsContainer.innerHTML = `
+                <div style="text-align: center; padding: 15px;">
+                    <div class="stat-number" style="font-size: 32px; font-weight: bold; color: ${getGradeColor(overallAverage)};">${overallAverage}%</div>
+                    <div class="stat-label" style="color: #666; margin-top: 5px;">متوسط التقييم</div>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 15px;">
+                    <div style="text-align: center;">
+                        <div class="stat-number" style="font-size: 24px; font-weight: bold; color: var(--success-color);">${statistics.excellent}</div>
+                        <div class="stat-label" style="font-size: 12px; color: #666;">ممتاز</div>
+                    </div>
+                    <div style="text-align: center;">
+                        <div class="stat-number" style="font-size: 24px; font-weight: bold; color: #3b82f6;">${statistics.veryGood}</div>
+                        <div class="stat-label" style="font-size: 12px; color: #666;">جيد جداً</div>
+                    </div>
+                    <div style="text-align: center;">
+                        <div class="stat-number" style="font-size: 24px; font-weight: bold; color: var(--warning-color);">${statistics.good}</div>
+                        <div class="stat-label" style="font-size: 12px; color: #666;">جيد</div>
+                    </div>
+                    <div style="text-align: center;">
+                        <div class="stat-number" style="font-size: 24px; font-weight: bold; color: var(--danger-color);">${statistics.needsImprovement}</div>
+                        <div class="stat-label" style="font-size: 12px; color: #666;">يحتاج تحسين</div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // توليد تقرير فردي
+        async function generateIndividualReport() {
+            const employeeId = document.getElementById('employeeSelectForReport').value;
+            if (!employeeId) return;
+            
+            const employee = myEmployees.find(e => e.id == employeeId);
+            if (!employee) return;
+            
+            const employeeEvals = evaluations[employee.id] || {};
+            const answeredQuestions = Object.keys(employeeEvals).length;
+            const totalQuestions = questions.length;
+            
+            // حساب الإحصائيات
+            let totalScore = 0;
+            let questionDetails = '';
+            
+            if (answeredQuestions > 0) {
+                totalScore = Object.values(employeeEvals).reduce((sum, eval) => sum + eval.score, 0);
+                const average = Math.round((totalScore / (answeredQuestions * 10)) * 100);
+                
+                // تفاصيل الأسئلة
+                questionDetails = '<div style="margin-top: 20px;">';
+                questions.forEach((question, index) => {
+                    const evaluation = employeeEvals[question.id];
+                    const score = evaluation?.score || 0;
+                    const comment = evaluation?.comment || 'لا يوجد تعليق';
+                    
+                    questionDetails += `
+                        <div style="margin-bottom: 15px; padding: 15px; background: #f8fafc; border-radius: 8px;">
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                                <span style="font-weight: bold; color: var(--primary-color);">س ${index + 1}: ${question.question_text}</span>
+                                <span style="font-weight: bold; color: ${getScoreColor(score)};">${score}/10</span>
+                            </div>
+                            <div style="color: #666; font-size: 14px;">
+                                <strong>التعليق:</strong> ${comment}
+                            </div>
+                        </div>
+                    `;
+                });
+                questionDetails += '</div>';
+            }
+            
+            const averageScore = answeredQuestions > 0 ? Math.round((totalScore / (answeredQuestions * 10)) * 100) : 0;
+            const grade = getGradeFromScore(averageScore);
+            
+            const reportHTML = `
+                <div style="font-family: 'Segoe UI', Arial, sans-serif;">
+                    <div style="text-align: center; margin-bottom: 30px; padding-bottom: 20px; border-bottom: 3px solid var(--primary-color);">
+                        <h1 style="color: var(--primary-color); margin-bottom: 10px;">تقرير تقييم أداء موظف</h1>
+                        <p style="color: #666;">نظام التقييم الشامل - كاريتاس مصر</p>
+                    </div>
+                    
+                    <div style="background: #f8fafc; padding: 20px; border-radius: 10px; margin-bottom: 25px;">
+                        <h3 style="color: var(--primary-color); margin-bottom: 15px;">👤 معلومات الموظف</h3>
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px;">
+                            <div>
+                                <strong>الاسم الكامل:</strong> ${employee.full_name}
+                            </div>
+                            <div>
+                                <strong>الفرع:</strong> ${employee.branch}
+                            </div>
+                            <div>
+                                <strong>الدور:</strong> أخصائي ميداني
+                            </div>
+                            <div>
+                                <strong>تاريخ التقرير:</strong> ${new Date().toLocaleDateString('ar-SA')}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div style="background: #f0f9ff; padding: 20px; border-radius: 10px; margin-bottom: 25px; border-right: 5px solid ${getGradeColor(averageScore)};">
+                        <h3 style="color: var(--primary-color); margin-bottom: 15px;">📊 ملخص التقييم</h3>
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px;">
+                            <div style="text-align: center;">
+                                <div style="font-size: 36px; font-weight: bold; color: ${getGradeColor(averageScore)};">${averageScore}%</div>
+                                <div style="color: #666;">المتوسط العام</div>
+                            </div>
+                            <div style="text-align: center;">
+                                <div style="font-size: 36px; font-weight: bold; color: var(--primary-color);">${answeredQuestions}/${totalQuestions}</div>
+                                <div style="color: #666;">عدد الأسئلة المجابة</div>
+                            </div>
+                            <div style="text-align: center;">
+                                <div style="font-size: 36px; font-weight: bold; color: #8b5cf6;">${grade}</div>
+                                <div style="color: #666;">التقدير النهائي</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    ${answeredQuestions > 0 ? `
+                        <div style="margin-bottom: 25px;">
+                            <h3 style="color: var(--primary-color); margin-bottom: 15px;">📝 تفاصيل التقييم</h3>
+                            ${questionDetails}
+                        </div>
+                    ` : `
+                        <div style="text-align: center; padding: 40px; background: #f8fafc; border-radius: 10px; margin-bottom: 25px;">
+                            <h4 style="color: #666;">لم يتم تقييم هذا الموظف بعد</h4>
+                            <p style="color: #999; margin-top: 10px;">يجب إكمال عملية التقييم أولاً</p>
+                        </div>
+                    `}
+                    
+                    <div style="padding: 20px; border-top: 2px solid #e2e8f0; margin-top: 30px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <div>
+                                <strong>المقيِّم:</strong> ${currentUser.full_name}<br>
+                                <strong>التوقيع:</strong> _________________
+                            </div>
+                            <div style="text-align: left;">
+                                <strong>التاريخ:</strong> ${new Date().toLocaleDateString('ar-SA')}<br>
+                                <strong>الختم:</strong> 
+                                <div style="width: 100px; height: 100px; border: 2px dashed #ccc; display: inline-block; vertical-align: middle; margin-right: 10px;"></div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div style="margin-top: 40px; padding-top: 20px; border-top: 1px solid #e2e8f0; text-align: center; color: #999; font-size: 12px;">
+                        <p>© ${new Date().getFullYear()} كاريتاس مصر - نظام التقييم الشامل للموظفين</p>
+                        <p>تم إنشاء هذا التقرير آلياً بتاريخ ${new Date().toLocaleString('ar-SA')}</p>
+                    </div>
+                </div>
+            `;
+            
+            // عرض التقرير في المودال
+            document.getElementById('reportContent').innerHTML = reportHTML;
+            document.getElementById('reportModal').style.display = 'flex';
+        }
+
+        // طباعة التقرير الحالي
+        function printCurrentReport() {
+            const printContent = document.getElementById('reportContent').innerHTML;
+            const printWindow = window.open('', '_blank');
+            
+            printWindow.document.write(`
+                <!DOCTYPE html>
+                <html dir="rtl" lang="ar">
+                <head>
+                    <meta charset="UTF-8">
+                    <title>تقرير التقييم - كاريتاس مصر</title>
+                    <style>
+                        body { 
+                            font-family: 'Segoe UI', Arial, sans-serif; 
+                            direction: rtl; 
+                            padding: 20px;
+                            margin: 0;
+                        }
+                        @media print {
+                            @page { margin: 20mm; }
+                            .no-print { display: none !important; }
+                        }
+                    </style>
+                </head>
+                <body>
+                    ${printContent}
+                    <div class="no-print" style="text-align: center; margin-top: 40px;">
+                        <button onclick="window.print()" style="padding: 12px 30px; background: var(--primary-color); color: white; border: none; border-radius: 8px; cursor: pointer; margin: 10px;">
+                            🖨️ طباعة
+                        </button>
+                        <button onclick="window.close()" style="padding: 12px 30px; background: #64748b; color: white; border: none; border-radius: 8px; cursor: pointer; margin: 10px;">
+                            إغلاق
+                        </button>
+                    </div>
+                </body>
+                </html>
+            `);
+            
+            printWindow.document.close();
+        }
+
+        // طباعة تقرير فردي مباشر
+        async function printIndividualReport() {
+            await generateIndividualReport();
+            setTimeout(printCurrentReport, 500);
+        }
+
+        // طباعة تقرير ملخص الفريق
+        async function printTeamSummary() {
+            await generateTeamSummaryReport();
+            
+            const teamSummary = document.getElementById('teamSummaryReport').innerHTML;
+            const printWindow = window.open('', '_blank');
+            
+            printWindow.document.write(`
+                <!DOCTYPE html>
+                <html dir="rtl" lang="ar">
+                <head>
+                    <meta charset="UTF-8">
+                    <title>ملخص فريق ${currentUser.full_name}</title>
+                    <style>
+                        body { font-family: 'Segoe UI', Arial, sans-serif; direction: rtl; padding: 30px; }
+                        h1 { color: #1a2980; text-align: center; }
+                        table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+                        th { background: #f8fafc; padding: 12px; border-bottom: 2px solid #e2e8f0; }
+                        td { padding: 10px; border-bottom: 1px solid #e2e8f0; }
+                        @media print {
+                            @page { margin: 20mm; }
+                            .no-print { display: none; }
+                        }
+                    </style>
+                </head>
+                <body>
+                    <h1>📊 ملخص تقييم الفريق</h1>
+                    <div style="margin-bottom: 20px;">
+                        <strong>مسؤول الفريق:</strong> ${currentUser.full_name}<br>
+                        <strong>الفرع:</strong> ${currentUser.branch}<br>
+                        <strong>تاريخ التقرير:</strong> ${new Date().toLocaleDateString('ar-SA')}
+                    </div>
+                    ${teamSummary}
+                    <div class="no-print" style="text-align: center; margin-top: 40px;">
+                        <button onclick="window.print()" style="padding: 12px 30px; background: #1a2980; color: white; border: none; border-radius: 8px; cursor: pointer; margin: 10px;">
+                            🖨️ طباعة
+                        </button>
+                        <button onclick="window.close()" style="padding: 12px 30px; background: #666; color: white; border: none; border-radius: 8px; cursor: pointer; margin: 10px;">
+                            إغلاق
+                        </button>
+                    </div>
+                </body>
+                </html>
+            `);
+            
+            printWindow.document.close();
+        }
+
+        // إغلاق نافذة التقرير
+        function closeReportModal() {
+            document.getElementById('reportModal').style.display = 'none';
         }
 
         // ==================== وظائف مساعدة ====================
@@ -1186,16 +1745,6 @@
             }, 4000);
         }
 
-        function loadScript(src) {
-            return new Promise((resolve, reject) => {
-                const script = document.createElement('script');
-                script.src = src;
-                script.onload = resolve;
-                script.onerror = reject;
-                document.head.appendChild(script);
-            });
-        }
-
         function logout() {
             if (confirm('هل تريد تسجيل الخروج؟')) {
                 localStorage.removeItem('caritas_user');
@@ -1203,468 +1752,30 @@
             }
         }
 
-        // ==================== اختصارات لوحة المفاتيح ====================
-        document.addEventListener('keydown', (e) => {
-            if (e.ctrlKey && e.key === 's') {
-                e.preventDefault();
-                saveEvaluation();
-            }
-        });
-        // ==================== وظائف التقارير ====================
-
-// عرض/إخفاء قسم التقارير
-function toggleReportsSection() {
-    const reportsSection = document.getElementById('reportsSection');
-    const toggleBtn = document.getElementById('toggleReportsBtn');
-    
-    if (reportsSection.style.display === 'none' || !reportsSection.style.display) {
-        reportsSection.style.display = 'block';
-        toggleBtn.innerHTML = '📋 العودة للتقييم';
-        toggleReportsData();
-        window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
-    } else {
-        reportsSection.style.display = 'none';
-        toggleBtn.innerHTML = '📊 التقارير';
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-}
-
-// تحميل بيانات التقارير
-async function toggleReportsData() {
-    await loadEmployeesForReports();
-    await generateTeamSummaryReport();
-    await refreshStatistics();
-}
-
-// تحميل قائمة الأخصائيين للتقارير
-async function loadEmployeesForReports() {
-    const select = document.getElementById('employeeSelectForReport');
-    select.innerHTML = '<option value="">اختر أخصائياً</option>';
-    
-    myEmployees.forEach(employee => {
-        const option = document.createElement('option');
-        option.value = employee.id;
-        option.textContent = `${employee.full_name} (${employee.branch})`;
-        select.appendChild(option);
-    });
-    
-    // تفعيل/تعطيل زر التقرير الفردي
-    select.addEventListener('change', function() {
-        const btn = document.getElementById('individualReportBtn');
-        const printBtn = document.getElementById('printIndividualBtn');
-        btn.disabled = !this.value;
-        printBtn.disabled = !this.value;
-    });
-}
-
-// توليد تقرير ملخص الفريق
-async function generateTeamSummaryReport() {
-    const container = document.getElementById('teamSummaryReport');
-    
-    if (myEmployees.length === 0) {
-        container.innerHTML = '<p style="color: #666; text-align: center; padding: 20px;">لا يوجد أخصائيين تحت إشرافك</p>';
-        return;
-    }
-    
-    let html = `
-        <div style="margin-bottom: 15px;">
-            <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
-                <span style="font-size: 14px; color: #666;">عدد الأخصائيين:</span>
-                <span style="font-weight: bold; color: var(--primary-color);">${myEmployees.length}</span>
-            </div>
-            <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
-                <span style="font-size: 14px; color: #666;">تاريخ التقرير:</span>
-                <span style="font-weight: bold;">${new Date().toLocaleDateString('ar-SA')}</span>
-            </div>
-        </div>
-        
-        <div style="max-height: 250px; overflow-y: auto;">
-            <table style="width: 100%; border-collapse: collapse; font-size: 14px;">
-                <thead>
-                    <tr style="background: #f8fafc;">
-                        <th style="padding: 10px; text-align: right; border-bottom: 2px solid #e2e8f0;">الأخصائي</th>
-                        <th style="padding: 10px; text-align: center; border-bottom: 2px solid #e2e8f0;">حالة التقييم</th>
-                        <th style="padding: 10px; text-align: center; border-bottom: 2px solid #e2e8f0;">المتوسط</th>
-                    </tr>
-                </thead>
-                <tbody>
-    `;
-    
-    let totalAverage = 0;
-    let completedCount = 0;
-    
-    for (const employee of myEmployees) {
-        const employeeEvals = evaluations[employee.id] || {};
-        const answeredQuestions = Object.keys(employeeEvals).length;
-        const totalQuestions = questions.length;
-        
-        // حساب المتوسط
-        let average = 0;
-        let status = 'لم يبدأ';
-        let statusColor = '#64748b';
-        
-        if (answeredQuestions > 0) {
-            const totalScore = Object.values(employeeEvals).reduce((sum, eval) => sum + eval.score, 0);
-            average = Math.round((totalScore / (answeredQuestions * 10)) * 100);
-            
-            if (answeredQuestions === totalQuestions) {
-                status = 'مكتمل ✅';
-                statusColor = '#10b981';
-                completedCount++;
-            } else {
-                status = `جاري (${answeredQuestions}/${totalQuestions})`;
-                statusColor = '#f59e0b';
-            }
+        // ==================== وظائف مساعدة للتقارير ====================
+        function getGradeColor(percentage) {
+            if (percentage >= 90) return '#10b981'; // ممتاز
+            if (percentage >= 80) return '#3b82f6'; // جيد جداً
+            if (percentage >= 70) return '#f59e0b'; // جيد
+            if (percentage >= 60) return '#ef4444'; // يحتاج تحسين
+            return '#64748b'; // غير مقيم
         }
-        
-        totalAverage += average;
-        
-        html += `
-            <tr style="border-bottom: 1px solid #e2e8f0;">
-                <td style="padding: 10px;">${employee.full_name}</td>
-                <td style="padding: 10px; text-align: center; color: ${statusColor};">${status}</td>
-                <td style="padding: 10px; text-align: center; font-weight: bold; color: ${getGradeColor(average)};">${average}%</td>
-            </tr>
-        `;
-    }
-    
-    const overallAverage = myEmployees.length > 0 ? Math.round(totalAverage / myEmployees.length) : 0;
-    
-    html += `
-                </tbody>
-            </table>
-        </div>
-        
-        <div style="margin-top: 15px; padding-top: 15px; border-top: 2px solid #f0f0f0;">
-            <div style="display: flex; justify-content: space-between;">
-                <span style="font-weight: bold; color: var(--primary-color);">المتوسط العام:</span>
-                <span style="font-weight: bold; font-size: 18px; color: ${getGradeColor(overallAverage)};">${overallAverage}%</span>
-            </div>
-            <div style="display: flex; justify-content: space-between; margin-top: 5px;">
-                <span style="color: #666;">التقييمات المكتملة:</span>
-                <span style="font-weight: bold; color: ${completedCount === myEmployees.length ? '#10b981' : '#f59e0b'};">${completedCount}/${myEmployees.length}</span>
-            </div>
-        </div>
-    `;
-    
-    container.innerHTML = html;
-}
 
-// تحديث الإحصائيات
-async function refreshStatistics() {
-    const statistics = {
-        excellent: 0,
-        veryGood: 0,
-        good: 0,
-        needsImprovement: 0,
-        total: 0,
-        average: 0
-    };
-    
-    // جمع الإحصائيات من جميع التقييمات
-    for (const employee of myEmployees) {
-        const employeeEvals = evaluations[employee.id] || {};
-        const answeredQuestions = Object.keys(employeeEvals).length;
-        
-        if (answeredQuestions > 0) {
-            const totalScore = Object.values(employeeEvals).reduce((sum, eval) => sum + eval.score, 0);
-            const average = Math.round((totalScore / (answeredQuestions * 10)) * 100);
-            statistics.total += answeredQuestions;
-            statistics.average += average;
-            
-            // تصنيف حسب الدرجة
-            if (average >= 90) statistics.excellent++;
-            else if (average >= 80) statistics.veryGood++;
-            else if (average >= 70) statistics.good++;
-            else statistics.needsImprovement++;
+        function getScoreColor(score) {
+            if (score === 10) return '#10b981';
+            if (score === 8) return '#3b82f6';
+            if (score === 6) return '#f59e0b';
+            if (score === 4) return '#ef4444';
+            return '#64748b';
         }
-    }
-    
-    // تحديث الواجهة
-    const statsContainer = document.getElementById('statisticsReport');
-    const overallAverage = myEmployees.length > 0 ? Math.round(statistics.average / myEmployees.length) : 0;
-    
-    statsContainer.innerHTML = `
-        <div style="text-align: center; padding: 15px;">
-            <div class="stat-number" style="font-size: 32px; font-weight: bold; color: ${getGradeColor(overallAverage)};">${overallAverage}%</div>
-            <div class="stat-label" style="color: #666; margin-top: 5px;">متوسط التقييم</div>
-        </div>
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 15px;">
-            <div style="text-align: center;">
-                <div class="stat-number" style="font-size: 24px; font-weight: bold; color: var(--success-color);">${statistics.excellent}</div>
-                <div class="stat-label" style="font-size: 12px; color: #666;">ممتاز</div>
-            </div>
-            <div style="text-align: center;">
-                <div class="stat-number" style="font-size: 24px; font-weight: bold; color: #3b82f6;">${statistics.veryGood}</div>
-                <div class="stat-label" style="font-size: 12px; color: #666;">جيد جداً</div>
-            </div>
-            <div style="text-align: center;">
-                <div class="stat-number" style="font-size: 24px; font-weight: bold; color: var(--warning-color);">${statistics.good}</div>
-                <div class="stat-label" style="font-size: 12px; color: #666;">جيد</div>
-            </div>
-            <div style="text-align: center;">
-                <div class="stat-number" style="font-size: 24px; font-weight: bold; color: var(--danger-color);">${statistics.needsImprovement}</div>
-                <div class="stat-label" style="font-size: 12px; color: #666;">يحتاج تحسين</div>
-            </div>
-        </div>
-    `;
-}
 
-// توليد تقرير فردي
-async function generateIndividualReport() {
-    const employeeId = document.getElementById('employeeSelectForReport').value;
-    if (!employeeId) return;
-    
-    const employee = myEmployees.find(e => e.id === employeeId);
-    if (!employee) return;
-    
-    const employeeEvals = evaluations[employee.id] || {};
-    const answeredQuestions = Object.keys(employeeEvals).length;
-    const totalQuestions = questions.length;
-    
-    // حساب الإحصائيات
-    let totalScore = 0;
-    let questionDetails = '';
-    
-    if (answeredQuestions > 0) {
-        totalScore = Object.values(employeeEvals).reduce((sum, eval) => sum + eval.score, 0);
-        const average = Math.round((totalScore / (answeredQuestions * 10)) * 100);
-        
-        // تفاصيل الأسئلة
-        questionDetails = '<div style="margin-top: 20px;">';
-        questions.forEach((question, index) => {
-            const evaluation = employeeEvals[question.id];
-            const score = evaluation?.score || 0;
-            const comment = evaluation?.comment || 'لا يوجد تعليق';
-            
-            questionDetails += `
-                <div style="margin-bottom: 15px; padding: 15px; background: #f8fafc; border-radius: 8px;">
-                    <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
-                        <span style="font-weight: bold; color: var(--primary-color);">س ${index + 1}: ${question.question_text}</span>
-                        <span style="font-weight: bold; color: ${getScoreColor(score)};">${score}/10</span>
-                    </div>
-                    <div style="color: #666; font-size: 14px;">
-                        <strong>التعليق:</strong> ${comment}
-                    </div>
-                </div>
-            `;
-        });
-        questionDetails += '</div>';
-    }
-    
-    const averageScore = answeredQuestions > 0 ? Math.round((totalScore / (answeredQuestions * 10)) * 100) : 0;
-    const grade = getGradeFromScore(averageScore);
-    
-    const reportHTML = `
-        <div style="font-family: 'Segoe UI', Arial, sans-serif;">
-            <div style="text-align: center; margin-bottom: 30px; padding-bottom: 20px; border-bottom: 3px solid var(--primary-color);">
-                <img src="logo_caritas.png" alt="شعار كاريتاس" style="height: 80px; margin-bottom: 15px;">
-                <h1 style="color: var(--primary-color); margin-bottom: 10px;">تقرير تقييم أداء موظف</h1>
-                <p style="color: #666;">نظام التقييم الشامل - كاريتاس مصر</p>
-            </div>
-            
-            <div style="background: #f8fafc; padding: 20px; border-radius: 10px; margin-bottom: 25px;">
-                <h3 style="color: var(--primary-color); margin-bottom: 15px;">👤 معلومات الموظف</h3>
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px;">
-                    <div>
-                        <strong>الاسم الكامل:</strong> ${employee.full_name}
-                    </div>
-                    <div>
-                        <strong>الفرع:</strong> ${employee.branch}
-                    </div>
-                    <div>
-                        <strong>الدور:</strong> أخصائي ميداني
-                    </div>
-                    <div>
-                        <strong>تاريخ التقرير:</strong> ${new Date().toLocaleDateString('ar-SA')}
-                    </div>
-                </div>
-            </div>
-            
-            <div style="background: #f0f9ff; padding: 20px; border-radius: 10px; margin-bottom: 25px; border-right: 5px solid ${getGradeColor(averageScore)};">
-                <h3 style="color: var(--primary-color); margin-bottom: 15px;">📊 ملخص التقييم</h3>
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px;">
-                    <div style="text-align: center;">
-                        <div style="font-size: 36px; font-weight: bold; color: ${getGradeColor(averageScore)};">${averageScore}%</div>
-                        <div style="color: #666;">المتوسط العام</div>
-                    </div>
-                    <div style="text-align: center;">
-                        <div style="font-size: 36px; font-weight: bold; color: var(--primary-color);">${answeredQuestions}/${totalQuestions}</div>
-                        <div style="color: #666;">عدد الأسئلة المجابة</div>
-                    </div>
-                    <div style="text-align: center;">
-                        <div style="font-size: 36px; font-weight: bold; color: #8b5cf6;">${grade}</div>
-                        <div style="color: #666;">التقدير النهائي</div>
-                    </div>
-                </div>
-            </div>
-            
-            ${answeredQuestions > 0 ? `
-                <div style="margin-bottom: 25px;">
-                    <h3 style="color: var(--primary-color); margin-bottom: 15px;">📝 تفاصيل التقييم</h3>
-                    ${questionDetails}
-                </div>
-            ` : `
-                <div style="text-align: center; padding: 40px; background: #f8fafc; border-radius: 10px; margin-bottom: 25px;">
-                    <h4 style="color: #666;">لم يتم تقييم هذا الموظف بعد</h4>
-                    <p style="color: #999; margin-top: 10px;">يجب إكمال عملية التقييم أولاً</p>
-                </div>
-            `}
-            
-            <div style="padding: 20px; border-top: 2px solid #e2e8f0; margin-top: 30px;">
-                <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <div>
-                        <strong>المقيِّم:</strong> ${currentUser.full_name}<br>
-                        <strong>التوقيع:</strong> _________________
-                    </div>
-                    <div style="text-align: left;">
-                        <strong>التاريخ:</strong> ${new Date().toLocaleDateString('ar-SA')}<br>
-                        <strong>الختم:</strong> 
-                        <div style="width: 100px; height: 100px; border: 2px dashed #ccc; display: inline-block; vertical-align: middle; margin-right: 10px;"></div>
-                    </div>
-                </div>
-            </div>
-            
-            <div style="margin-top: 40px; padding-top: 20px; border-top: 1px solid #e2e8f0; text-align: center; color: #999; font-size: 12px;">
-                <p>© ${new Date().getFullYear()} كاريتاس مصر - نظام التقييم الشامل للموظفين</p>
-                <p>تم إنشاء هذا التقرير آلياً بتاريخ ${new Date().toLocaleString('ar-SA')}</p>
-            </div>
-        </div>
-    `;
-    
-    // عرض التقرير في المودال
-    document.getElementById('reportContent').innerHTML = reportHTML;
-    document.getElementById('reportModal').style.display = 'flex';
-}
-
-// طباعة التقرير الحالي
-function printCurrentReport() {
-    const printContent = document.getElementById('reportContent').innerHTML;
-    const originalContent = document.body.innerHTML;
-    
-    document.body.innerHTML = `
-        <!DOCTYPE html>
-        <html dir="rtl" lang="ar">
-        <head>
-            <meta charset="UTF-8">
-            <title>تقرير التقييم - كاريتاس مصر</title>
-            <style>
-                @media print {
-                    body { margin: 0; padding: 20px; font-family: 'Segoe UI', Arial, sans-serif; }
-                    .no-print { display: none !important; }
-                    @page { margin: 20mm; }
-                }
-                body { font-family: 'Segoe UI', Arial, sans-serif; direction: rtl; }
-            </style>
-        </head>
-        <body>
-            ${printContent}
-            <div class="no-print" style="text-align: center; margin-top: 40px;">
-                <button onclick="window.close()" style="padding: 12px 30px; background: var(--primary-color); color: white; border: none; border-radius: 8px; cursor: pointer;">
-                    إغلاق النافذة
-                </button>
-            </div>
-        </body>
-        </html>
-    `;
-    
-    window.print();
-    document.body.innerHTML = originalContent;
-    location.reload();
-}
-
-// طباعة تقرير فردي مباشر
-async function printIndividualReport() {
-    const employeeId = document.getElementById('employeeSelectForReport').value;
-    if (!employeeId) return;
-    
-    await generateIndividualReport();
-    setTimeout(printCurrentReport, 500);
-}
-
-// طباعة تقرير ملخص الفريق
-async function printTeamSummary() {
-    await generateTeamSummaryReport();
-    
-    const teamSummary = document.getElementById('teamSummaryReport').innerHTML;
-    const printWindow = window.open('', '_blank');
-    
-    printWindow.document.write(`
-        <!DOCTYPE html>
-        <html dir="rtl" lang="ar">
-        <head>
-            <meta charset="UTF-8">
-            <title>ملخص فريق ${currentUser.full_name}</title>
-            <style>
-                body { font-family: 'Segoe UI', Arial, sans-serif; direction: rtl; padding: 30px; }
-                h1 { color: #1a2980; text-align: center; }
-                table { width: 100%; border-collapse: collapse; margin: 20px 0; }
-                th { background: #f8fafc; padding: 12px; border-bottom: 2px solid #e2e8f0; }
-                td { padding: 10px; border-bottom: 1px solid #e2e8f0; }
-                @media print {
-                    @page { margin: 20mm; }
-                    .no-print { display: none; }
-                }
-            </style>
-        </head>
-        <body>
-            <h1>📊 ملخص تقييم الفريق</h1>
-            <div style="margin-bottom: 20px;">
-                <strong>مسؤول الفريق:</strong> ${currentUser.full_name}<br>
-                <strong>الفرع:</strong> ${currentUser.branch}<br>
-                <strong>تاريخ التقرير:</strong> ${new Date().toLocaleDateString('ar-SA')}
-            </div>
-            ${teamSummary}
-            <div class="no-print" style="text-align: center; margin-top: 40px;">
-                <button onclick="window.print()" style="padding: 12px 30px; background: #1a2980; color: white; border: none; border-radius: 8px; cursor: pointer; margin: 10px;">
-                    🖨️ طباعة
-                </button>
-                <button onclick="window.close()" style="padding: 12px 30px; background: #666; color: white; border: none; border-radius: 8px; cursor: pointer; margin: 10px;">
-                    إغلاق
-                </button>
-            </div>
-            <script>
-                window.onload = function() {
-                    window.print();
-                }
-            </script>
-        </body>
-        </html>
-    `);
-    
-    printWindow.document.close();
-}
-
-// إغلاق نافذة التقرير
-function closeReportModal() {
-    document.getElementById('reportModal').style.display = 'none';
-}
-
-// ==================== وظائف مساعدة للتقارير ====================
-
-function getGradeColor(percentage) {
-    if (percentage >= 90) return '#10b981'; // ممتاز
-    if (percentage >= 80) return '#3b82f6'; // جيد جداً
-    if (percentage >= 70) return '#f59e0b'; // جيد
-    if (percentage >= 60) return '#ef4444'; // يحتاج تحسين
-    return '#64748b'; // غير مقيم
-}
-
-function getScoreColor(score) {
-    if (score === 10) return '#10b981';
-    if (score === 8) return '#3b82f6';
-    if (score === 6) return '#f59e0b';
-    if (score === 4) return '#ef4444';
-    return '#64748b';
-}
-
-function getGradeFromScore(percentage) {
-    if (percentage >= 90) return 'ممتاز';
-    if (percentage >= 80) return 'جيد جداً';
-    if (percentage >= 70) return 'جيد';
-    if (percentage >= 60) return 'يحتاج تحسين';
-    return 'غير مقيم';
-}
+        function getGradeFromScore(percentage) {
+            if (percentage >= 90) return 'ممتاز';
+            if (percentage >= 80) return 'جيد جداً';
+            if (percentage >= 70) return 'جيد';
+            if (percentage >= 60) return 'يحتاج تحسين';
+            return 'غير مقيم';
+        }
     </script>
 </body>
 </html>
