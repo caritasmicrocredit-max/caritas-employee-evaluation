@@ -4,7 +4,191 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>تسجيل الدخول - نظام التقييم</title>
-    <link rel="stylesheet" href="css/style.css">
+    
+    <!-- تنسيقات CSS -->
+    <style>
+        /* إعدادات عامة */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', 'Arial', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            direction: rtl;
+        }
+
+        /* حاوية تسجيل الدخول */
+        .login-container {
+            width: 100%;
+            max-width: 450px;
+        }
+
+        /* صندوق تسجيل الدخول */
+        .login-box {
+            background: white;
+            border-radius: 16px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        /* رأس الصفحة */
+        .login-header {
+            text-align: center;
+            margin-bottom: 32px;
+        }
+
+        .login-header h1 {
+            color: #333;
+            font-size: 28px;
+            margin-bottom: 12px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .login-header p {
+            color: #666;
+            font-size: 16px;
+        }
+
+        /* التنبيهات */
+        .alert {
+            padding: 14px 18px;
+            border-radius: 8px;
+            margin-bottom: 24px;
+            font-size: 14px;
+            opacity: 0;
+            transform: translateY(-10px);
+            transition: all 0.3s ease;
+            display: none;
+        }
+
+        .alert.show {
+            opacity: 1;
+            transform: translateY(0);
+            display: block;
+        }
+
+        .alert-danger {
+            background-color: #fee;
+            border: 1px solid #fcc;
+            color: #c00;
+        }
+
+        .alert-success {
+            background-color: #efffef;
+            border: 1px solid #cfc;
+            color: #080;
+        }
+
+        /* نموذج الدخول */
+        .form-group {
+            margin-bottom: 24px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 14px 16px;
+            border: 2px solid #e5e7eb;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            background: #f9fafb;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: #667eea;
+            background: white;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        /* زر تسجيل الدخول */
+        .btn {
+            width: 100%;
+            padding: 16px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 10px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        /* معلومات الحسابات التجريبية */
+        .test-accounts {
+            margin-top: 24px;
+            padding-top: 24px;
+            border-top: 1px solid #e5e7eb;
+        }
+
+        .test-accounts p {
+            font-size: 13px;
+            color: #6b7280;
+            text-align: center;
+            margin-bottom: 12px;
+        }
+
+        .account-item {
+            font-size: 12px;
+            color: #6b7280;
+            padding: 8px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            margin-bottom: 4px;
+        }
+
+        .account-item:hover {
+            background: #f3f4f6;
+            color: #374151;
+        }
+
+        /* تصميم متجاوب */
+        @media (max-width: 480px) {
+            .login-box {
+                padding: 30px 24px;
+            }
+            
+            .login-header h1 {
+                font-size: 24px;
+            }
+        }
+    </style>
 </head>
 <body>
     <div class="login-container">
@@ -14,7 +198,7 @@
                 <p>مرحباً بك! قم بتسجيل الدخول للمتابعة</p>
             </div>
 
-            <div id="alertBox" class="alert alert-danger"></div>
+            <div id="alertBox" class="alert"></div>
 
             <form id="loginForm">
                 <div class="form-group">
@@ -26,6 +210,7 @@
                         placeholder="أدخل اسم المستخدم"
                         required
                         autocomplete="username"
+                        value="admin"  <!-- قيمة افتراضية للاختبار -->
                     >
                 </div>
 
@@ -38,6 +223,7 @@
                         placeholder="أدخل كلمة المرور"
                         required
                         autocomplete="current-password"
+                        value="admin123"  <!-- قيمة افتراضية للاختبار -->
                     >
                 </div>
 
@@ -46,38 +232,60 @@
                 </button>
             </form>
 
-            <div style="margin-top: 24px; padding-top: 24px; border-top: 1px solid #e5e7eb;">
-                <p style="font-size: 13px; color: #6b7280; text-align: center; margin-bottom: 12px;">
-                    <strong>حسابات تجريبية:</strong>
-                </p>
-                <div style="font-size: 12px; color: #6b7280; line-height: 1.8;">
-                    <div>👤 <strong>مدير عام:</strong> admin / admin123</div>
-                    <div>👥 <strong>مسؤول فريق:</strong> ahmed.team / pass123</div>
-                    <div>📝 <strong>أخصائي:</strong> mohamed.spec / pass123</div>
+            <div class="test-accounts">
+                <p><strong>حسابات تجريبية:</strong></p>
+                <div>
+                    <div class="account-item" onclick="fillCredentials('admin', 'admin123')">
+                        👤 <strong>مدير عام:</strong> admin / admin123
+                    </div>
+                    <div class="account-item" onclick="fillCredentials('ahmed.team', 'pass123')">
+                        👥 <strong>مسؤول فريق:</strong> ahmed.team / pass123
+                    </div>
+                    <div class="account-item" onclick="fillCredentials('mohamed.spec', 'pass123')">
+                        📝 <strong>أخصائي:</strong> mohamed.spec / pass123
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Supabase -->
+    <!-- Supabase JS -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     
-    <!-- ملف الاتصال بقاعدة البيانات -->
-    <script src="js/supabaseClient.js"></script>
-    
-    <!-- كود تسجيل الدخول -->
+    <!-- كود JavaScript مباشرة في الصفحة -->
     <script>
+        // تكوين Supabase
+        const supabaseUrl = 'https://pzsxhypigslcvduegvpa.supabase.co';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB6c3hoeXBpZ3NsY3ZkdWVndnBhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU0OTMxOTQsImV4cCI6MjA4MTA2OTE5NH0.0LC452nPLSywGh1mKxNQedm3M_yWZ4srck-gK67iZag';
+
+        // إنشاء عميل Supabase
+        let supabase;
+
+        // تحميل Supabase عند بدء الصفحة
+        document.addEventListener('DOMContentLoaded', async function() {
+            try {
+                // تهيئة Supabase
+                supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+                console.log('Supabase تم تهيئته بنجاح');
+                
+                // اختبار الاتصال
+                await testConnection();
+                
+                // التحقق إذا كان المستخدم مسجل دخول بالفعل
+                const currentUser = getCurrentUser();
+                if (currentUser) {
+                    window.location.href = 'dashboard.html';
+                }
+            } catch (error) {
+                console.error('خطأ في تهيئة Supabase:', error);
+                showAlert('خطأ في الاتصال بالنظام. يرجى تحديث الصفحة.', 'danger');
+            }
+        });
+
+        // عناصر الصفحة
         const loginForm = document.getElementById('loginForm');
         const alertBox = document.getElementById('alertBox');
         const loginBtn = document.getElementById('loginBtn');
-
-        // التحقق إذا كان المستخدم مسجل دخول بالفعل
-        window.addEventListener('DOMContentLoaded', () => {
-            const currentUser = getCurrentUser();
-            if (currentUser) {
-                window.location.href = 'dashboard.html';
-            }
-        });
 
         // معالجة تسجيل الدخول
         loginForm.addEventListener('submit', async (e) => {
@@ -97,52 +305,131 @@
             loginBtn.textContent = 'جاري تسجيل الدخول...';
 
             try {
-                const result = await login(username, password);
+                const result = await loginUser(username, password);
 
                 if (result.success) {
                     showAlert('تم تسجيل الدخول بنجاح! جاري التحويل...', 'success');
+                    
+                    // حفظ بيانات المستخدم
+                    localStorage.setItem('currentUser', JSON.stringify(result.user));
+                    
+                    // الانتقال إلى لوحة التحكم
                     setTimeout(() => {
                         window.location.href = 'dashboard.html';
-                    }, 1000);
+                    }, 1500);
                 } else {
                     showAlert(result.message, 'danger');
                     loginBtn.disabled = false;
                     loginBtn.textContent = 'تسجيل الدخول';
                 }
             } catch (error) {
-                console.error('خطأ:', error);
+                console.error('خطأ غير متوقع:', error);
                 showAlert('حدث خطأ غير متوقع. الرجاء المحاولة مرة أخرى', 'danger');
                 loginBtn.disabled = false;
                 loginBtn.textContent = 'تسجيل الدخول';
             }
         });
 
-        // عرض رسالة تنبيه
+        // دالة تسجيل الدخول
+        async function loginUser(username, password) {
+            try {
+                // البحث عن المستخدم في جدول employees
+                const { data, error } = await supabase
+                    .from('employees')
+                    .select('*')
+                    .eq('username', username)
+                    .single();
+
+                if (error) {
+                    console.error('خطأ في البحث:', error);
+                    return { 
+                        success: false, 
+                        message: 'اسم المستخدم أو كلمة المرور غير صحيحة' 
+                    };
+                }
+
+                if (!data) {
+                    return { 
+                        success: false, 
+                        message: 'اسم المستخدم غير موجود' 
+                    };
+                }
+
+                // تحقق من كلمة المرور
+                // ملاحظة: هذا للتجريب فقط. في الإنتاج استخدم مقارنة مشفرة
+                if (data.password === password || data.password_hash === password) {
+                    return { 
+                        success: true, 
+                        user: data,
+                        message: 'تم تسجيل الدخول بنجاح'
+                    };
+                } else {
+                    return { 
+                        success: false, 
+                        message: 'كلمة المرور غير صحيحة' 
+                    };
+                }
+            } catch (error) {
+                console.error('خطأ في تسجيل الدخول:', error);
+                return { 
+                    success: false, 
+                    message: 'حدث خطأ أثناء تسجيل الدخول' 
+                };
+            }
+        }
+
+        // دالة اختبار الاتصال بقاعدة البيانات
+        async function testConnection() {
+            try {
+                const { data, error } = await supabase
+                    .from('employees')
+                    .select('count')
+                    .limit(1);
+
+                if (error) {
+                    console.error('خطأ في الاتصال:', error);
+                    showAlert('تحذير: هناك مشكلة في الاتصال بقاعدة البيانات', 'danger');
+                    return false;
+                }
+
+                console.log('الاتصال بقاعدة البيانات ناجح');
+                return true;
+            } catch (error) {
+                console.error('خطأ في اختبار الاتصال:', error);
+                showAlert('تحذير: لا يمكن الاتصال بقاعدة البيانات', 'danger');
+                return false;
+            }
+        }
+
+        // دالة الحصول على المستخدم الحالي
+        function getCurrentUser() {
+            const userData = localStorage.getItem('currentUser');
+            return userData ? JSON.parse(userData) : null;
+        }
+
+        // دالة عرض التنبيهات
         function showAlert(message, type) {
             alertBox.textContent = message;
             alertBox.className = `alert alert-${type} show`;
             
+            // إخفاء التنبيه بعد 5 ثواني
             setTimeout(() => {
                 alertBox.classList.remove('show');
             }, 5000);
         }
 
-        // ملء تلقائي للحساب التجريبي عند النقر
-        document.querySelectorAll('div[style*="line-height"] > div').forEach(div => {
-            div.style.cursor = 'pointer';
-            div.addEventListener('click', function() {
-                const text = this.textContent;
-                if (text.includes('admin')) {
-                    document.getElementById('username').value = 'admin';
-                    document.getElementById('password').value = 'admin123';
-                } else if (text.includes('ahmed.team')) {
-                    document.getElementById('username').value = 'ahmed.team';
-                    document.getElementById('password').value = 'pass123';
-                } else if (text.includes('mohamed.spec')) {
-                    document.getElementById('username').value = 'mohamed.spec';
-                    document.getElementById('password').value = 'pass123';
-                }
-            });
+        // دالة ملء بيانات الاعتماد تلقائياً
+        function fillCredentials(username, password) {
+            document.getElementById('username').value = username;
+            document.getElementById('password').value = password;
+            showAlert(`تم تعبئة بيانات: ${username}`, 'success');
+        }
+
+        // تفعيل إرسال النموذج بالضغط على Enter
+        document.getElementById('password').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                loginForm.dispatchEvent(new Event('submit'));
+            }
         });
     </script>
 </body>
