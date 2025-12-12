@@ -3,8 +3,13 @@
 <head>
   <meta charset="UTF-8">
   <title>تسجيل الدخول - Caritas</title>
+  <link rel="stylesheet" href="style.css">
 </head>
-<body>
+<body class="loginPage">
+
+  <!-- اللوجو -->
+  <img src="logo_caritas.png" alt="Caritas Logo" style="width:150px; margin-bottom:20px;">
+
   <h1>تسجيل الدخول</h1>
 
   <label for="username">اسم المستخدم:</label>
@@ -37,7 +42,8 @@
       } else {
         alert('تم تسجيل الدخول بنجاح!');
         console.log(data); // بيانات المستخدم كاملة، ممكن تستخدم role_id لتوجيهه
-        // مثال لتوجيه حسب الدور:
+
+        // توجيه حسب الدور
         switch (data.role_id) {
           case 5:
             window.location.href = 'adminDashboard.html';
@@ -54,5 +60,6 @@
       }
     }
   </script>
+
 </body>
 </html>
