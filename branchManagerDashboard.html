@@ -1,0 +1,2073 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>لوحة مدير الفروع - نظام التقييم</title>
+    
+    <style>
+        :root {
+            --primary-color: #1e40af;
+            --secondary-color: #0ea5e9;
+            --accent-color: #8b5cf6;
+            --light-bg: #f8fafc;
+            --dark-text: #1e293b;
+            --light-text: #64748b;
+            --success-color: #10b981;
+            --warning-color: #f59e0b;
+            --danger-color: #ef4444;
+            --info-color: #3b82f6;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: var(--dark-text);
+            direction: rtl;
+            min-height: 100vh;
+        }
+
+        /* الهيدر */
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            color: var(--primary-color);
+            padding: 20px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .user-avatar {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 28px;
+            font-weight: bold;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+
+        .user-details h2 {
+            font-size: 24px;
+            margin-bottom: 5px;
+            color: var(--primary-color);
+        }
+
+        .user-details p {
+            font-size: 16px;
+            color: var(--light-text);
+            opacity: 0.9;
+        }
+
+        .logout-btn {
+            background: linear-gradient(135deg, var(--danger-color) 0%, #dc2626 100%);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 16px;
+            transition: all 0.3s;
+            box-shadow: 0 4px 8px rgba(239, 68, 68, 0.3);
+        }
+
+        .logout-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(239, 68, 68, 0.4);
+        }
+
+        /* المحتوى الرئيسي */
+        .main-container {
+            max-width: 1600px;
+            margin: 30px auto;
+            padding: 0 20px;
+            display: grid;
+            grid-template-columns: 300px 1fr;
+            gap: 30px;
+        }
+
+        /* الشريط الجانبي */
+        .sidebar {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.1);
+            height: fit-content;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .sidebar-section {
+            margin-bottom: 30px;
+        }
+
+        .sidebar-title {
+            color: var(--primary-color);
+            font-size: 20px;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 3px solid #e0f2fe;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-weight: 600;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+            border: 2px solid #bae6fd;
+            transition: all 0.3s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+
+        .stat-number {
+            font-size: 32px;
+            font-weight: bold;
+            color: var(--primary-color);
+            margin-bottom: 8px;
+        }
+
+        .stat-label {
+            font-size: 14px;
+            color: var(--light-text);
+            font-weight: 500;
+        }
+
+        /* قائمة الفروع */
+        .branches-list {
+            list-style: none;
+            max-height: 500px;
+            overflow-y: auto;
+        }
+
+        .branch-item {
+            padding: 20px;
+            margin-bottom: 12px;
+            background: white;
+            border: 2px solid #e2e8f0;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .branch-item:hover {
+            border-color: var(--secondary-color);
+            transform: translateX(-5px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .branch-item.active {
+            border-color: var(--primary-color);
+            background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+            box-shadow: 0 5px 15px rgba(30, 64, 175, 0.2);
+        }
+
+        .branch-name {
+            font-weight: 600;
+            color: var(--dark-text);
+            margin-bottom: 8px;
+            font-size: 18px;
+        }
+
+        .branch-stats {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 10px;
+            font-size: 14px;
+        }
+
+        .progress-container {
+            margin-top: 25px;
+        }
+
+        .progress-info {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 12px;
+            font-size: 16px;
+            color: var(--light-text);
+        }
+
+        .progress-bar {
+            height: 12px;
+            background: #e2e8f0;
+            border-radius: 6px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--secondary-color) 0%, var(--primary-color) 100%);
+            border-radius: 6px;
+            width: 0%;
+            transition: width 0.5s ease;
+        }
+
+        /* منطقة الفروع */
+        .branches-area {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 35px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .branches-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 35px;
+            padding-bottom: 25px;
+            border-bottom: 3px solid #f0f0f0;
+        }
+
+        .selected-branch {
+            display: flex;
+            align-items: center;
+            gap: 25px;
+        }
+
+        .branch-avatar-lg {
+            width: 100px;
+            height: 100px;
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 40px;
+            font-weight: bold;
+            box-shadow: 0 8px 20px rgba(30, 64, 175, 0.3);
+        }
+
+        .branch-details-lg h3 {
+            color: var(--primary-color);
+            font-size: 28px;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        .branch-details-lg p {
+            color: var(--light-text);
+            font-size: 18px;
+        }
+
+        /* التنبيهات */
+        .alert {
+            padding: 20px 25px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            display: none;
+            animation: fadeIn 0.3s ease;
+            font-size: 16px;
+        }
+
+        .alert.show {
+            display: block;
+        }
+
+        .alert-success {
+            background: #d1fae5;
+            color: #065f46;
+            border: 2px solid #a7f3d0;
+        }
+
+        .alert-error {
+            background: #fee2e2;
+            color: #991b1b;
+            border: 2px solid #fecaca;
+        }
+
+        .alert-info {
+            background: #dbeafe;
+            color: #1e40af;
+            border: 2px solid #bfdbfe;
+        }
+
+        /* بطاقات الإحصائيات */
+        .stats-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 25px;
+            margin-top: 30px;
+        }
+
+        .stat-card-lg {
+            background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.08);
+            border: 2px solid #e2e8f0;
+            transition: all 0.3s;
+        }
+
+        .stat-card-lg:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.15);
+        }
+
+        .stat-card-lg h4 {
+            color: var(--primary-color);
+            font-size: 18px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .stat-value {
+            font-size: 42px;
+            font-weight: bold;
+            color: var(--dark-text);
+            margin-bottom: 10px;
+        }
+
+        /* جدول الموظفين */
+        .employees-table-container {
+            margin-top: 40px;
+            overflow-x: auto;
+        }
+
+        .employees-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 16px;
+        }
+
+        .employees-table th {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            color: white;
+            padding: 20px;
+            text-align: right;
+            font-weight: 600;
+            font-size: 18px;
+        }
+
+        .employees-table td {
+            padding: 20px;
+            border-bottom: 2px solid #f1f5f9;
+            font-size: 16px;
+        }
+
+        .employees-table tr:hover {
+            background: #f8fafc;
+        }
+
+        .status-badge {
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 600;
+            display: inline-block;
+        }
+
+        .status-completed {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .status-in-progress {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .status-not-started {
+            background: #f1f5f9;
+            color: #64748b;
+        }
+
+        /* أزرار التحكم */
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 40px;
+            padding-top: 30px;
+            border-top: 3px solid #f0f0f0;
+        }
+
+        .btn {
+            padding: 18px 40px;
+            border: none;
+            border-radius: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            min-width: 200px;
+            justify-content: center;
+        }
+
+        .btn-refresh {
+            background: linear-gradient(135deg, var(--info-color) 0%, #2563eb 100%);
+            color: white;
+            box-shadow: 0 6px 20px rgba(59, 130, 246, 0.3);
+        }
+
+        .btn-refresh:hover:not(:disabled) {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(59, 130, 246, 0.4);
+        }
+
+        .btn-print {
+            background: linear-gradient(135deg, var(--accent-color) 0%, #7c3aed 100%);
+            color: white;
+            box-shadow: 0 6px 20px rgba(139, 92, 246, 0.3);
+        }
+
+        .btn-print:hover:not(:disabled) {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(139, 92, 246, 0.4);
+        }
+
+        .btn-export {
+            background: linear-gradient(135deg, var(--success-color) 0%, #059669 100%);
+            color: white;
+            box-shadow: 0 6px 20px rgba(16, 185, 129, 0.3);
+        }
+
+        .btn-export:hover:not(:disabled) {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(16, 185, 129, 0.4);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        /* قسم التقارير */
+        .reports-section {
+            background: white;
+            border-radius: 20px;
+            padding: 35px;
+            margin-top: 40px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.1);
+            display: none;
+        }
+
+        .reports-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 25px;
+            margin-top: 25px;
+        }
+
+        .report-card {
+            background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.08);
+            border: 2px solid #e2e8f0;
+        }
+
+        /* زر التقارير العائم */
+        .floating-reports-btn {
+            position: fixed;
+            bottom: 40px;
+            left: 40px;
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            color: white;
+            border: none;
+            border-radius: 50px;
+            padding: 20px 35px;
+            cursor: pointer;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            z-index: 100;
+            transition: all 0.3s;
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .floating-reports-btn:hover {
+            transform: translateY(-5px) scale(1.05);
+            box-shadow: 0 12px 30px rgba(0,0,0,0.4);
+        }
+
+        /* نافذة التقرير المودال */
+        .report-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.7);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .report-modal-content {
+            background: white;
+            width: 95%;
+            max-width: 1200px;
+            max-height: 90vh;
+            border-radius: 25px;
+            padding: 40px;
+            overflow-y: auto;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.3);
+            font-size: 16px;
+        }
+
+        /* ستايلات الطباعة */
+        @media print {
+            body {
+                background: white !important;
+                color: black !important;
+                font-size: 14pt !important;
+            }
+            
+            .header,
+            .sidebar,
+            .floating-reports-btn,
+            .report-modal .no-print,
+            .btn,
+            .controls,
+            .alert,
+            .no-print {
+                display: none !important;
+            }
+            
+            .main-container {
+                grid-template-columns: 1fr !important;
+                max-width: 100% !important;
+                margin: 0 !important;
+                padding: 0 !important;
+            }
+            
+            .branches-area,
+            .reports-section,
+            .report-modal-content {
+                box-shadow: none !important;
+                border: none !important;
+                padding: 20px !important;
+                margin: 0 !important;
+                width: 100% !important;
+                max-width: 100% !important;
+            }
+            
+            .branches-header {
+                flex-direction: column;
+                align-items: flex-start;
+                margin-bottom: 20px;
+                padding-bottom: 10px;
+            }
+            
+            .selected-branch {
+                flex-direction: row;
+                margin-bottom: 20px;
+            }
+            
+            .branch-details-lg h3 {
+                font-size: 24pt !important;
+            }
+            
+            .branch-details-lg p {
+                font-size: 14pt !important;
+            }
+            
+            table {
+                width: 100% !important;
+                font-size: 12pt !important;
+            }
+            
+            th, td {
+                padding: 15px !important;
+                font-size: 12pt !important;
+            }
+            
+            .stat-card-lg {
+                break-inside: avoid;
+                page-break-inside: avoid;
+            }
+            
+            h1, h2, h3, h4 {
+                page-break-after: avoid;
+            }
+            
+            @page {
+                margin: 2cm;
+                size: A4 portrait;
+            }
+        }
+
+        /* التصميم المتجاوب */
+        @media (max-width: 1200px) {
+            .main-container {
+                grid-template-columns: 1fr;
+            }
+            
+            .sidebar {
+                order: 2;
+            }
+            
+            .stats-cards {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .reports-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .btn {
+                min-width: 180px;
+                padding: 16px 30px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .header {
+                flex-direction: column;
+                gap: 20px;
+                text-align: center;
+            }
+            
+            .branches-header {
+                flex-direction: column;
+                gap: 25px;
+                align-items: flex-start;
+            }
+            
+            .selected-branch {
+                flex-direction: column;
+                text-align: center;
+                gap: 20px;
+            }
+            
+            .controls {
+                flex-direction: column;
+                gap: 20px;
+            }
+            
+            .btn {
+                width: 100%;
+            }
+            
+            .stats-cards {
+                grid-template-columns: 1fr;
+            }
+            
+            .floating-reports-btn {
+                bottom: 20px;
+                left: 20px;
+                right: 20px;
+                border-radius: 15px;
+                justify-content: center;
+            }
+            
+            .stat-card-lg,
+            .report-card {
+                padding: 25px;
+            }
+            
+            .stat-value {
+                font-size: 36px;
+            }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* تخصيص شريط التمرير */
+        .branches-list::-webkit-scrollbar,
+        .report-modal-content::-webkit-scrollbar {
+            width: 10px;
+        }
+
+        .branches-list::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+
+        .branches-list::-webkit-scrollbar-thumb {
+            background: linear-gradient(135deg, var(--secondary-color) 0%, var(--primary-color) 100%);
+            border-radius: 10px;
+        }
+
+        .branches-list::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(135deg, var(--primary-color) 0%, #1e3a8a 100%);
+        }
+    </style>
+    
+    <!-- Chart.js للرسوم البيانية -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- SheetJS لتصدير Excel -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+</head>
+<body>
+    <header class="header">
+        <div class="user-info">
+            <div class="user-avatar" id="userAvatar">?</div>
+            <div class="user-details">
+                <h2 id="userName">جاري التحميل...</h2>
+                <p id="userRole">لوحة مدير الفروع</p>
+            </div>
+        </div>
+        <button class="logout-btn" onclick="logout()">
+            🚪 تسجيل الخروج
+        </button>
+    </header>
+
+    <div class="main-container">
+        <aside class="sidebar">
+            <div class="sidebar-section">
+                <h3 class="sidebar-title">📊 نظرة عامة</h3>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-number" id="totalBranches">0</div>
+                        <div class="stat-label">الفروع</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="totalEmployees">0</div>
+                        <div class="stat-label">الموظفين</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="completedEvaluations">0</div>
+                        <div class="stat-label">تم تقييمهم</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="averageScore">0%</div>
+                        <div class="stat-label">المتوسط العام</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="sidebar-section">
+                <h3 class="sidebar-title">🏢 فروع المنظمة</h3>
+                <ul class="branches-list" id="branchesList">
+                    <li style="text-align: center; padding: 30px; color: #666; font-size: 16px;">
+                        جاري تحميل الفروع...
+                    </li>
+                </ul>
+            </div>
+
+            <div class="sidebar-section">
+                <h3 class="sidebar-title">📈 تقدم التقييم</h3>
+                <div class="progress-container">
+                    <div class="progress-info">
+                        <span style="font-size: 16px;">نسبة الإكمال</span>
+                        <span id="progressText" style="font-size: 18px; font-weight: bold;">0%</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progressFill"></div>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <main class="branches-area">
+            <div id="alertBox" class="alert"></div>
+
+            <div class="branches-header">
+                <div class="selected-branch">
+                    <div class="branch-avatar-lg" id="selectedBranchAvatar">🏢</div>
+                    <div class="branch-details-lg">
+                        <h3 id="selectedBranchName">اختر فرعاً من القائمة</h3>
+                        <p id="selectedBranchInfo">حدد فرعاً لعرض إحصائياته وتفاصيله</p>
+                    </div>
+                </div>
+                <div id="evaluationStatus" style="color: var(--primary-color); font-size: 18px; font-weight: 600;">
+                    حالة التقييم: غير محدد
+                </div>
+            </div>
+
+            <div id="branchDetails" style="display: none;">
+                <div class="stats-cards">
+                    <div class="stat-card-lg">
+                        <h4>👥 عدد الموظفين</h4>
+                        <div class="stat-value" id="branchEmployeesCount">0</div>
+                        <div style="color: var(--light-text); font-size: 14px;">إجمالي موظفي الفرع</div>
+                    </div>
+                    
+                    <div class="stat-card-lg">
+                        <h4>✅ التقييمات المكتملة</h4>
+                        <div class="stat-value" id="branchCompletedEvals">0</div>
+                        <div style="color: var(--light-text); font-size: 14px;">نسبة الإنجاز: <span id="branchCompletionRate">0%</span></div>
+                    </div>
+                    
+                    <div class="stat-card-lg">
+                        <h4>📊 متوسط التقييم</h4>
+                        <div class="stat-value" id="branchAverageScore">0%</div>
+                        <div style="color: var(--light-text); font-size: 14px;">المتوسط العام للفرع</div>
+                    </div>
+                    
+                    <div class="stat-card-lg">
+                        <h4>⭐ التقدير العام</h4>
+                        <div class="stat-value" id="branchOverallGrade">غير محدد</div>
+                        <div style="color: var(--light-text); font-size: 14px;">تقييم أداء الفرع</div>
+                    </div>
+                </div>
+
+                <div class="employees-table-container" style="margin-top: 40px;">
+                    <h3 style="color: var(--primary-color); margin-bottom: 25px; font-size: 22px; display: flex; align-items: center; gap: 10px;">
+                        👨‍💼 موظفو الفرع
+                    </h3>
+                    <table class="employees-table">
+                        <thead>
+                            <tr>
+                                <th style="font-size: 18px;">الاسم</th>
+                                <th style="font-size: 18px;">الوظيفة</th>
+                                <th style="font-size: 18px;">حالة التقييم</th>
+                                <th style="font-size: 18px;">المتوسط</th>
+                                <th style="font-size: 18px;">التقدير</th>
+                            </tr>
+                        </thead>
+                        <tbody id="branchEmployeesTable">
+                            <tr>
+                                <td colspan="5" style="text-align: center; padding: 40px; color: #666; font-size: 16px;">
+                                    لم يتم تحميل البيانات بعد
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="controls">
+                    <button class="btn btn-refresh" onclick="refreshBranchData()">
+                        🔄 تحديث البيانات
+                    </button>
+                    <button class="btn btn-print" onclick="printBranchReport()">
+                        🖨️ طباعة التقرير
+                    </button>
+                    <button class="btn btn-export" onclick="exportBranchData()">
+                        📥 تصدير Excel
+                    </button>
+                </div>
+            </div>
+
+            <div id="noBranchesMessage" style="text-align: center; padding: 60px; color: #666; display: none;">
+                <h3 style="font-size: 24px; margin-bottom: 15px;">🏢 لا يوجد فروع متاحة</h3>
+                <p style="font-size: 16px; margin-top: 10px;">يجب أن تكون هناك فروع مسجلة في النظام</p>
+            </div>
+        </main>
+    </div>
+
+    <!-- قسم التقارير -->
+    <div class="reports-section" id="reportsSection">
+        <div style="margin-bottom: 30px;">
+            <h2 style="color: var(--primary-color); font-size: 28px; display: flex; align-items: center; gap: 15px;">
+                📊 التقارير والإحصائيات المتقدمة
+            </h2>
+        </div>
+        
+        <div class="reports-grid">
+            <div class="report-card">
+                <h4 style="color: var(--primary-color); margin-bottom: 20px; font-size: 20px; display: flex; align-items: center; gap: 12px;">
+                    📈 تقرير أداء الفروع
+                </h4>
+                <div id="branchesPerformanceReport">
+                    <p style="color: #666; text-align: center; padding: 30px; font-size: 16px;">جاري تحميل البيانات...</p>
+                </div>
+                <button onclick="printBranchesReport()" style="width: 100%; margin-top: 20px; padding: 15px; background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%); color: white; border: none; border-radius: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 12px; font-size: 16px; font-weight: 600;">
+                    🖨️ طباعة التقرير الكامل
+                </button>
+            </div>
+            
+            <div class="report-card">
+                <h4 style="color: var(--primary-color); margin-bottom: 20px; font-size: 20px; display: flex; align-items: center; gap: 12px;">
+                    📊 إحصائيات عامة
+                </h4>
+                <div id="generalStatistics">
+                    <canvas id="statsChart" width="400" height="300"></canvas>
+                </div>
+                <button onclick="refreshStatistics()" style="width: 100%; margin-top: 20px; padding: 15px; background: linear-gradient(135deg, var(--accent-color) 0%, #7c3aed 100%); color: white; border: none; border-radius: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 12px; font-size: 16px; font-weight: 600;">
+                    🔄 تحديث الإحصائيات
+                </button>
+            </div>
+            
+            <div class="report-card">
+                <h4 style="color: var(--primary-color); margin-bottom: 20px; font-size: 20px; display: flex; align-items: center; gap: 12px;">
+                    📋 تقارير مخصصة
+                </h4>
+                <div style="margin-bottom: 20px;">
+                    <label style="display: block; margin-bottom: 12px; color: #666; font-size: 16px;">اختر نوع التقرير:</label>
+                    <select id="reportType" style="width: 100%; padding: 12px; border: 2px solid #e2e8f0; border-radius: 10px; font-size: 16px;">
+                        <option value="performance">تقرير أداء الفروع</option>
+                        <option value="employees">تقرير الموظفين</option>
+                        <option value="comparison">تقرير مقارنة الفروع</option>
+                        <option value="trends">تقرير الاتجاهات</option>
+                    </select>
+                </div>
+                <button onclick="generateCustomReport()" style="width: 100%; padding: 15px; background: linear-gradient(135deg, var(--success-color) 0%, #059669 100%); color: white; border: none; border-radius: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 12px; font-size: 16px; font-weight: 600;">
+                    📄 إنشاء التقرير
+                </button>
+                <button onclick="printCustomReport()" style="width: 100%; margin-top: 12px; padding: 15px; background: linear-gradient(135deg, var(--warning-color) 0%, #d97706 100%); color: white; border: none; border-radius: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 12px; font-size: 16px; font-weight: 600;">
+                    🖨️ طباعة التقرير
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- زر التقارير العائم -->
+    <button id="toggleReportsBtn" class="floating-reports-btn">
+        📊 التقارير المتقدمة
+    </button>
+
+    <!-- نافذة التقرير المودال -->
+    <div id="reportModal" class="report-modal">
+        <div class="report-modal-content">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; padding-bottom: 20px; border-bottom: 3px solid #f0f0f0;">
+                <h2 style="color: var(--primary-color); font-size: 28px;">📋 تقرير كامل</h2>
+                <button onclick="closeReportModal()" style="background: none; border: none; font-size: 32px; cursor: pointer; color: #666;">&times;</button>
+            </div>
+            <div id="reportContent" style="font-size: 16px;">
+                <!-- محتوى التقرير سيتم إضافته هنا -->
+            </div>
+            <div style="margin-top: 40px; display: flex; gap: 20px; justify-content: flex-end;">
+                <button onclick="closeReportModal()" style="padding: 15px 30px; background: #64748b; color: white; border: none; border-radius: 12px; cursor: pointer; font-size: 16px; font-weight: 600;">
+                    إغلاق
+                </button>
+                <button onclick="printCurrentReport()" style="padding: 15px 30px; background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%); color: white; border: none; border-radius: 12px; cursor: pointer; font-size: 16px; font-weight: 600; display: flex; align-items: center; gap: 12px;">
+                    🖨️ طباعة التقرير
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ==================== إعدادات ====================
+        const SUPABASE_URL = 'https://pzsxhypigslcvduegvpa.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB6c3hoeXBpZ3NsY3ZkdWVndnBhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU0OTMxOTQsImV4cCI6MjA4MTA2OTE5NH0.0LC452nPLSywGh1mKxNQedm3M_yWZ4srck-gK67iZag';
+        
+        // ==================== متغيرات ====================
+        let supabase;
+        let currentUser = null;
+        let selectedBranch = null;
+        let allBranches = [];
+        let allEmployees = [];
+        let evaluations = {};
+        let currentCycle = null;
+        let statsChart = null;
+
+        // ==================== تحميل الصفحة ====================
+        document.addEventListener('DOMContentLoaded', async () => {
+            console.log('🚀 بدء تحميل لوحة مدير الفروع...');
+            
+            try {
+                // التحقق من تسجيل الدخول
+                currentUser = JSON.parse(localStorage.getItem('caritas_user'));
+                if (!currentUser || currentUser.role_id !== 3) { // role_id 3 لمدير الفروع
+                    window.location.href = 'index.html';
+                    return;
+                }
+
+                // عرض معلومات المستخدم
+                document.getElementById('userName').textContent = currentUser.full_name;
+                document.getElementById('userRole').textContent = `مدير الفروع - ${currentUser.branch || 'جميع الفروع'}`;
+                document.getElementById('userAvatar').textContent = currentUser.full_name.charAt(0);
+
+                // تهيئة Supabase
+                await initializeSupabase();
+                
+                // تحميل البيانات
+                await loadData();
+                
+                // إعداد الأحداث
+                setupEventListeners();
+                
+                console.log('✅ تم تحميل الصفحة بنجاح');
+                
+            } catch (error) {
+                console.error('❌ خطأ في تحميل الصفحة:', error);
+                showAlert('حدث خطأ في تحميل البيانات', 'error');
+            }
+        });
+
+        // ==================== تهيئة Supabase ====================
+        async function initializeSupabase() {
+            return new Promise((resolve, reject) => {
+                if (window.supabase) {
+                    supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+                    console.log('✅ Supabase client initialized');
+                    resolve();
+                    return;
+                }
+                
+                const script = document.createElement('script');
+                script.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js';
+                script.onload = () => {
+                    supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+                    console.log('✅ Supabase loaded and initialized');
+                    resolve();
+                };
+                script.onerror = () => {
+                    console.error('❌ Failed to load Supabase');
+                    reject(new Error('Failed to load Supabase'));
+                };
+                document.head.appendChild(script);
+            });
+        }
+
+        // ==================== إعداد الأحداث ====================
+        function setupEventListeners() {
+            document.getElementById('toggleReportsBtn').addEventListener('click', toggleReportsSection);
+        }
+
+        // ==================== تحميل البيانات ====================
+        async function loadData() {
+            try {
+                // 1. جلب جميع الفروع
+                console.log('🏢 جلب بيانات الفروع...');
+                const { data: branchesData, error: branchesError } = await supabase
+                    .from('branches')
+                    .select('*')
+                    .eq('is_active', true)
+                    .order('name');
+
+                if (branchesError) throw branchesError;
+                
+                allBranches = branchesData || [];
+                renderBranchesList();
+
+                // 2. جلب جميع الموظفين
+                console.log('👥 جلب بيانات الموظفين...');
+                const { data: employeesData, error: employeesError } = await supabase
+                    .from('employees')
+                    .select('*')
+                    .eq('is_active', true)
+                    .order('full_name');
+
+                if (employeesError) throw employeesError;
+                
+                allEmployees = employeesData || [];
+
+                // 3. جلب دورة التقييم النشطة
+                const { data: cycleData, error: cycleError } = await supabase
+                    .from('evaluation_cycles')
+                    .select('*')
+                    .eq('is_active', true)
+                    .single();
+
+                if (!cycleError && cycleData) {
+                    currentCycle = cycleData;
+                }
+
+                // 4. جلب التقييمات
+                await loadEvaluations();
+
+                // 5. تحديث الإحصائيات العامة
+                updateGeneralStats();
+
+            } catch (error) {
+                console.error('❌ خطأ في تحميل البيانات:', error);
+                throw error;
+            }
+        }
+
+        // ==================== تحميل التقييمات ====================
+        async function loadEvaluations() {
+            try {
+                console.log('📊 جلب التقييمات...');
+                const { data, error } = await supabase
+                    .from('evaluation_results')
+                    .select('*')
+                    .eq('cycle_id', currentCycle?.id);
+
+                if (error) throw error;
+
+                evaluations = {};
+                if (data) {
+                    data.forEach(record => {
+                        if (!evaluations[record.evaluated_employee_id]) {
+                            evaluations[record.evaluated_employee_id] = {};
+                        }
+                        evaluations[record.evaluated_employee_id][record.question_id] = record;
+                    });
+                }
+
+                updateProgress();
+
+            } catch (error) {
+                console.error('❌ خطأ في تحميل التقييمات:', error);
+            }
+        }
+
+        // ==================== عرض قائمة الفروع ====================
+        function renderBranchesList() {
+            const container = document.getElementById('branchesList');
+            const noBranchesMsg = document.getElementById('noBranchesMessage');
+            const branchDetails = document.getElementById('branchDetails');
+            
+            if (allBranches.length === 0) {
+                container.innerHTML = '<li style="text-align: center; padding: 30px; color: #666; font-size: 16px;">لا يوجد فروع مسجلة</li>';
+                document.getElementById('totalBranches').textContent = '0';
+                noBranchesMsg.style.display = 'block';
+                branchDetails.style.display = 'none';
+                return;
+            }
+
+            document.getElementById('totalBranches').textContent = allBranches.length;
+            noBranchesMsg.style.display = 'none';
+            container.innerHTML = '';
+
+            allBranches.forEach(branch => {
+                const li = document.createElement('li');
+                li.className = 'branch-item';
+                
+                // حساب إحصائيات الفرع
+                const branchEmployees = allEmployees.filter(e => e.branch === branch.name);
+                const branchStats = calculateBranchStats(branchEmployees);
+                
+                li.innerHTML = `
+                    <div class="branch-name">${branch.name}</div>
+                    <div style="color: var(--light-text); font-size: 14px; margin-bottom: 8px;">
+                        ${branch.location || 'لا يوجد موقع'}
+                    </div>
+                    <div class="branch-stats">
+                        <span style="color: var(--primary-color); font-weight: 600; font-size: 16px;">
+                            👥 ${branchEmployees.length}
+                        </span>
+                        <span style="color: ${branchStats.average >= 70 ? '#10b981' : '#f59e0b'}; font-weight: 600; font-size: 16px;">
+                            📊 ${branchStats.average}%
+                        </span>
+                    </div>
+                `;
+                
+                li.onclick = () => selectBranch(branch);
+                container.appendChild(li);
+            });
+        }
+
+        // ==================== حساب إحصائيات الفرع ====================
+        function calculateBranchStats(employees) {
+            let totalScore = 0;
+            let completedCount = 0;
+            let totalEmployees = employees.length;
+            
+            employees.forEach(employee => {
+                const employeeEvals = evaluations[employee.id] || {};
+                const answeredQuestions = Object.keys(employeeEvals).length;
+                
+                if (answeredQuestions > 0) {
+                    const employeeScore = Object.values(employeeEvals).reduce((sum, eval) => sum + eval.score, 0);
+                    totalScore += (employeeScore / (answeredQuestions * 10)) * 100;
+                    completedCount++;
+                }
+            });
+            
+            const average = completedCount > 0 ? Math.round(totalScore / completedCount) : 0;
+            const completionRate = totalEmployees > 0 ? Math.round((completedCount / totalEmployees) * 100) : 0;
+            
+            return {
+                totalEmployees,
+                completedCount,
+                average,
+                completionRate
+            };
+        }
+
+        // ==================== اختيار فرع ====================
+        function selectBranch(branch) {
+            selectedBranch = branch;
+            
+            // تحديث القائمة
+            document.querySelectorAll('.branch-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            event.currentTarget.classList.add('active');
+
+            // تحديث المعلومات
+            const avatar = document.getElementById('selectedBranchAvatar');
+            const name = document.getElementById('selectedBranchName');
+            const info = document.getElementById('selectedBranchInfo');
+            
+            avatar.textContent = branch.name.charAt(0);
+            avatar.style.background = `linear-gradient(135deg, #${Math.floor(Math.random()*16777215).toString(16)} 0%, #${Math.floor(Math.random()*16777215).toString(16)} 100%)`;
+            
+            name.textContent = branch.name;
+            info.textContent = `${branch.location || 'لا يوجد موقع'} • ${branch.phone || 'لا يوجد هاتف'}`;
+
+            // إظهار تفاصيل الفرع
+            document.getElementById('branchDetails').style.display = 'block';
+            
+            // تحديث إحصائيات الفرع
+            updateBranchStats();
+            
+            // تحديث حالة التقييم
+            updateStatus();
+        }
+
+        // ==================== تحديث إحصائيات الفرع ====================
+        function updateBranchStats() {
+            if (!selectedBranch) return;
+            
+            const branchEmployees = allEmployees.filter(e => e.branch === selectedBranch.name);
+            const stats = calculateBranchStats(branchEmployees);
+            
+            document.getElementById('branchEmployeesCount').textContent = stats.totalEmployees;
+            document.getElementById('branchCompletedEvals').textContent = `${stats.completedCount}/${stats.totalEmployees}`;
+            document.getElementById('branchCompletionRate').textContent = `${stats.completionRate}%`;
+            document.getElementById('branchAverageScore').textContent = `${stats.average}%`;
+            document.getElementById('branchOverallGrade').textContent = getGradeFromScore(stats.average);
+            document.getElementById('branchOverallGrade').style.color = getGradeColor(stats.average);
+            
+            // تحديث جدول الموظفين
+            updateEmployeesTable(branchEmployees);
+        }
+
+        // ==================== تحديث جدول الموظفين ====================
+        function updateEmployeesTable(employees) {
+            const tbody = document.getElementById('branchEmployeesTable');
+            tbody.innerHTML = '';
+            
+            if (employees.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="5" style="text-align: center; padding: 40px; color: #666; font-size: 16px;">
+                            لا يوجد موظفين في هذا الفرع
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+            
+            employees.forEach(employee => {
+                const employeeEvals = evaluations[employee.id] || {};
+                const answeredQuestions = Object.keys(employeeEvals).length;
+                
+                let status = 'لم يبدأ';
+                let statusClass = 'status-not-started';
+                let average = 0;
+                
+                if (answeredQuestions > 0) {
+                    const totalScore = Object.values(employeeEvals).reduce((sum, eval) => sum + eval.score, 0);
+                    average = Math.round((totalScore / (answeredQuestions * 10)) * 100);
+                    
+                    if (answeredQuestions >= 5) { // افترضنا 5 أسئلة كاملة
+                        status = 'مكتمل';
+                        statusClass = 'status-completed';
+                    } else {
+                        status = 'قيد التقييم';
+                        statusClass = 'status-in-progress';
+                    }
+                }
+                
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td style="font-size: 16px; font-weight: 600;">${employee.full_name}</td>
+                    <td style="font-size: 16px;">${employee.role_name_ar || 'موظف'}</td>
+                    <td>
+                        <span class="status-badge ${statusClass}" style="font-size: 14px;">
+                            ${status}
+                        </span>
+                    </td>
+                    <td style="font-size: 16px; font-weight: 600; color: ${getGradeColor(average)};">
+                        ${average}%
+                    </td>
+                    <td style="font-size: 16px; font-weight: 600; color: ${getGradeColor(average)};">
+                        ${getGradeFromScore(average)}
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        // ==================== تحديث الإحصائيات العامة ====================
+        function updateGeneralStats() {
+            const totalEmployees = allEmployees.length;
+            const totalBranches = allBranches.length;
+            
+            // حساب التقييمات المكتملة
+            let completedEvaluations = 0;
+            let totalScore = 0;
+            let totalEvaluated = 0;
+            
+            allEmployees.forEach(employee => {
+                const employeeEvals = evaluations[employee.id] || {};
+                const answeredQuestions = Object.keys(employeeEvals).length;
+                
+                if (answeredQuestions > 0) {
+                    completedEvaluations++;
+                    const employeeScore = Object.values(employeeEvals).reduce((sum, eval) => sum + eval.score, 0);
+                    totalScore += (employeeScore / (answeredQuestions * 10)) * 100;
+                    totalEvaluated++;
+                }
+            });
+            
+            const averageScore = totalEvaluated > 0 ? Math.round(totalScore / totalEvaluated) : 0;
+            
+            document.getElementById('totalEmployees').textContent = totalEmployees;
+            document.getElementById('completedEvaluations').textContent = completedEvaluations;
+            document.getElementById('averageScore').textContent = `${averageScore}%`;
+        }
+
+        // ==================== تحديث التقدم ====================
+        function updateProgress() {
+            let totalEvaluations = 0;
+            let completedEvaluations = 0;
+            
+            allEmployees.forEach(employee => {
+                const employeeEvals = evaluations[employee.id] || {};
+                const answeredQuestions = Object.keys(employeeEvals).length;
+                
+                if (answeredQuestions > 0) {
+                    totalEvaluations++;
+                    if (answeredQuestions >= 5) { // افترضنا 5 أسئلة كاملة
+                        completedEvaluations++;
+                    }
+                }
+            });
+            
+            const progress = allEmployees.length > 0 ? (totalEvaluations / allEmployees.length) * 100 : 0;
+            document.getElementById('progressFill').style.width = `${progress}%`;
+            document.getElementById('progressText').textContent = `${Math.round(progress)}%`;
+        }
+
+        // ==================== تحديث حالة التقييم ====================
+        function updateStatus() {
+            if (!selectedBranch) return;
+
+            const branchEmployees = allEmployees.filter(e => e.branch === selectedBranch.name);
+            const stats = calculateBranchStats(branchEmployees);
+            
+            let statusText = `إجمالي الموظفين: ${stats.totalEmployees} | تم تقييم: ${stats.completedCount} | النسبة: ${stats.completionRate}%`;
+            
+            if (stats.completionRate === 100) {
+                statusText += ' ✅ مكتمل';
+            } else if (stats.completionRate > 0) {
+                statusText += ' ⏳ جاري العمل';
+            } else {
+                statusText = 'لم يبدأ التقييم بعد';
+            }
+
+            document.getElementById('evaluationStatus').textContent = statusText;
+        }
+
+        // ==================== وظائف التقارير ====================
+
+        // عرض/إخفاء قسم التقارير
+        function toggleReportsSection() {
+            const reportsSection = document.getElementById('reportsSection');
+            const toggleBtn = document.getElementById('toggleReportsBtn');
+            
+            if (reportsSection.style.display === 'none' || !reportsSection.style.display) {
+                reportsSection.style.display = 'block';
+                toggleBtn.innerHTML = '📋 العودة للفروع';
+                loadReportsData();
+                window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+            } else {
+                reportsSection.style.display = 'none';
+                toggleBtn.innerHTML = '📊 التقارير المتقدمة';
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+        }
+
+        // تحميل بيانات التقارير
+        async function loadReportsData() {
+            await generateBranchesPerformanceReport();
+            await refreshStatisticsChart();
+        }
+
+        // توليد تقرير أداء الفروع
+        async function generateBranchesPerformanceReport() {
+            const container = document.getElementById('branchesPerformanceReport');
+            
+            if (allBranches.length === 0) {
+                container.innerHTML = '<p style="color: #666; text-align: center; padding: 30px; font-size: 16px;">لا يوجد فروع مسجلة</p>';
+                return;
+            }
+            
+            let html = `
+                <div style="margin-bottom: 20px;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 16px;">
+                        <span style="color: #666;">عدد الفروع:</span>
+                        <span style="font-weight: bold; color: var(--primary-color);">${allBranches.length}</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 16px;">
+                        <span style="color: #666;">تاريخ التقرير:</span>
+                        <span style="font-weight: bold;">${new Date().toLocaleDateString('ar-SA')}</span>
+                    </div>
+                </div>
+                
+                <div style="max-height: 300px; overflow-y: auto; font-size: 16px;">
+                    <table style="width: 100%; border-collapse: collapse;">
+                        <thead>
+                            <tr style="background: #f8fafc;">
+                                <th style="padding: 15px; text-align: right; border-bottom: 2px solid #e2e8f0;">الفرع</th>
+                                <th style="padding: 15px; text-align: center; border-bottom: 2px solid #e2e8f0;">الموظفين</th>
+                                <th style="padding: 15px; text-align: center; border-bottom: 2px solid #e2e8f0;">المكتمل</th>
+                                <th style="padding: 15px; text-align: center; border-bottom: 2px solid #e2e8f0;">النسبة%</th>
+                                <th style="padding: 15px; text-align: center; border-bottom: 2px solid #e2e8f0;">المتوسط%</th>
+                                <th style="padding: 15px; text-align: center; border-bottom: 2px solid #e2e8f0;">التقدير</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+            `;
+            
+            let totalEmployees = 0;
+            let totalCompleted = 0;
+            let totalAverage = 0;
+            
+            allBranches.forEach(branch => {
+                const branchEmployees = allEmployees.filter(e => e.branch === branch.name);
+                const stats = calculateBranchStats(branchEmployees);
+                
+                totalEmployees += stats.totalEmployees;
+                totalCompleted += stats.completedCount;
+                totalAverage += stats.average;
+                
+                html += `
+                    <tr style="border-bottom: 1px solid #e2e8f0;">
+                        <td style="padding: 15px; font-weight: 600;">${branch.name}</td>
+                        <td style="padding: 15px; text-align: center;">${stats.totalEmployees}</td>
+                        <td style="padding: 15px; text-align: center; color: ${stats.completionRate >= 70 ? '#10b981' : '#f59e0b'};">${stats.completedCount}</td>
+                        <td style="padding: 15px; text-align: center; font-weight: bold; color: ${stats.completionRate >= 70 ? '#10b981' : '#f59e0b'};">${stats.completionRate}%</td>
+                        <td style="padding: 15px; text-align: center; font-weight: bold; color: ${getGradeColor(stats.average)};">${stats.average}%</td>
+                        <td style="padding: 15px; text-align: center; font-weight: bold; color: ${getGradeColor(stats.average)};">${getGradeFromScore(stats.average)}</td>
+                    </tr>
+                `;
+            });
+            
+            const overallCompletionRate = totalEmployees > 0 ? Math.round((totalCompleted / totalEmployees) * 100) : 0;
+            const overallAverage = allBranches.length > 0 ? Math.round(totalAverage / allBranches.length) : 0;
+            
+            html += `
+                        </tbody>
+                    </table>
+                </div>
+                
+                <div style="margin-top: 25px; padding-top: 20px; border-top: 3px solid #f0f0f0; font-size: 16px;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                        <span style="font-weight: bold; color: var(--primary-color);">الإجمالي العام:</span>
+                        <span style="font-weight: bold;">${totalEmployees} موظف</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                        <span style="color: #666;">نسبة الإكمال:</span>
+                        <span style="font-weight: bold; color: ${overallCompletionRate >= 70 ? '#10b981' : '#f59e0b'};">${overallCompletionRate}%</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between;">
+                        <span style="color: #666;">المتوسط العام:</span>
+                        <span style="font-weight: bold; font-size: 18px; color: ${getGradeColor(overallAverage)};">${overallAverage}%</span>
+                    </div>
+                </div>
+            `;
+            
+            container.innerHTML = html;
+        }
+
+        // تحديث الرسوم البيانية
+        async function refreshStatisticsChart() {
+            const ctx = document.getElementById('statsChart').getContext('2d');
+            
+            // بيانات المثال
+            const branches = allBranches.slice(0, 5).map(b => b.name);
+            const averages = allBranches.slice(0, 5).map(b => {
+                const branchEmployees = allEmployees.filter(e => e.branch === b.name);
+                const stats = calculateBranchStats(branchEmployees);
+                return stats.average;
+            });
+            
+            if (statsChart) {
+                statsChart.destroy();
+            }
+            
+            statsChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: branches,
+                    datasets: [{
+                        label: 'متوسط التقييم %',
+                        data: averages,
+                        backgroundColor: averages.map(avg => getGradeColor(avg)),
+                        borderColor: averages.map(avg => getGradeColor(avg)),
+                        borderWidth: 2,
+                        borderRadius: 8,
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'top',
+                            labels: {
+                                font: {
+                                    size: 14
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 100,
+                            ticks: {
+                                font: {
+                                    size: 12
+                                }
+                            }
+                        },
+                        x: {
+                            ticks: {
+                                font: {
+                                    size: 12
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // ==================== طباعة التقارير ====================
+
+        // طباعة تقرير الفرع
+        function printBranchReport() {
+            if (!selectedBranch) {
+                showAlert('الرجاء اختيار فرع أولاً', 'error');
+                return;
+            }
+
+            const printContent = generatePrintContent();
+            printReport(printContent, `تقرير_${selectedBranch.name}_${new Date().toISOString().split('T')[0]}`);
+        }
+
+        // طباعة تقرير الفروع
+        function printBranchesReport() {
+            const printContent = generateBranchesPrintContent();
+            printReport(printContent, `تقرير_الفروع_${new Date().toISOString().split('T')[0]}`);
+        }
+
+        // توليد محتوى الطباعة للفرع
+        function generatePrintContent() {
+            const branchEmployees = allEmployees.filter(e => e.branch === selectedBranch.name);
+            const stats = calculateBranchStats(branchEmployees);
+            
+            let employeesTable = '';
+            branchEmployees.forEach(employee => {
+                const employeeEvals = evaluations[employee.id] || {};
+                const answeredQuestions = Object.keys(employeeEvals).length;
+                let average = 0;
+                let status = 'لم يبدأ';
+                
+                if (answeredQuestions > 0) {
+                    const totalScore = Object.values(employeeEvals).reduce((sum, eval) => sum + eval.score, 0);
+                    average = Math.round((totalScore / (answeredQuestions * 10)) * 100);
+                    status = answeredQuestions >= 5 ? 'مكتمل' : 'قيد التقييم';
+                }
+                
+                employeesTable += `
+                    <tr>
+                        <td style="padding: 15px; border-bottom: 1px solid #ddd; font-size: 14pt;">${employee.full_name}</td>
+                        <td style="padding: 15px; border-bottom: 1px solid #ddd; font-size: 14pt;">${employee.role_name_ar || 'موظف'}</td>
+                        <td style="padding: 15px; border-bottom: 1px solid #ddd; font-size: 14pt;">${status}</td>
+                        <td style="padding: 15px; border-bottom: 1px solid #ddd; font-size: 14pt;">${average}%</td>
+                        <td style="padding: 15px; border-bottom: 1px solid #ddd; font-size: 14pt;">${getGradeFromScore(average)}</td>
+                    </tr>
+                `;
+            });
+            
+            return `
+                <!DOCTYPE html>
+                <html dir="rtl" lang="ar">
+                <head>
+                    <meta charset="UTF-8">
+                    <title>تقرير الفرع - ${selectedBranch.name}</title>
+                    <style>
+                        @page {
+                            margin: 20mm;
+                            size: A4 portrait;
+                        }
+                        body {
+                            font-family: 'Segoe UI', Arial, sans-serif;
+                            direction: rtl;
+                            color: black;
+                            margin: 0;
+                            padding: 20px;
+                            font-size: 14pt;
+                        }
+                        .header {
+                            text-align: center;
+                            margin-bottom: 30px;
+                            padding-bottom: 20px;
+                            border-bottom: 3px solid #1e40af;
+                        }
+                        .header h1 {
+                            color: #1e40af;
+                            margin-bottom: 10px;
+                            font-size: 24pt;
+                        }
+                        .info-section {
+                            background: #f8fafc;
+                            padding: 25px;
+                            border-radius: 10px;
+                            margin-bottom: 30px;
+                            border-right: 5px solid #1e40af;
+                        }
+                        .stats-grid {
+                            display: grid;
+                            grid-template-columns: repeat(4, 1fr);
+                            gap: 20px;
+                            margin-bottom: 30px;
+                        }
+                        .stat-box {
+                            text-align: center;
+                            padding: 20px;
+                            border: 2px solid #e2e8f0;
+                            border-radius: 10px;
+                        }
+                        .stat-value {
+                            font-size: 24pt;
+                            font-weight: bold;
+                            margin-bottom: 5px;
+                        }
+                        table {
+                            width: 100%;
+                            border-collapse: collapse;
+                            margin-top: 20px;
+                            font-size: 12pt;
+                        }
+                        th {
+                            background: #1e40af;
+                            color: white;
+                            padding: 15px;
+                            text-align: right;
+                            font-weight: bold;
+                            font-size: 14pt;
+                        }
+                        td {
+                            padding: 15px;
+                            border-bottom: 1px solid #ddd;
+                            font-size: 12pt;
+                        }
+                        .footer {
+                            margin-top: 50px;
+                            padding-top: 20px;
+                            border-top: 2px solid #ddd;
+                            text-align: center;
+                            color: #666;
+                            font-size: 10pt;
+                        }
+                        .page-break {
+                            page-break-before: always;
+                        }
+                        @media print {
+                            .no-print { display: none !important; }
+                        }
+                    </style>
+                </head>
+                <body>
+                    <div class="header">
+                        <h1>🏢 تقرير أداء الفرع</h1>
+                        <p style="color: #666; font-size: 16pt;">نظام التقييم الشامل - كاريتاس مصر</p>
+                    </div>
+                    
+                    <div class="info-section">
+                        <h2 style="color: #1e40af; margin-bottom: 20px; font-size: 18pt;">📋 معلومات الفرع</h2>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; font-size: 14pt;">
+                            <div><strong>اسم الفرع:</strong> ${selectedBranch.name}</div>
+                            <div><strong>الموقع:</strong> ${selectedBranch.location || 'غير محدد'}</div>
+                            <div><strong>الهاتف:</strong> ${selectedBranch.phone || 'غير محدد'}</div>
+                            <div><strong>البريد الإلكتروني:</strong> ${selectedBranch.email || 'غير محدد'}</div>
+                        </div>
+                    </div>
+                    
+                    <div class="stats-grid">
+                        <div class="stat-box">
+                            <div class="stat-value" style="color: #1e40af;">${stats.totalEmployees}</div>
+                            <div style="color: #666; font-size: 12pt;">عدد الموظفين</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-value" style="color: ${stats.completionRate >= 70 ? '#10b981' : '#f59e0b'};">${stats.completedCount}</div>
+                            <div style="color: #666; font-size: 12pt;">تم تقييمهم</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-value" style="color: ${stats.completionRate >= 70 ? '#10b981' : '#f59e0b'};">${stats.completionRate}%</div>
+                            <div style="color: #666; font-size: 12pt;">نسبة الإنجاز</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-value" style="color: ${getGradeColor(stats.average)};">${stats.average}%</div>
+                            <div style="color: #666; font-size: 12pt;">المتوسط العام</div>
+                        </div>
+                    </div>
+                    
+                    <h2 style="color: #1e40af; margin-bottom: 20px; font-size: 18pt;">👨‍💼 قائمة الموظفين</h2>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th style="font-size: 14pt;">الاسم</th>
+                                <th style="font-size: 14pt;">الوظيفة</th>
+                                <th style="font-size: 14pt;">حالة التقييم</th>
+                                <th style="font-size: 14pt;">المتوسط</th>
+                                <th style="font-size: 14pt;">التقدير</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${employeesTable}
+                        </tbody>
+                    </table>
+                    
+                    <div class="footer">
+                        <p>© ${new Date().getFullYear()} كاريتاس مصر - نظام التقييم الشامل للموظفين</p>
+                        <p>تم إنشاء هذا التقرير آلياً بتاريخ ${new Date().toLocaleString('ar-SA')}</p>
+                        <p>المستخدم: ${currentUser.full_name}</p>
+                    </div>
+                    
+                    <div class="no-print" style="text-align: center; margin-top: 50px;">
+                        <button onclick="window.print()" style="padding: 15px 40px; background: #1e40af; color: white; border: none; border-radius: 10px; cursor: pointer; font-size: 14pt; margin: 10px;">
+                            🖨️ طباعة التقرير
+                        </button>
+                        <button onclick="window.close()" style="padding: 15px 40px; background: #666; color: white; border: none; border-radius: 10px; cursor: pointer; font-size: 14pt; margin: 10px;">
+                            إغلاق النافذة
+                        </button>
+                    </div>
+                </body>
+                </html>
+            `;
+        }
+
+        // توليد محتوى الطباعة للفروع
+        function generateBranchesPrintContent() {
+            let branchesTable = '';
+            let totalEmployees = 0;
+            let totalCompleted = 0;
+            let totalAverage = 0;
+            
+            allBranches.forEach(branch => {
+                const branchEmployees = allEmployees.filter(e => e.branch === branch.name);
+                const stats = calculateBranchStats(branchEmployees);
+                
+                totalEmployees += stats.totalEmployees;
+                totalCompleted += stats.completedCount;
+                totalAverage += stats.average;
+                
+                branchesTable += `
+                    <tr>
+                        <td style="padding: 15px; border-bottom: 1px solid #ddd; font-size: 12pt; font-weight: bold;">${branch.name}</td>
+                        <td style="padding: 15px; border-bottom: 1px solid #ddd; font-size: 12pt; text-align: center;">${stats.totalEmployees}</td>
+                        <td style="padding: 15px; border-bottom: 1px solid #ddd; font-size: 12pt; text-align: center; color: ${stats.completionRate >= 70 ? '#10b981' : '#f59e0b'};">${stats.completedCount}</td>
+                        <td style="padding: 15px; border-bottom: 1px solid #ddd; font-size: 12pt; text-align: center; font-weight: bold; color: ${stats.completionRate >= 70 ? '#10b981' : '#f59e0b'};">${stats.completionRate}%</td>
+                        <td style="padding: 15px; border-bottom: 1px solid #ddd; font-size: 12pt; text-align: center; font-weight: bold; color: ${getGradeColor(stats.average)};">${stats.average}%</td>
+                        <td style="padding: 15px; border-bottom: 1px solid #ddd; font-size: 12pt; text-align: center; font-weight: bold; color: ${getGradeColor(stats.average)};">${getGradeFromScore(stats.average)}</td>
+                    </tr>
+                `;
+            });
+            
+            const overallCompletionRate = totalEmployees > 0 ? Math.round((totalCompleted / totalEmployees) * 100) : 0;
+            const overallAverage = allBranches.length > 0 ? Math.round(totalAverage / allBranches.length) : 0;
+            
+            return `
+                <!DOCTYPE html>
+                <html dir="rtl" lang="ar">
+                <head>
+                    <meta charset="UTF-8">
+                    <title>تقرير أداء الفروع</title>
+                    <style>
+                        @page {
+                            margin: 20mm;
+                            size: A4 landscape;
+                        }
+                        body {
+                            font-family: 'Segoe UI', Arial, sans-serif;
+                            direction: rtl;
+                            color: black;
+                            margin: 0;
+                            padding: 20px;
+                            font-size: 12pt;
+                        }
+                        .header {
+                            text-align: center;
+                            margin-bottom: 30px;
+                            padding-bottom: 20px;
+                            border-bottom: 3px solid #1e40af;
+                        }
+                        .header h1 {
+                            color: #1e40af;
+                            margin-bottom: 10px;
+                            font-size: 26pt;
+                        }
+                        .summary {
+                            background: #f8fafc;
+                            padding: 25px;
+                            border-radius: 10px;
+                            margin-bottom: 30px;
+                            border-right: 5px solid #1e40af;
+                        }
+                        .summary-grid {
+                            display: grid;
+                            grid-template-columns: repeat(4, 1fr);
+                            gap: 20px;
+                            margin-top: 20px;
+                        }
+                        .summary-box {
+                            text-align: center;
+                            padding: 20px;
+                            border: 2px solid #e2e8f0;
+                            border-radius: 10px;
+                        }
+                        .summary-value {
+                            font-size: 22pt;
+                            font-weight: bold;
+                            margin-bottom: 5px;
+                        }
+                        table {
+                            width: 100%;
+                            border-collapse: collapse;
+                            margin-top: 30px;
+                            font-size: 10pt;
+                        }
+                        th {
+                            background: #1e40af;
+                            color: white;
+                            padding: 15px;
+                            text-align: right;
+                            font-weight: bold;
+                            font-size: 12pt;
+                        }
+                        td {
+                            padding: 12px;
+                            border-bottom: 1px solid #ddd;
+                            font-size: 10pt;
+                        }
+                        .footer {
+                            margin-top: 50px;
+                            padding-top: 20px;
+                            border-top: 2px solid #ddd;
+                            text-align: center;
+                            color: #666;
+                            font-size: 9pt;
+                        }
+                        @media print {
+                            .no-print { display: none !important; }
+                            table { page-break-inside: avoid; }
+                        }
+                    </style>
+                </head>
+                <body>
+                    <div class="header">
+                        <h1>🏢 تقرير أداء الفروع</h1>
+                        <p style="color: #666; font-size: 14pt;">نظام التقييم الشامل - كاريتاس مصر</p>
+                        <p style="color: #666; font-size: 12pt;">تاريخ التقرير: ${new Date().toLocaleDateString('ar-SA')}</p>
+                    </div>
+                    
+                    <div class="summary">
+                        <h2 style="color: #1e40af; margin-bottom: 20px; font-size: 18pt;">📊 ملخص عام</h2>
+                        <div class="summary-grid">
+                            <div class="summary-box">
+                                <div class="summary-value" style="color: #1e40af;">${allBranches.length}</div>
+                                <div style="color: #666; font-size: 10pt;">عدد الفروع</div>
+                            </div>
+                            <div class="summary-box">
+                                <div class="summary-value" style="color: #1e40af;">${totalEmployees}</div>
+                                <div style="color: #666; font-size: 10pt;">إجمالي الموظفين</div>
+                            </div>
+                            <div class="summary-box">
+                                <div class="summary-value" style="color: ${overallCompletionRate >= 70 ? '#10b981' : '#f59e0b'};">${overallCompletionRate}%</div>
+                                <div style="color: #666; font-size: 10pt;">نسبة الإنجاز</div>
+                            </div>
+                            <div class="summary-box">
+                                <div class="summary-value" style="color: ${getGradeColor(overallAverage)};">${overallAverage}%</div>
+                                <div style="color: #666; font-size: 10pt;">المتوسط العام</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <h2 style="color: #1e40af; margin-bottom: 20px; font-size: 18pt;">📈 أداء الفروع التفصيلي</h2>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th style="font-size: 12pt;">الفرع</th>
+                                <th style="font-size: 12pt;">الموظفين</th>
+                                <th style="font-size: 12pt;">المكتمل</th>
+                                <th style="font-size: 12pt;">النسبة%</th>
+                                <th style="font-size: 12pt;">المتوسط%</th>
+                                <th style="font-size: 12pt;">التقدير</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${branchesTable}
+                        </tbody>
+                    </table>
+                    
+                    <div class="footer">
+                        <p>© ${new Date().getFullYear()} كاريتاس مصر - نظام التقييم الشامل للموظفين</p>
+                        <p>تم إنشاء هذا التقرير آلياً بتاريخ ${new Date().toLocaleString('ar-SA')}</p>
+                        <p>المستخدم: ${currentUser.full_name} | دور: مدير الفروع</p>
+                    </div>
+                    
+                    <div class="no-print" style="text-align: center; margin-top: 50px;">
+                        <button onclick="window.print()" style="padding: 15px 40px; background: #1e40af; color: white; border: none; border-radius: 10px; cursor: pointer; font-size: 12pt; margin: 10px;">
+                            🖨️ طباعة التقرير
+                        </button>
+                        <button onclick="window.close()" style="padding: 15px 40px; background: #666; color: white; border: none; border-radius: 10px; cursor: pointer; font-size: 12pt; margin: 10px;">
+                            إغلاق النافذة
+                        </button>
+                    </div>
+                </body>
+                </html>
+            `;
+        }
+
+        // دالة الطباعة العامة
+        function printReport(content, filename) {
+            const printWindow = window.open('', '_blank', 'width=1200,height=800');
+            
+            printWindow.document.write(content);
+            printWindow.document.title = filename;
+            printWindow.document.close();
+            
+            printWindow.onload = function() {
+                printWindow.focus();
+                setTimeout(() => {
+                    printWindow.print();
+                }, 1000);
+            };
+        }
+
+        // ==================== وظائف التصدير ====================
+
+        // تصدير بيانات الفرع لـ Excel
+        function exportBranchData() {
+            if (!selectedBranch) {
+                showAlert('الرجاء اختيار فرع أولاً', 'error');
+                return;
+            }
+
+            const branchEmployees = allEmployees.filter(e => e.branch === selectedBranch.name);
+            const stats = calculateBranchStats(branchEmployees);
+            
+            // تحضير البيانات
+            const data = [
+                ['تقرير بيانات الفرع', selectedBranch.name],
+                ['تاريخ التصدير', new Date().toLocaleString('ar-SA')],
+                [''],
+                ['إحصائيات الفرع', 'القيمة'],
+                ['عدد الموظفين', stats.totalEmployees],
+                ['تم تقييمهم', stats.completedCount],
+                ['نسبة الإنجاز', `${stats.completionRate}%`],
+                ['المتوسط العام', `${stats.average}%`],
+                ['التقدير العام', getGradeFromScore(stats.average)],
+                [''],
+                ['قائمة الموظفين'],
+                ['الاسم', 'الوظيفة', 'حالة التقييم', 'المتوسط%', 'التقدير']
+            ];
+            
+            branchEmployees.forEach(employee => {
+                const employeeEvals = evaluations[employee.id] || {};
+                const answeredQuestions = Object.keys(employeeEvals).length;
+                let average = 0;
+                let status = 'لم يبدأ';
+                
+                if (answeredQuestions > 0) {
+                    const totalScore = Object.values(employeeEvals).reduce((sum, eval) => sum + eval.score, 0);
+                    average = Math.round((totalScore / (answeredQuestions * 10)) * 100);
+                    status = answeredQuestions >= 5 ? 'مكتمل' : 'قيد التقييم';
+                }
+                
+                data.push([
+                    employee.full_name,
+                    employee.role_name_ar || 'موظف',
+                    status,
+                    average,
+                    getGradeFromScore(average)
+                ]);
+            });
+            
+            // إنشاء workbook
+            const ws = XLSX.utils.aoa_to_sheet(data);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, 'تقرير الفرع');
+            
+            // حفظ الملف
+            XLSX.writeFile(wb, `تقرير_${selectedBranch.name}_${new Date().toISOString().split('T')[0]}.xlsx`);
+            
+            showAlert('✅ تم تصدير البيانات بنجاح', 'success');
+        }
+
+        // ==================== وظائف مساعدة ====================
+
+        function showAlert(message, type) {
+            const alertBox = document.getElementById('alertBox');
+            alertBox.textContent = message;
+            alertBox.className = `alert alert-${type} show`;
+            
+            setTimeout(() => {
+                alertBox.classList.remove('show');
+            }, 5000);
+        }
+
+        function logout() {
+            if (confirm('هل تريد تسجيل الخروج؟')) {
+                localStorage.removeItem('caritas_user');
+                window.location.href = 'index.html';
+            }
+        }
+
+        function refreshBranchData() {
+            if (!selectedBranch) {
+                showAlert('الرجاء اختيار فرع أولاً', 'error');
+                return;
+            }
+            
+            showAlert('جاري تحديث البيانات...', 'info');
+            setTimeout(() => {
+                updateBranchStats();
+                showAlert('✅ تم تحديث البيانات', 'success');
+            }, 1000);
+        }
+
+        // ==================== وظائف مساعدة للدرجات ====================
+
+        function getGradeColor(percentage) {
+            if (percentage >= 90) return '#10b981'; // ممتاز
+            if (percentage >= 80) return '#3b82f6'; // جيد جداً
+            if (percentage >= 70) return '#f59e0b'; // جيد
+            if (percentage >= 60) return '#ef4444'; // يحتاج تحسين
+            return '#64748b'; // غير مقيم
+        }
+
+        function getGradeFromScore(percentage) {
+            if (percentage >= 90) return 'ممتاز';
+            if (percentage >= 80) return 'جيد جداً';
+            if (percentage >= 70) return 'جيد';
+            if (percentage >= 60) return 'يحتاج تحسين';
+            return 'غير مقيم';
+        }
+    </script>
+</body>
+</html>
