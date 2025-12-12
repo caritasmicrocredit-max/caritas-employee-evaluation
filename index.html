@@ -4,155 +4,150 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>تسجيل الدخول - Caritas</title>
-  <link rel="stylesheet" href="style.css">
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background-color: #f4f4f9;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+    .container {
+      background-color: #fff;
+      padding: 40px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      text-align: center;
+      width: 320px;
+    }
+    .container img {
+      width: 120px;
+      margin-bottom: 20px;
+    }
+    .container h1 {
+      margin-bottom: 20px;
+      color: #333;
+    }
+    .container input {
+      width: 100%;
+      padding: 10px;
+      margin: 10px 0;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      font-size: 14px;
+    }
+    .container button {
+      width: 100%;
+      padding: 12px;
+      margin-top: 15px;
+      border: none;
+      border-radius: 6px;
+      background-color: #ff7f50;
+      color: #fff;
+      font-size: 16px;
+      cursor: pointer;
+    }
+    .container button:hover {
+      background-color: #ff6347;
+    }
+    .container p {
+      margin-top: 15px;
+      font-size: 12px;
+      color: #666;
+    }
+    #message {
+      margin-top: 10px;
+      font-size: 14px;
+      color: red;
+    }
+  </style>
 </head>
 <body>
   <div class="container">
-    <!-- تمت إضافة صورة بديلة في حالة عدم وجود اللوجو -->
-    <img src="logo_caritas.png" alt="Caritas Logo" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTIwIiBoZWlnaHQ9IjEyMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTIwIiBoZWlnaHQ9IjEyMCIgZmlsbD0iIzAwNzdCNiIvPjx0ZXh0IHg9IjYwIiB5PSI2MCIgZm9udC1zaXplPSIxNCIgZmlsbD0iI2ZmZiIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPkNhcml0YXM8L3RleHQ+PC9zdmc+'">
+    <img src="logo_caritas.png" alt="Caritas Logo" onerror="this.src='https://via.placeholder.com/120'">
     <h1>تسجيل الدخول</h1>
 
-    <input type="text" id="username" placeholder="اسم المستخدم" value="admin">
-    <input type="password" id="password" placeholder="كلمة المرور" value="123456">
+    <input type="text" id="username" placeholder="اسم المستخدم">
+    <input type="password" id="password" placeholder="كلمة المرور">
     <button id="loginBtn">تسجيل الدخول</button>
+
     <p>أدخل بياناتك للولوج للنظام</p>
-    <p id="message" style="color: red; font-size: 14px; margin-top: 10px;"></p>
+    <p id="message"></p>
   </div>
 
-  <script>
-    // كود JavaScript بسيط للتحقق
-    document.addEventListener('DOMContentLoaded', function() {
-      console.log('صفحة تسجيل الدخول تم تحميلها');
-      
-      // اختبار بسيط للتأكد من أن JavaScript يعمل
-      document.getElementById('loginBtn').addEventListener('click', function() {
-        const username = document.getElementById('username').value;
-        const password = document.getElementById('password').value;
-        const message = document.getElementById('message');
-        
-        console.log('محاولة دخول:', username, password);
-        
-        if (!username || !password) {
-          message.textContent = 'يرجى إدخال اسم المستخدم وكلمة المرور';
-          return;
-        }
-        
-        // محاكاة تسجيل الدخول للاختبار
-        message.textContent = 'جاري محاولة تسجيل الدخول...';
-        message.style.color = 'blue';
-        
-        // جرب الاتصال بـ Supabase
-        testSupabaseConnection();
-      });
-      
-      // اختبار الاتصال بـ Supabase
-      async function testSupabaseConnection() {
-        try {
-          // تحميل Supabase ديناميكياً
-          const script = document.createElement('script');
-          script.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
-          script.type = 'module';
-          
-          script.onload = async () => {
-            console.log('Supabase loaded successfully');
-            await initializeSupabase();
-          };
-          
-          script.onerror = () => {
-            document.getElementById('message').textContent = 'خطأ في تحميل Supabase';
-          };
-          
-          document.head.appendChild(script);
-        } catch (error) {
-          console.error('Error:', error);
-          document.getElementById('message').textContent = 'خطأ: ' + error.message;
-        }
+  <script type="module">
+    import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm'
+
+    const supabaseUrl = 'https://pzsxhypigslcvduegvpa.supabase.co'
+    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB6c3hoeXBpZ3NsY3ZkdWVndnBhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU0OTMxOTQsImV4cCI6MjA4MTA2OTE5NH0.0LC452nPLSywGh1mKxNQedm3M_yWZ4srck-gK67iZag'
+    const supabase = createClient(supabaseUrl, supabaseKey)
+
+    const messageEl = document.getElementById('message')
+    const loginBtn = document.getElementById('loginBtn')
+
+    loginBtn.addEventListener('click', async () => {
+      const username = document.getElementById('username').value.trim()
+      const password = document.getElementById('password').value.trim()
+
+      if (!username || !password) {
+        messageEl.textContent = 'يرجى إدخال اسم المستخدم وكلمة المرور'
+        return
       }
-      
-      async function initializeSupabase() {
-        try {
-          const { createClient } = window.supabase;
-          
-          const supabaseUrl = 'https://pzsxhypigslcvduegvpa.supabase.co';
-          const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB6c3hoeXBpZ3NsY3ZkdWVndnBhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU0OTMxOTQsImV4cCI6MjA4MTA2OTE5NH0.0LC452nPLSywGh1mKxNQedm3M_yWZ4srck-gK67iZag';
-          
-          const supabase = createClient(supabaseUrl, supabaseKey);
-          window.supabaseClient = supabase;
-          
-          console.log('Supabase initialized');
-          document.getElementById('message').textContent = 'الاتجاه جاهز، جرب تسجيل الدخول';
-          
-          // تحديث دالة الدخول
-          document.getElementById('loginBtn').onclick = async () => {
-            await login(supabase);
-          };
-          
-        } catch (error) {
-          console.error('Initialization error:', error);
-          document.getElementById('message').textContent = 'خطأ في تهيئة Supabase: ' + error.message;
+
+      messageEl.textContent = 'جاري التحقق...'
+      messageEl.style.color = 'blue'
+
+      try {
+        // البحث عن المستخدم في جدول employees
+        const { data, error } = await supabase
+          .from('employees')
+          .select('*')
+          .eq('username', username)
+          .single()
+
+        if (error || !data) {
+          messageEl.textContent = 'اسم المستخدم غير صحيح'
+          messageEl.style.color = 'red'
+          return
         }
-      }
-      
-      async function login(supabase) {
-        const username = document.getElementById('username').value.trim();
-        const password = document.getElementById('password').value.trim();
-        const message = document.getElementById('message');
-        
-        message.textContent = 'جاري التحقق...';
-        message.style.color = 'blue';
-        
-        try {
-          // جرب البحث في employees
-          const { data, error } = await supabase
-            .from('employees')
-            .select('*')
-            .eq('username', username)
-            .single();
-          
-          console.log('Query result:', data, error);
-          
-          if (error || !data) {
-            message.textContent = 'اسم المستخدم غير صحيح';
-            message.style.color = 'red';
-            return;
-          }
-          
-          // تحقق من كلمة المرور (مؤقتاً - غير آمن)
-          if (data.password_hash === password || data.password === password) {
-            message.textContent = 'تم تسجيل الدخول بنجاح!';
-            message.style.color = 'green';
-            
-            // حفظ بيانات الجلسة
-            localStorage.setItem('user', JSON.stringify(data));
-            
-            // توجيه حسب الدور
-            setTimeout(() => {
-              switch(data.role_id) {
-                case 5:
-                  window.location.href = 'adminDashboard.html';
-                  break;
-                case 2:
-                  window.location.href = 'teamManagerDashboard.html';
-                  break;
-                case 1:
-                  window.location.href = 'specialistDashboard.html';
-                  break;
-                default:
-                  message.textContent = 'الدور غير معروف';
-              }
-            }, 1000);
-          } else {
-            message.textContent = 'كلمة المرور غير صحيحة';
-            message.style.color = 'red';
-          }
-          
-        } catch (error) {
-          console.error('Login error:', error);
-          message.textContent = 'خطأ في تسجيل الدخول: ' + error.message;
-          message.style.color = 'red';
+
+        // التحقق من كلمة المرور (مؤقتًا، لاحقًا يمكن استخدام Auth)
+        if (data.password_hash === password) {
+          messageEl.textContent = 'تم تسجيل الدخول بنجاح!'
+          messageEl.style.color = 'green'
+
+          // حفظ بيانات الجلسة
+          localStorage.setItem('user', JSON.stringify(data))
+
+          // توجيه حسب الدور
+          setTimeout(() => {
+            switch(data.role_id) {
+              case 5:
+                window.location.href = 'adminDashboard.html'
+                break
+              case 2:
+                window.location.href = 'teamManagerDashboard.html'
+                break
+              case 1:
+                window.location.href = 'specialistDashboard.html'
+                break
+              default:
+                messageEl.textContent = 'الدور غير معروف'
+            }
+          }, 1000)
+        } else {
+          messageEl.textContent = 'كلمة المرور غير صحيحة'
+          messageEl.style.color = 'red'
         }
+
+      } catch (err) {
+        console.error('Login error:', err)
+        messageEl.textContent = 'خطأ في تسجيل الدخول: ' + err.message
+        messageEl.style.color = 'red'
       }
-    });
+    })
   </script>
 </body>
 </html>
