@@ -3,11 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>لوحة تحكم مسؤول الفريق - كاريتاس</title>
+    <title>لوحة مسؤول الفريق - نظام التقييم</title>
     
-    <!-- تنسيقات CSS -->
+    <!-- الأنماط -->
     <style>
-        /* إعدادات عامة */
+        :root {
+            --primary-color: #1a2980;
+            --secondary-color: #26d0ce;
+            --accent-color: #ff7e5f;
+            --light-bg: #f8fafc;
+            --dark-text: #1e293b;
+            --light-text: #64748b;
+            --success-color: #10b981;
+            --warning-color: #f59e0b;
+            --danger-color: #ef4444;
+        }
+
         * {
             margin: 0;
             padding: 0;
@@ -16,14 +27,15 @@
         }
 
         body {
-            background: #f8fafc;
+            background: #f1f5f9;
+            color: var(--dark-text);
             direction: rtl;
-            color: #333;
+            min-height: 100vh;
         }
 
         /* الهيدر */
         .header {
-            background: linear-gradient(135deg, #1a2980 0%, #26d0ce 100%);
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
             color: white;
             padding: 20px 30px;
             display: flex;
@@ -32,12 +44,30 @@
             box-shadow: 0 4px 12px rgba(0,0,0,0.1);
         }
 
-        .header-info h1 {
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .user-avatar {
+            width: 50px;
+            height: 50px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             font-size: 24px;
+            font-weight: bold;
+        }
+
+        .user-details h2 {
+            font-size: 20px;
             margin-bottom: 5px;
         }
 
-        .header-info p {
+        .user-details p {
             font-size: 14px;
             opacity: 0.9;
         }
@@ -58,10 +88,10 @@
         }
 
         /* المحتوى الرئيسي */
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 30px 20px;
+        .main-container {
+            max-width: 1400px;
+            margin: 30px auto;
+            padding: 0 20px;
             display: grid;
             grid-template-columns: 300px 1fr;
             gap: 30px;
@@ -81,7 +111,7 @@
         }
 
         .sidebar-title {
-            color: #1a2980;
+            color: var(--primary-color);
             font-size: 18px;
             margin-bottom: 15px;
             padding-bottom: 10px;
@@ -91,44 +121,71 @@
             gap: 10px;
         }
 
-        .sidebar-title i {
-            font-size: 20px;
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .stat-card {
+            background: var(--light-bg);
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 24px;
+            font-weight: bold;
+            color: var(--primary-color);
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: var(--light-text);
         }
 
         /* قائمة الأخصائيين */
         .employee-list {
             list-style: none;
+            max-height: 400px;
+            overflow-y: auto;
         }
 
         .employee-item {
             padding: 15px;
             margin-bottom: 10px;
-            background: #f8fafc;
-            border-radius: 10px;
+            background: white;
             border: 2px solid #e2e8f0;
+            border-radius: 10px;
             cursor: pointer;
             transition: all 0.3s;
         }
 
         .employee-item:hover {
-            border-color: #26d0ce;
-            background: #f0fdfa;
+            border-color: var(--secondary-color);
+            transform: translateX(-5px);
         }
 
         .employee-item.active {
-            border-color: #1a2980;
+            border-color: var(--primary-color);
             background: #e8f4fd;
         }
 
         .employee-name {
             font-weight: 600;
-            color: #1a2980;
+            color: var(--dark-text);
             margin-bottom: 5px;
         }
 
-        .employee-info {
+        .employee-role {
             font-size: 13px;
-            color: #666;
+            color: var(--light-text);
+            background: #f1f5f9;
+            padding: 3px 10px;
+            border-radius: 20px;
+            display: inline-block;
         }
 
         /* منطقة التقييم */
@@ -151,219 +208,44 @@
         .selected-employee {
             display: flex;
             align-items: center;
-            gap: 15px;
+            gap: 20px;
         }
 
-        .employee-avatar {
-            width: 60px;
-            height: 60px;
-            background: linear-gradient(135deg, #1a2980 0%, #26d0ce 100%);
+        .employee-avatar-lg {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
             color: white;
+            font-size: 32px;
+            font-weight: bold;
+        }
+
+        .employee-details-lg h3 {
+            color: var(--primary-color);
             font-size: 24px;
-            font-weight: bold;
+            margin-bottom: 8px;
         }
 
-        .employee-details h3 {
-            color: #1a2980;
-            margin-bottom: 5px;
-        }
-
-        .employee-details p {
-            color: #666;
-            font-size: 14px;
-        }
-
-        /* قسم الأسئلة */
-        .questions-section {
-            margin-top: 30px;
-        }
-
-        .section-title {
-            color: #1a2980;
-            font-size: 20px;
-            margin-bottom: 20px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        /* بطاقة السؤال */
-        .question-card {
-            background: #f8fafc;
-            border-radius: 12px;
-            padding: 25px;
-            margin-bottom: 20px;
-            border: 2px solid #e2e8f0;
-            transition: border-color 0.3s;
-        }
-
-        .question-card:hover {
-            border-color: #cbd5e1;
-        }
-
-        .question-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            margin-bottom: 15px;
-        }
-
-        .question-number {
-            background: #1a2980;
-            color: white;
-            width: 35px;
-            height: 35px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-            font-size: 14px;
-        }
-
-        .question-category {
-            background: #e0f2fe;
-            color: #0369a1;
-            padding: 6px 15px;
-            border-radius: 20px;
-            font-size: 13px;
-            font-weight: 600;
-        }
-
-        .question-text {
+        .employee-details-lg p {
+            color: var(--light-text);
             font-size: 16px;
-            line-height: 1.6;
-            color: #333;
-            margin-bottom: 20px;
-            padding-right: 10px;
-        }
-
-        /* خيارات التقييم */
-        .rating-options {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-            gap: 10px;
-            margin-bottom: 20px;
-        }
-
-        .rating-option {
-            padding: 15px;
-            background: white;
-            border: 2px solid #e2e8f0;
-            border-radius: 10px;
-            cursor: pointer;
-            transition: all 0.3s;
-            text-align: center;
-        }
-
-        .rating-option:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-        }
-
-        .rating-option.selected {
-            border-color: #1a2980;
-            background: #e8f4fd;
-            font-weight: 600;
-        }
-
-        .rating-label {
-            display: block;
-            font-weight: 600;
-            margin-bottom: 5px;
-            color: #1a2980;
-        }
-
-        .rating-score {
-            font-size: 14px;
-            color: #666;
-        }
-
-        .rating-desc {
-            font-size: 12px;
-            color: #888;
-            margin-top: 5px;
-            font-style: italic;
-        }
-
-        /* التعليق */
-        .comment-box {
-            width: 100%;
-            padding: 15px;
-            border: 2px solid #e2e8f0;
-            border-radius: 10px;
-            font-size: 14px;
-            resize: vertical;
-            min-height: 80px;
-            margin-top: 10px;
-            transition: border-color 0.3s;
-        }
-
-        .comment-box:focus {
-            outline: none;
-            border-color: #1a2980;
-        }
-
-        /* أزرار التحكم */
-        .controls {
-            display: flex;
-            justify-content: space-between;
-            margin-top: 40px;
-            padding-top: 20px;
-            border-top: 2px solid #f0f0f0;
-        }
-
-        .btn {
-            padding: 14px 30px;
-            border: none;
-            border-radius: 10px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s;
-            font-size: 16px;
-        }
-
-        .btn-save {
-            background: #10b981;
-            color: white;
-        }
-
-        .btn-save:hover {
-            background: #059669;
-        }
-
-        .btn-submit {
-            background: #1a2980;
-            color: white;
-        }
-
-        .btn-submit:hover {
-            background: #14226d;
-            transform: translateY(-2px);
-        }
-
-        .btn-save:disabled,
-        .btn-submit:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-            transform: none !important;
         }
 
         /* التنبيهات */
         .alert {
             padding: 15px 20px;
             border-radius: 10px;
-            margin-bottom: 20px;
+            margin-bottom: 25px;
             display: none;
+            animation: fadeIn 0.3s ease;
         }
 
         .alert.show {
             display: block;
-            animation: fadeIn 0.3s ease;
         }
 
         .alert-success {
@@ -378,9 +260,218 @@
             border: 1px solid #fecaca;
         }
 
+        .alert-info {
+            background: #dbeafe;
+            color: #1e40af;
+            border: 1px solid #bfdbfe;
+        }
+
+        /* الأسئلة */
+        .questions-container {
+            margin-top: 30px;
+        }
+
+        .section-title {
+            color: var(--primary-color);
+            font-size: 22px;
+            margin-bottom: 25px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .question-card {
+            background: var(--light-bg);
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 20px;
+            border: 2px solid #e2e8f0;
+        }
+
+        .question-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .question-number {
+            background: var(--primary-color);
+            color: white;
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+
+        .question-category {
+            background: #e0f2fe;
+            color: #0369a1;
+            padding: 6px 15px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .question-text {
+            font-size: 16px;
+            line-height: 1.6;
+            color: var(--dark-text);
+            margin-bottom: 20px;
+        }
+
+        /* خيارات التقييم */
+        .rating-options {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .rating-option {
+            padding: 18px;
+            background: white;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: center;
+        }
+
+        .rating-option:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .rating-option.selected {
+            border-color: var(--primary-color);
+            background: #e8f4fd;
+            font-weight: 600;
+        }
+
+        .rating-label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 5px;
+            color: var(--primary-color);
+            font-size: 15px;
+        }
+
+        .rating-score {
+            font-size: 14px;
+            color: var(--light-text);
+            margin-bottom: 5px;
+        }
+
+        .rating-desc {
+            font-size: 12px;
+            color: #94a3b8;
+            font-style: italic;
+        }
+
+        /* التعليق */
+        .comment-box {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            font-size: 14px;
+            resize: vertical;
+            min-height: 100px;
+            margin-top: 15px;
+            transition: border-color 0.3s;
+            font-family: inherit;
+        }
+
+        .comment-box:focus {
+            outline: none;
+            border-color: var(--secondary-color);
+            box-shadow: 0 0 0 3px rgba(38, 208, 206, 0.1);
+        }
+
+        /* أزرار التحكم */
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 40px;
+            padding-top: 25px;
+            border-top: 2px solid #f0f0f0;
+        }
+
+        .btn {
+            padding: 15px 35px;
+            border: none;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .btn-save {
+            background: var(--success-color);
+            color: white;
+        }
+
+        .btn-save:hover:not(:disabled) {
+            background: #059669;
+            transform: translateY(-2px);
+        }
+
+        .btn-submit {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            color: white;
+            box-shadow: 0 6px 20px rgba(26, 41, 128, 0.2);
+        }
+
+        .btn-submit:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(26, 41, 128, 0.3);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        /* شريط التقدم */
+        .progress-container {
+            margin-top: 20px;
+        }
+
+        .progress-info {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            font-size: 14px;
+            color: var(--light-text);
+        }
+
+        .progress-bar {
+            height: 10px;
+            background: #e2e8f0;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--secondary-color) 0%, var(--primary-color) 100%);
+            border-radius: 5px;
+            width: 0%;
+            transition: width 0.5s ease;
+        }
+
         /* التصميم المتجاوب */
-        @media (max-width: 992px) {
-            .container {
+        @media (max-width: 1024px) {
+            .main-container {
                 grid-template-columns: 1fr;
             }
             
@@ -406,6 +497,11 @@
                 align-items: flex-start;
             }
             
+            .selected-employee {
+                flex-direction: column;
+                text-align: center;
+            }
+            
             .controls {
                 flex-direction: column;
                 gap: 15px;
@@ -413,6 +509,7 @@
             
             .btn {
                 width: 100%;
+                justify-content: center;
             }
         }
 
@@ -420,69 +517,105 @@
             from { opacity: 0; transform: translateY(-10px); }
             to { opacity: 1; transform: translateY(0); }
         }
+
+        /* تخصيص شريط التمرير */
+        .employee-list::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .employee-list::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+
+        .employee-list::-webkit-scrollbar-thumb {
+            background: var(--secondary-color);
+            border-radius: 10px;
+        }
+
+        .employee-list::-webkit-scrollbar-thumb:hover {
+            background: var(--primary-color);
+        }
     </style>
 </head>
 <body>
     <!-- الهيدر -->
     <header class="header">
-        <div class="header-info">
-            <h1>👥 لوحة تحكم مسؤول الفريق</h1>
-            <p id="userInfo">جاري تحميل معلوماتك...</p>
+        <div class="user-info">
+            <div class="user-avatar" id="userAvatar">?</div>
+            <div class="user-details">
+                <h2 id="userName">جاري التحميل...</h2>
+                <p id="userRole">لوحة مسؤول الفريق</p>
+            </div>
         </div>
         <button class="logout-btn" onclick="logout()">تسجيل الخروج</button>
     </header>
 
     <!-- المحتوى الرئيسي -->
-    <div class="container">
+    <div class="main-container">
         <!-- الشريط الجانبي -->
         <aside class="sidebar">
             <div class="sidebar-section">
                 <h3 class="sidebar-title">📊 نظرة عامة</h3>
-                <p>أنت مسؤول فريق <strong>فرع القاهرة</strong></p>
-                <p>مسؤول عن تقييم <span id="employeeCount">0</span> أخصائي</p>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-number" id="totalEmployees">0</div>
+                        <div class="stat-label">الأخصائيون</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="completedEvaluations">0</div>
+                        <div class="stat-label">تم تقييمهم</div>
+                    </div>
+                </div>
             </div>
 
             <div class="sidebar-section">
-                <h3 class="sidebar-title">👥 الأخصائيون</h3>
+                <h3 class="sidebar-title">👥 الأخصائيون تحت إشرافك</h3>
                 <ul class="employee-list" id="employeeList">
-                    <!-- سيتم تعبئة الأخصائيين هنا -->
+                    <!-- سيتم تعبئته بالبيانات -->
+                    <li style="text-align: center; padding: 20px; color: #666;">
+                        جاري تحميل البيانات...
+                    </li>
                 </ul>
             </div>
 
             <div class="sidebar-section">
-                <h3 class="sidebar-title">📈 التقدم</h3>
-                <div style="margin-top: 15px;">
-                    <p>تم إكمال: <span id="completedCount">0</span> من <span id="totalCount">0</span> تقييم</p>
-                    <div style="background: #e2e8f0; height: 8px; border-radius: 4px; margin: 10px 0;">
-                        <div id="progressBar" style="background: #1a2980; height: 100%; width: 0%; border-radius: 4px;"></div>
+                <h3 class="sidebar-title">📈 تقدم التقييم</h3>
+                <div class="progress-container">
+                    <div class="progress-info">
+                        <span>الإكمال</span>
+                        <span id="progressText">0%</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progressFill"></div>
                     </div>
                 </div>
             </div>
         </aside>
 
-        <!-- منطقة التقييم -->
+        <!-- منطقة التقييم الرئيسية -->
         <main class="evaluation-area">
-            <!-- التنبيه -->
+            <!-- التنبيهات -->
             <div id="alertBox" class="alert"></div>
 
             <!-- معلومات الأخصائي المختار -->
             <div class="evaluation-header">
-                <div class="selected-employee" id="selectedEmployee">
-                    <div class="employee-avatar">?</div>
-                    <div class="employee-details">
-                        <h3>اختر أخصائياً من القائمة</h3>
-                        <p>حدد أخصائياً لبدء عملية التقييم</p>
+                <div class="selected-employee">
+                    <div class="employee-avatar-lg" id="selectedEmployeeAvatar">?</div>
+                    <div class="employee-details-lg">
+                        <h3 id="selectedEmployeeName">اختر أخصائياً من القائمة</h3>
+                        <p id="selectedEmployeeInfo">حدد أخصائياً لبدء عملية التقييم</p>
                     </div>
                 </div>
-                <div id="evaluationStatus" style="color: #666; font-size: 14px;">
+                <div id="evaluationStatus" style="color: var(--light-text); font-size: 14px;">
                     حالة التقييم: غير مبدأ
                 </div>
             </div>
 
-            <!-- الأسئلة -->
+            <!-- الأسئلة (ستظهر عند اختيار أخصائي) -->
             <div id="questionsSection" style="display: none;">
                 <div class="section-title">
-                    📝 أسئلة التقييم - المستوى الأول (أخصائي)
+                    📝 أسئلة تقييم الأخصائي الميداني
                 </div>
                 
                 <div id="questionsContainer">
@@ -499,21 +632,29 @@
                     </button>
                 </div>
             </div>
+
+            <!-- رسالة عند عدم وجود أخصائيين -->
+            <div id="noEmployeesMessage" style="text-align: center; padding: 50px; color: #666; display: none;">
+                <h3>👋 لا يوجد أخصائيين تحت إشرافك حاليًا</h3>
+                <p style="margin-top: 10px;">يجب أن يكون لديك أخصائيين ميدانيين تحت إشرافك لتتمكن من تقييمهم.</p>
+            </div>
         </main>
     </div>
 
     <!-- كود JavaScript -->
     <script>
-        // ==================== تهيئة ====================
+        // ==================== إعدادات ====================
         const SUPABASE_URL = 'https://pzsxhypigslcvduegvpa.supabase.co';
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB6c3hoeXBpZ3NsY3ZkdWVndnBhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU0OTMxOTQsImV4cCI6MjA4MTA2OTE5NH0.0LC452nPLSywGh1mKxNQedm3M_yWZ4srck-gK67iZag';
-
+        
+        // ==================== متغيرات ====================
         let supabase;
         let currentUser = null;
         let selectedEmployee = null;
-        let employees = [];
+        let myEmployees = [];
         let questions = [];
         let evaluations = {};
+        let currentCycle = null;
 
         // خيارات التقييم
         const RATING_OPTIONS = [
@@ -526,14 +667,14 @@
 
         // ==================== تحميل الصفحة ====================
         document.addEventListener('DOMContentLoaded', async () => {
-            console.log('🚀 تحميل لوحة مسؤول الفريق...');
+            console.log('🚀 بدء تحميل لوحة مسؤول الفريق...');
             
             try {
                 await initializeApp();
                 await loadData();
                 
             } catch (error) {
-                console.error('❌ خطأ في تحميل البيانات:', error);
+                console.error('❌ خطأ في تحميل الصفحة:', error);
                 showAlert('حدث خطأ في تحميل البيانات', 'error');
             }
         });
@@ -547,8 +688,10 @@
                 return;
             }
 
-            document.getElementById('userInfo').textContent = 
-                `${currentUser.full_name} - ${currentUser.branch}`;
+            // عرض معلومات المستخدم
+            document.getElementById('userName').textContent = currentUser.full_name;
+            document.getElementById('userRole').textContent = `${currentUser.role_name_ar} - ${currentUser.branch}`;
+            document.getElementById('userAvatar').textContent = currentUser.full_name.charAt(0);
 
             // تحميل Supabase
             if (!window.supabase) {
@@ -561,21 +704,32 @@
         // ==================== تحميل البيانات ====================
         async function loadData() {
             try {
-                // 1. جلب الأخصائيين الذين تقيمهم
+                // 1. جلب الأخصائيين تحت إشرافي
                 const { data: employeesData, error: empError } = await supabase
                     .from('employees')
                     .select('*')
+                    .eq('manager_id', currentUser.id)
                     .eq('role_id', 1) // أخصائيين فقط
                     .eq('is_active', true)
-                    .eq('branch', currentUser.branch) // نفس الفرع
                     .order('full_name');
 
                 if (empError) throw empError;
                 
-                employees = employeesData || [];
+                myEmployees = employeesData || [];
                 renderEmployeeList();
 
-                // 2. جلب أسئلة التقييم للمستوى 1 (أخصائي)
+                // 2. جلب دورة التقييم النشطة
+                const { data: cycleData, error: cycleError } = await supabase
+                    .from('evaluation_cycles')
+                    .select('*')
+                    .eq('is_active', true)
+                    .single();
+
+                if (!cycleError && cycleData) {
+                    currentCycle = cycleData;
+                }
+
+                // 3. جلب أسئلة التقييم للمستوى 1
                 const { data: questionsData, error: qError } = await supabase
                     .from('evaluation_questions')
                     .select('*')
@@ -586,9 +740,8 @@
                 if (qError) throw qError;
                 
                 questions = questionsData || [];
-                console.log(`✅ تم تحميل ${questions.length} سؤال`);
 
-                // 3. جلب التقييمات السابقة
+                // 4. جلب التقييمات السابقة
                 await loadExistingEvaluations();
 
             } catch (error) {
@@ -616,7 +769,7 @@
                     evaluations[record.evaluated_employee_id][record.question_id] = record;
                 });
 
-                console.log(`📊 تم تحميل ${data.length} تقييم سابق`);
+                updateProgress();
 
             } catch (error) {
                 console.error('❌ خطأ في تحميل التقييمات:', error);
@@ -626,36 +779,50 @@
         // ==================== عرض قائمة الأخصائيين ====================
         function renderEmployeeList() {
             const container = document.getElementById('employeeList');
-            const countElement = document.getElementById('employeeCount');
+            const totalElement = document.getElementById('totalEmployees');
+            const noEmployeesMsg = document.getElementById('noEmployeesMessage');
+            const questionsSection = document.getElementById('questionsSection');
             
-            if (employees.length === 0) {
-                container.innerHTML = '<li style="color:#666; text-align:center; padding:20px;">لا يوجد أخصائيين تحت إشرافك</li>';
-                countElement.textContent = '0';
+            if (myEmployees.length === 0) {
+                container.innerHTML = '<li style="text-align: center; padding: 20px; color: #666;">لا يوجد أخصائيين تحت إشرافك</li>';
+                totalElement.textContent = '0';
+                noEmployeesMsg.style.display = 'block';
+                questionsSection.style.display = 'none';
                 return;
             }
 
-            countElement.textContent = employees.length;
+            totalElement.textContent = myEmployees.length;
+            noEmployeesMsg.style.display = 'none';
             container.innerHTML = '';
 
-            employees.forEach(employee => {
+            myEmployees.forEach(employee => {
                 const li = document.createElement('li');
                 li.className = 'employee-item';
                 if (selectedEmployee?.id === employee.id) {
                     li.classList.add('active');
                 }
                 
+                // حساب عدد الأسئلة المجابة لهذا الأخصائي
+                const employeeEvals = evaluations[employee.id] || {};
+                const answeredQuestions = Object.keys(employeeEvals).length;
+                const totalQuestions = questions.length;
+                const percentage = totalQuestions > 0 ? Math.round((answeredQuestions / totalQuestions) * 100) : 0;
+                
                 li.innerHTML = `
                     <div class="employee-name">${employee.full_name}</div>
-                    <div class="employee-info">
-                        ${employee.username} • ${employee.branch}
+                    <div style="font-size: 13px; color: #666; margin: 5px 0;">
+                        <span style="background: ${percentage === 100 ? '#d1fae5' : '#fef3c7'}; 
+                              color: ${percentage === 100 ? '#065f46' : '#92400e'}; 
+                              padding: 3px 10px; border-radius: 15px;">
+                            ${answeredQuestions}/${totalQuestions} سؤال
+                        </span>
                     </div>
+                    <div class="employee-role">${employee.branch}</div>
                 `;
                 
                 li.onclick = () => selectEmployee(employee);
                 container.appendChild(li);
             });
-
-            updateProgress();
         }
 
         // ==================== اختيار أخصائي ====================
@@ -666,32 +833,53 @@
             document.querySelectorAll('.employee-item').forEach(item => {
                 item.classList.remove('active');
             });
-            event.target.closest('.employee-item').classList.add('active');
+            event.currentTarget.classList.add('active');
 
             // تحديث المعلومات
-            const selectedDiv = document.getElementById('selectedEmployee');
-            const avatar = selectedDiv.querySelector('.employee-avatar');
-            const details = selectedDiv.querySelector('.employee-details');
+            const avatar = document.getElementById('selectedEmployeeAvatar');
+            const name = document.getElementById('selectedEmployeeName');
+            const info = document.getElementById('selectedEmployeeInfo');
             
-            avatar.textContent = employee.full_name.split(' ')[0].charAt(0);
+            avatar.textContent = employee.full_name.charAt(0);
             avatar.style.background = `linear-gradient(135deg, #${Math.floor(Math.random()*16777215).toString(16)} 0%, #${Math.floor(Math.random()*16777215).toString(16)} 100%)`;
             
-            details.innerHTML = `
-                <h3>${employee.full_name}</h3>
-                <p>${employee.username} • ${employee.branch} • أخصائي</p>
-            `;
+            name.textContent = employee.full_name;
+            info.textContent = `${employee.branch} • أخصائي ميداني`;
 
             // إظهار الأسئلة
             document.getElementById('questionsSection').style.display = 'block';
-            document.getElementById('evaluationStatus').textContent = 'جاري التقييم...';
-
+            
             // عرض الأسئلة
             renderQuestions();
             updateButtons();
+            updateStatus();
+        }
+
+        // ==================== تحديث حالة التقييم ====================
+        function updateStatus() {
+            if (!selectedEmployee) return;
+
+            const employeeEvals = evaluations[selectedEmployee.id] || {};
+            const answeredQuestions = Object.keys(employeeEvals).length;
+            const totalQuestions = questions.length;
+
+            let statusText = `تم الإجابة على ${answeredQuestions} من ${totalQuestions} سؤال`;
+            
+            if (answeredQuestions === totalQuestions && totalQuestions > 0) {
+                statusText += ' ✅ جاهز للإرسال';
+            } else if (answeredQuestions > 0) {
+                statusText += ' ⏳ جاري التقييم';
+            } else {
+                statusText = 'لم يبدأ التقييم بعد';
+            }
+
+            document.getElementById('evaluationStatus').textContent = statusText;
         }
 
         // ==================== عرض الأسئلة ====================
         function renderQuestions() {
+            if (!selectedEmployee) return;
+
             const container = document.getElementById('questionsContainer');
             container.innerHTML = '';
 
@@ -775,6 +963,7 @@
 
             updateButtons();
             updateProgress();
+            updateStatus();
         }
 
         // ==================== تحديث الأزرار ====================
@@ -791,25 +980,27 @@
 
             document.getElementById('saveBtn').disabled = answeredQuestions === 0;
             document.getElementById('submitBtn').disabled = answeredQuestions < totalQuestions;
-
-            document.getElementById('evaluationStatus').textContent = 
-                `تم الإجابة على ${answeredQuestions} من ${totalQuestions} سؤال`;
         }
 
         // ==================== تحديث التقدم ====================
         function updateProgress() {
             let completed = 0;
-            const total = employees.length * questions.length;
+            let total = myEmployees.length * questions.length;
             
-            Object.values(evaluations).forEach(employeeEvals => {
-                completed += Object.keys(employeeEvals || {}).length;
+            myEmployees.forEach(employee => {
+                const employeeEvals = evaluations[employee.id] || {};
+                completed += Object.keys(employeeEvals).length;
             });
 
-            document.getElementById('completedCount').textContent = completed;
-            document.getElementById('totalCount').textContent = total;
-            
+            document.getElementById('completedEvaluations').textContent = 
+                myEmployees.filter(e => {
+                    const evals = evaluations[e.id] || {};
+                    return Object.keys(evals).length === questions.length;
+                }).length;
+
             const progress = total > 0 ? (completed / total) * 100 : 0;
-            document.getElementById('progressBar').style.width = `${progress}%`;
+            document.getElementById('progressFill').style.width = `${progress}%`;
+            document.getElementById('progressText').textContent = `${Math.round(progress)}%`;
         }
 
         // ==================== حفظ التقييم مؤقتاً ====================
@@ -819,11 +1010,11 @@
             try {
                 showAlert('جاري حفظ التقييم...', 'info');
                 
-                // هنا يمكن حفظ التقييم في localStorage أو Supabase
-                localStorage.setItem(`eval_${selectedEmployee.id}`, JSON.stringify(
-                    evaluations[selectedEmployee.id]
-                ));
+                // حفظ في localStorage كنسخة احتياطية
+                localStorage.setItem(`eval_${currentUser.id}_${selectedEmployee.id}`, 
+                    JSON.stringify(evaluations[selectedEmployee.id]));
 
+                // يمكن إضافة حفظ في Supabase هنا إذا أردت
                 showAlert('✅ تم حفظ التقييم مؤقتاً', 'success');
                 
             } catch (error) {
@@ -859,9 +1050,17 @@
                 let successCount = 0;
 
                 for (const evalData of evaluationsToSubmit) {
+                    // إضافة دورة التقييم إذا كانت موجودة
+                    const evaluationWithCycle = {
+                        ...evalData,
+                        cycle_id: currentCycle?.id
+                    };
+
                     const { error } = await supabase
                         .from('evaluation_results')
-                        .upsert(evalData, { onConflict: 'question_id,evaluated_employee_id,evaluator_id' });
+                        .upsert(evaluationWithCycle, { 
+                            onConflict: 'cycle_id,evaluated_employee_id,evaluator_id,question_id' 
+                        });
 
                     if (error) {
                         console.error('❌ خطأ في إرسال التقييم:', error);
@@ -914,9 +1113,19 @@
         }
 
         function logout() {
-            localStorage.clear();
-            window.location.href = 'index.html';
+            if (confirm('هل تريد تسجيل الخروج؟')) {
+                localStorage.removeItem('caritas_user');
+                window.location.href = 'index.html';
+            }
         }
+
+        // ==================== اختصارات لوحة المفاتيح ====================
+        document.addEventListener('keydown', (e) => {
+            if (e.ctrlKey && e.key === 's') {
+                e.preventDefault();
+                saveEvaluation();
+            }
+        });
     </script>
 </body>
 </html>
