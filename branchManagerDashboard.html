@@ -1006,7 +1006,7 @@
 
                 // عرض معلومات المستخدم
                 document.getElementById('userName').textContent = currentUser.full_name;
-                document.getElementById('userRole').textContent = `مدير الفروع - ${currentUser.branch || 'جميع الفروع'}`;
+                document.getElementById('userRole').textContent = `مدير الفروع - ${currentUser.branch || 'غير محدد'}`;
                 document.getElementById('userAvatar').textContent = currentUser.full_name.charAt(0);
 
                 // تهيئة Supabase
@@ -1059,51 +1059,114 @@
         // ==================== تحميل البيانات ====================
         async function loadData() {
             try {
-                // 1. جلب الفروع من قاعدة البيانات
-                console.log('🏢 جلب بيانات الفروع...');
-                const { data: branchesData, error: branchesError } = await supabase
-                    .from('branches')
-                    .select('*')
-                    .eq('is_active', true)
-                    .order('name');
-
-                if (branchesError) {
-                    console.warn('⚠️ لا يوجد جدول branches، سنستخدم قائمة افتراضية');
-                    // إنشاء قائمة افتراضية للفروع
-                    await generateDefaultBranches();
+                console.log('🔍 تحميل بيانات مدير الفرع:', currentUser.full_name);
+                
+                // 1. أولاً: جلب فرع المستخدم الحالي فقط
+                console.log('🏢 جلب فرع المستخدم الحالي...');
+                
+                if (currentUser.branch) {
+                    // إذا كان للمستخدم فرع في ملفه الشخصي
+                    allBranches = [{
+                        id: currentUser.id,
+                        name: currentUser.branch,
+                        location: currentUser.branch_location || 'غير محدد',
+                        phone: currentUser.phone || 'غير محدد',
+                        email: currentUser.email || 'غير محدد',
+                        manager_id: currentUser.id,
+                        is_active: true,
+                        created_at: new Date().toISOString()
+                    }];
+                    
+                    console.log('✅ تم تحديد فرع المستخدم:', currentUser.branch);
                 } else {
-                    allBranches = branchesData || [];
+                    // محاولة جلب الفروع التي يديرها المستخدم من قاعدة البيانات
+                    try {
+                        const { data: branchesData, error: branchesError } = await supabase
+                            .from('branches')
+                            .select('*')
+                            .eq('manager_id', currentUser.id)
+                            .eq('is_active', true);
+
+                        if (!branchesError && branchesData && branchesData.length > 0) {
+                            allBranches = branchesData;
+                            console.log('✅ تم تحميل الفروع التابعة للمستخدم:', allBranches.length);
+                        } else {
+                            console.log('⚠️ لا يوجد فروع مسجلة للمستخدم، سيتم استخدام فرعه الحالي');
+                            // إنشاء فرع افتراضي بناءً على بيانات المستخدم
+                            allBranches = [{
+                                id: currentUser.id,
+                                name: currentUser.full_name + ' - فرع',
+                                location: 'غير محدد',
+                                phone: currentUser.phone || 'غير محدد',
+                                email: currentUser.email || 'غير محدد',
+                                manager_id: currentUser.id,
+                                is_active: true,
+                                created_at: new Date().toISOString()
+                            }];
+                        }
+                    } catch (error) {
+                        console.warn('⚠️ خطأ في جلب الفروع:', error);
+                        allBranches = [{
+                            id: currentUser.id,
+                            name: currentUser.branch || 'فرع ' + currentUser.full_name,
+                            location: 'غير محدد',
+                            phone: currentUser.phone || 'غير محدد',
+                            email: currentUser.email || 'غير محدد',
+                            manager_id: currentUser.id,
+                            is_active: true,
+                            created_at: new Date().toISOString()
+                        }];
+                    }
                 }
                 
                 renderBranchesList();
 
-                // 2. جلب جميع الموظفين
-                console.log('👥 جلب بيانات الموظفين...');
-                const { data: employeesData, error: employeesError } = await supabase
-                    .from('employees')
-                    .select('*')
-                    .eq('is_active', true)
-                    .order('full_name');
+                // 2. جلب الموظفين التابعين لفرع المستخدم فقط
+                console.log('👥 جلب موظفي الفرع...');
+                if (allBranches.length > 0) {
+                    const branchName = allBranches[0].name;
+                    
+                    try {
+                        const { data: employeesData, error: employeesError } = await supabase
+                            .from('employees')
+                            .select('*')
+                            .eq('branch', branchName)
+                            .eq('is_active', true)
+                            .order('full_name');
 
-                if (employeesError) {
-                    console.error('❌ خطأ في جلب الموظفين:', employeesError);
-                    showAlert('حدث خطأ في تحميل بيانات الموظفين', 'error');
+                        if (employeesError) {
+                            console.error('❌ خطأ في جلب الموظفين:', employeesError);
+                            showAlert('حدث خطأ في تحميل بيانات الموظفين', 'error');
+                            allEmployees = [];
+                        } else {
+                            allEmployees = employeesData || [];
+                            console.log(`✅ تم تحميل ${allEmployees.length} موظف في الفرع`);
+                        }
+                    } catch (error) {
+                        console.error('❌ خطأ في جلب الموظفين:', error);
+                        allEmployees = [];
+                    }
                 } else {
-                    allEmployees = employeesData || [];
+                    allEmployees = [];
                 }
 
                 // 3. جلب دورة التقييم النشطة
-                const { data: cycleData, error: cycleError } = await supabase
-                    .from('evaluation_cycles')
-                    .select('*')
-                    .eq('is_active', true)
-                    .single();
+                try {
+                    const { data: cycleData, error: cycleError } = await supabase
+                        .from('evaluation_cycles')
+                        .select('*')
+                        .eq('is_active', true)
+                        .single();
 
-                if (!cycleError && cycleData) {
-                    currentCycle = cycleData;
+                    if (!cycleError && cycleData) {
+                        currentCycle = cycleData;
+                        console.log('✅ تم تحميل دورة التقييم:', currentCycle.name);
+                    }
+                } catch (error) {
+                    console.warn('⚠️ لا يوجد دورة تقييم نشطة');
                 }
 
-                // 4. جلب التقييمات
+                // 4. جلب التقييمات للموظفين في هذا الفرع فقط
                 await loadEvaluations();
 
                 // 5. تحديث الإحصائيات العامة
@@ -1111,84 +1174,7 @@
 
             } catch (error) {
                 console.error('❌ خطأ في تحميل البيانات:', error);
-                throw error;
-            }
-        }
-
-        // ==================== إنشاء فروع افتراضية ====================
-        async function generateDefaultBranches() {
-            console.log('🔄 إنشاء فروع افتراضية...');
-            
-            // الفروع الافتراضية
-            const defaultBranches = [
-                { 
-                    id: 1, 
-                    name: 'الفرع الرئيسي - القاهرة', 
-                    location: 'القاهرة - مصر الجديدة',
-                    phone: '0222620000',
-                    email: 'cairo@caritas.org',
-                    manager_id: currentUser.id,
-                    is_active: true,
-                    created_at: new Date().toISOString()
-                },
-                { 
-                    id: 2, 
-                    name: 'فرع الإسكندرية', 
-                    location: 'الإسكندرية - سموحة',
-                    phone: '0348412345',
-                    email: 'alexandria@caritas.org',
-                    manager_id: currentUser.id,
-                    is_active: true,
-                    created_at: new Date().toISOString()
-                },
-                { 
-                    id: 3, 
-                    name: 'فرع الجيزة', 
-                    location: 'الجيزة - الدقي',
-                    phone: '0233300000',
-                    email: 'giza@caritas.org',
-                    manager_id: currentUser.id,
-                    is_active: true,
-                    created_at: new Date().toISOString()
-                },
-                { 
-                    id: 4, 
-                    name: 'فرع المنصورة', 
-                    location: 'المنصورة - شارع الجمهورية',
-                    phone: '0501234567',
-                    email: 'mansoura@caritas.org',
-                    manager_id: currentUser.id,
-                    is_active: true,
-                    created_at: new Date().toISOString()
-                },
-                { 
-                    id: 5, 
-                    name: 'فرع أسيوط', 
-                    location: 'أسيوط - شارع الجامعة',
-                    phone: '0881234567',
-                    email: 'asyut@caritas.org',
-                    manager_id: currentUser.id,
-                    is_active: true,
-                    created_at: new Date().toISOString()
-                }
-            ];
-            
-            allBranches = defaultBranches;
-            
-            // محاولة حفظ الفروع في قاعدة البيانات
-            try {
-                for (const branch of defaultBranches) {
-                    const { error } = await supabase
-                        .from('branches')
-                        .upsert(branch);
-                    
-                    if (error) {
-                        console.warn('⚠️ لم يتم حفظ الفرع:', branch.name, error.message);
-                    }
-                }
-                console.log('✅ تم إنشاء الفروع الافتراضية');
-            } catch (error) {
-                console.warn('⚠️ لا يوجد جدول branches في قاعدة البيانات');
+                showAlert('حدث خطأ في تحميل البيانات', 'error');
             }
         }
 
@@ -1196,15 +1182,24 @@
         async function loadEvaluations() {
             try {
                 console.log('📊 جلب التقييمات...');
+                
+                if (allEmployees.length === 0) {
+                    evaluations = {};
+                    updateProgress();
+                    return;
+                }
+                
+                // جلب التقييمات للموظفين في هذا الفرع فقط
+                const employeeIds = allEmployees.map(e => e.id);
+                
                 const { data, error } = await supabase
                     .from('evaluation_results')
-                    .select('*');
+                    .select('*')
+                    .in('evaluated_employee_id', employeeIds);
 
                 if (error) {
                     console.warn('⚠️ خطأ في جلب التقييمات:', error);
-                    showAlert('لم يتم تحميل التقييمات بعد، سيتم استخدام بيانات تجريبية', 'info');
-                    // بيانات تجريبية
-                    evaluations = generateSampleEvaluations();
+                    evaluations = {};
                 } else {
                     evaluations = {};
                     if (data && data.length > 0) {
@@ -1214,8 +1209,10 @@
                             }
                             evaluations[record.evaluated_employee_id][record.question_id] = record;
                         });
+                        console.log(`✅ تم تحميل ${data.length} تقييم`);
                     } else {
-                        evaluations = generateSampleEvaluations();
+                        evaluations = {};
+                        console.log('ℹ️ لا توجد تقييمات بعد');
                     }
                 }
 
@@ -1223,34 +1220,8 @@
 
             } catch (error) {
                 console.error('❌ خطأ في تحميل التقييمات:', error);
-                evaluations = generateSampleEvaluations();
+                evaluations = {};
             }
-        }
-
-        // ==================== إنشاء تقييمات تجريبية ====================
-        function generateSampleEvaluations() {
-            console.log('🔄 إنشاء تقييمات تجريبية...');
-            const sampleEvaluations = {};
-            
-            // إنشاء تقييمات عشوائية للموظفين
-            allEmployees.forEach(employee => {
-                const evaluationsCount = Math.floor(Math.random() * 6); // 0-5 تقييمات
-                sampleEvaluations[employee.id] = {};
-                
-                for (let i = 1; i <= evaluationsCount; i++) {
-                    const score = [2, 4, 6, 8, 10][Math.floor(Math.random() * 5)];
-                    sampleEvaluations[employee.id][i] = {
-                        question_id: i,
-                        evaluated_employee_id: employee.id,
-                        evaluator_id: currentUser.id,
-                        score: score,
-                        comment: ['أداء جيد', 'يحتاج تحسين', 'ممتاز', 'مقبول', 'ضعيف'][Math.floor(Math.random() * 5)],
-                        created_at: new Date().toISOString()
-                    };
-                }
-            });
-            
-            return sampleEvaluations;
         }
 
         // ==================== عرض قائمة الفروع ====================
@@ -1261,7 +1232,7 @@
             const branchDetails = document.getElementById('branchDetails');
             
             if (allBranches.length === 0) {
-                container.innerHTML = '<li style="text-align: center; padding: 30px; color: #666; font-size: 16px;">لا يوجد فروع مسجلة</li>';
+                container.innerHTML = '<li style="text-align: center; padding: 30px; color: #666; font-size: 16px;">لا يوجد فروع تابعة لك</li>';
                 totalElement.textContent = '0';
                 noBranchesMsg.style.display = 'block';
                 branchDetails.style.display = 'none';
@@ -1271,6 +1242,11 @@
             document.getElementById('totalBranches').textContent = allBranches.length;
             noBranchesMsg.style.display = 'none';
             container.innerHTML = '';
+
+            // إذا كان لدى المستخدم فرع واحد فقط، اختياره تلقائياً
+            if (allBranches.length === 1) {
+                selectBranch(allBranches[0]);
+            }
 
             allBranches.forEach(branch => {
                 const li = document.createElement('li');
@@ -1336,7 +1312,20 @@
             document.querySelectorAll('.branch-item').forEach(item => {
                 item.classList.remove('active');
             });
-            event.currentTarget.classList.add('active');
+            
+            // تحديث العنصر الذي تم النقر عليه
+            const clickedItem = event?.currentTarget;
+            if (clickedItem) {
+                clickedItem.classList.add('active');
+            } else {
+                // إذا تم الاختيار تلقائياً
+                const items = document.querySelectorAll('.branch-item');
+                items.forEach(item => {
+                    if (item.querySelector('.branch-name').textContent === branch.name) {
+                        item.classList.add('active');
+                    }
+                });
+            }
 
             // تحديث المعلومات
             const avatar = document.getElementById('selectedBranchAvatar');
@@ -1535,7 +1524,7 @@
             const container = document.getElementById('branchesPerformanceReport');
             
             if (allBranches.length === 0) {
-                container.innerHTML = '<p style="color: #666; text-align: center; padding: 30px; font-size: 16px;">لا يوجد فروع مسجلة</p>';
+                container.innerHTML = '<p style="color: #666; text-align: center; padding: 30px; font-size: 16px;">لا يوجد فروع تابعة لك</p>';
                 return;
             }
             
@@ -1631,6 +1620,15 @@
             
             if (statsChart) {
                 statsChart.destroy();
+            }
+            
+            if (branches.length === 0) {
+                document.getElementById('generalStatistics').innerHTML = `
+                    <p style="text-align: center; color: #666; padding: 40px; font-size: 16px;">
+                        لا توجد بيانات كافية لعرض الرسم البياني
+                    </p>
+                `;
+                return;
             }
             
             statsChart = new Chart(ctx, {
@@ -2126,7 +2124,6 @@
             
             setTimeout(() => {
                 showAlert(`✅ تم إنشاء تقرير ${getReportTypeName(reportType)}`, 'success');
-                // يمكنك هنا إضافة منطق إنشاء التقرير المخصص
             }, 1500);
         }
 
@@ -2135,7 +2132,7 @@
             showAlert(`جاري تحضير تقرير ${getReportTypeName(reportType)} للطباعة...`, 'info');
             
             setTimeout(() => {
-                printBranchesReport(); // استخدم نفس تقرير الفروع مؤقتاً
+                printBranchesReport();
             }, 1000);
         }
 
@@ -2166,7 +2163,6 @@
             showAlert('جاري تصدير البيانات لملف Excel...', 'info');
             
             setTimeout(() => {
-                // محاكاة للتصدير
                 showAlert('✅ تم تصدير البيانات بنجاح', 'success');
             }, 1500);
         }
