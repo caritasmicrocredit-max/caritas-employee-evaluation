@@ -1,45 +1,41 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>نظام تقييم الموظفين - الصفحة الرئيسية</title>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>تسجيل الدخول - Caritas</title>
   <style>
     body {
       font-family: 'Segoe UI', Tahoma, sans-serif;
       background: #f5f7fa;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
       margin: 0;
-      padding: 0;
     }
     .container {
-      max-width: 500px;
-      margin: 80px auto;
-      padding: 30px;
-      background: white;
+      background: #fff;
+      padding: 40px;
       border-radius: 10px;
       box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-    }
-    h2 {
+      width: 350px;
       text-align: center;
-      color: #2c3e50;
-      margin-bottom: 30px;
     }
-    .form-group {
+    img {
+      width: 80px;
       margin-bottom: 20px;
     }
-    label {
-      display: block;
-      margin-bottom: 6px;
-      font-weight: bold;
-      color: #34495e;
+    h1 {
+      margin-bottom: 20px;
+      color: #333;
     }
     input {
       width: 100%;
       padding: 12px;
+      margin-bottom: 15px;
       border: 1px solid #ddd;
       border-radius: 6px;
-      box-sizing: border-box;
       font-size: 16px;
     }
     button {
@@ -56,132 +52,88 @@
       background: #2980b9;
     }
     .error {
-      color: #e74c3c;
-      text-align: center;
+      color: red;
       margin-top: 10px;
-      font-weight: bold;
+      font-size: 14px;
     }
-    .dashboard {
-      text-align: center;
-    }
-    .welcome {
-      font-size: 20px;
-      margin-bottom: 25px;
-      color: #27ae60;
-    }
-    .btn-grid {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 12px;
-      margin-top: 20px;
-    }
-    .page-btn {
-      padding: 14px;
-      background: #2ecc71;
-      color: white;
-      text-decoration: none;
-      border-radius: 6px;
-      font-weight: bold;
-      text-align: center;
-      display: block;
-    }
-    .page-btn.admin { background: #e74c3c; }
-    .page-btn.team { background: #9b59b6; }
-    .page-btn.specialist { background: #3498db; }
   </style>
 </head>
 <body>
-  <div class="container">
-    <div id="loginSection">
-      <h2>تسجيل الدخول إلى النظام</h2>
-      <div class="form-group">
-        <label for="username">اسم المستخدم</label>
-        <input type="text" id="username" placeholder="مثال: admin" autocomplete="username" />
-      </div>
-      <div class="form-group">
-        <label for="password">كلمة السر</label>
-        <input type="password" id="password" placeholder="أدخل كلمة السر" autocomplete="current-password" />
-      </div>
-      <button onclick="login()">دخول</button>
-      <div id="errorMessage" class="error"></div>
-    </div>
 
-    <div id="dashboardSection" style="display:none;" class="dashboard">
-      <div class="welcome">مرحباً، <span id="userFullName"></span>!</div>
-      <div class="btn-grid" id="pageButtons"></div>
-    </div>
-  </div>
+<div class="container">
+  <img src="logo_caritas.png" alt="Caritas Logo">
+  <h1>تسجيل الدخول</h1>
 
-  <script>
-    const supabaseUrl = 'https://pzsxhypigslcvduegvpa.supabase.co';
-    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB6c3hoeXBpZ3NsY3ZkdWVndnBhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU0OTMxOTQsImV4cCI6MjA4MTA2OTE5NH0.0LC452nPLSywGh1mKxNQedm3M_yWZ4srck-gK67iZag';
-    const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+  <input type="text" id="username" placeholder="اسم المستخدم">
+  <input type="password" id="password" placeholder="كلمة المرور">
+  <button id="loginBtn">تسجيل الدخول</button>
+  <div id="errorMessage" class="error"></div>
+</div>
 
-    async function login() {
-      const username = document.getElementById('username').value.trim();
-      const password = document.getElementById('password').value;
-      const errorDiv = document.getElementById('errorMessage');
+<script type="module">
+  import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm'
 
-      if (!username || !password) {
-        errorDiv.textContent = "الرجاء إدخال اسم المستخدم وكلمة السر";
-        return;
-      }
+  const supabaseUrl = 'https://pzsxhypigslcvduegvpa.supabase.co'
+  const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB6c3hoeXBpZ3NsY3ZkdWVndnBhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU0OTMxOTQsImV4cCI6MjA4MTA2OTE5NH0.0LC452nPLSywGh1mKxNQedm3M_yWZ4srck-gK67iZag'
 
-      try {
-        // البحث عن المستخدم بالجدول employees
-        const { data, error } = await supabase
-          .from('employees')
-          .select('*')
-          .eq('username', username)
-          .single();
+  const supabase = createClient(supabaseUrl, supabaseKey)
 
-        if (error || !data) {
-          errorDiv.textContent = "المستخدم غير موجود";
-          return;
-        }
+  const loginBtn = document.getElementById('loginBtn')
+  const errorMessage = document.getElementById('errorMessage')
 
-        // التحقق من كلمة المرور (مؤقتاً)
-        if (data.password_hash !== password) {
-          errorDiv.textContent = "كلمة المرور غير صحيحة";
-          return;
-        }
+  loginBtn.addEventListener('click', async () => {
+    const username = document.getElementById('username').value.trim()
+    const password = document.getElementById('password').value.trim()
 
-        // تخزين الجلسة
-        localStorage.setItem('loggedInUser', JSON.stringify(data));
-
-        document.getElementById('loginSection').style.display = 'none';
-        document.getElementById('userFullName').textContent = data.full_name;
-        renderPageButtons(data.role_id);
-        document.getElementById('dashboardSection').style.display = 'block';
-
-      } catch (err) {
-        console.error(err);
-        errorDiv.textContent = "حدث خطأ أثناء الاتصال. حاول لاحقاً.";
-      }
+    if (!username || !password) {
+      errorMessage.textContent = 'يرجى إدخال اسم المستخدم وكلمة المرور'
+      return
     }
 
-    function renderPageButtons(role_id) {
-      const buttonsDiv = document.getElementById('pageButtons');
-      buttonsDiv.innerHTML = '';
+    try {
+      const { data, error } = await supabase
+        .from('employees')
+        .select('*')
+        .eq('username', username)
+        .single()
 
-      const pages = [];
-
-      if (role_id === 5) { // Admin
-        pages.push({ label: "لوحة الإدارة", url: "adminDashboard.html", cls: "page-btn admin" });
-      } else if (role_id === 2) { // Team Manager
-        pages.push({ label: "عرض الفريق", url: "teamDashboard.html", cls: "page-btn team" });
-      } else if (role_id === 1) { // Specialist
-        pages.push({ label: "عرض الدراسات", url: "specialistDashboard.html", cls: "page-btn specialist" });
+      if (error || !data) {
+        errorMessage.textContent = 'المستخدم غير موجود'
+        return
       }
 
-      pages.forEach(page => {
-        const btn = document.createElement('a');
-        btn.href = page.url;
-        btn.className = page.cls;
-        btn.textContent = page.label;
-        buttonsDiv.appendChild(btn);
-      });
+      if (data.password_hash !== password) {
+        errorMessage.textContent = 'كلمة المرور غير صحيحة'
+        return
+      }
+
+      // تم تسجيل الدخول بنجاح
+      errorMessage.style.color = 'green'
+      errorMessage.textContent = 'تم تسجيل الدخول بنجاح!'
+
+      // توجيه حسب الدور
+      setTimeout(() => {
+        switch (data.role_id) {
+          case 5:
+            window.location.href = 'adminDashboard.html'
+            break
+          case 2:
+            window.location.href = 'teamManagerDashboard.html'
+            break
+          case 1:
+            window.location.href = 'specialistDashboard.html'
+            break
+          default:
+            alert('الدور غير معروف')
+        }
+      }, 1000)
+
+    } catch (err) {
+      console.error(err)
+      errorMessage.textContent = 'حدث خطأ أثناء تسجيل الدخول'
     }
-  </script>
+  })
+</script>
+
 </body>
 </html>
