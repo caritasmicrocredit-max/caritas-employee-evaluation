@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+  <meta charset="UTF-8">
+  <title>لوحة تحكم المشرف</title>
+  <style>
+    body { font-family: Arial; padding: 20px; }
+    h1 { color: #0077b6; }
+  </style>
+</head>
+<body>
+  <h1>لوحة تحكم المشرف</h1>
+  <p>مرحباً بك في لوحة التحكم</p>
+  <button onclick="logout()">تسجيل الخروج</button>
+  
+  <script>
+    // تحقق من تسجيل الدخول
+    const user = localStorage.getItem('user')
+    if (!user) {
+      window.location.href = 'index.html'
+    } else {
+      console.log('المستخدم:', JSON.parse(user))
+    }
+    
+    function logout() {
+      localStorage.removeItem('user')
+      window.location.href = 'index.html'
+    }
+  </script>
+</body>
+</html>

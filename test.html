@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>فحص قاعدة البيانات</title>
+</head>
+<body>
+  <h1>فحص اتصال Supabase</h1>
+  <button onclick="testDB()">فحص الاتصال</button>
+  <div id="result"></div>
+  
+  <script type="module">
+    import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm'
+
+    const supabaseUrl = 'https://pzsxhypigslcvduegvpa.supabase.co'
+    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB6c3hoeXBpZ3NsY3ZkdWVndnBhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU0OTMxOTQsImV4cCI6MjA4MTA2OTE5NH0.0LC452nPLSywGh1mKxNQedm3M_yWZ4srck-gK67iZag'
+    const supabase = createClient(supabaseUrl, supabaseKey)
+
+    async function testDB() {
+      const resultDiv = document.getElementById('result')
+      
+      try {
+        // 1. عرض جميع الجداول
+        const { data: tables, error: tablesError } = await supabase
+          .from('_tables')
+          .select('*')
+        
+        if (tablesError) throw tablesError
+        
+        resultDiv.innerHTML += '<h3>الجداول:</h3>'
+        resultDiv.innerHTML += `<pre>${JSON.stringify(tables, null, 2)}</pre>`
+        
+        // 2. جلب بيانات employees
+        const { data: employees, error: empError } = await supabase
+          .from('employees')
+          .select('*')
+        
+        if (empError) throw empError
+        
+        resultDiv.innerHTML += '<h3>الموظفون:</h3>'
+        resultDiv.innerHTML += `<pre>${JSON.stringify(employees, null, 2)}</pre>`
+        
+      } catch (error) {
+        resultDiv.innerHTML = `<p style="color:red">خطأ: ${error.message}</p>`
+      }
+    }
+  </script>
+</body>
+</html>
