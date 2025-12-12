@@ -20,39 +20,43 @@
     <p>أدخل بياناتك للولوج للنظام</p>
   </div>
 
-  <script src="supabaseClient.js"></script>
-  <script>
-    async function login() {
-      const username = document.getElementById('username').value;
-      const password = document.getElementById('password').value;
+  <script type="module">
+  import { supabase } from './supabaseClient.js';
 
-      const { data, error } = await supabase
-        .from('employees')
-        .select('*')
-        .eq('username', username)
-        .eq('password_hash', password)
-        .single();
+  async function login() {
+    const username = document.getElementById('username').value;
+    const password = document.getElementById('password').value;
 
-      if (error || !data) {
-        alert('خطأ في تسجيل الدخول: المستخدم أو كلمة المرور غير صحيحة');
-      } else {
-        alert('تم تسجيل الدخول بنجاح!');
-        switch (data.role_id) {
-          case 5:
-            window.location.href = 'adminDashboard.html';
-            break;
-          case 2:
-            window.location.href = 'teamManagerDashboard.html';
-            break;
-          case 1:
-            window.location.href = 'specialistDashboard.html';
-            break;
-          default:
-            alert('الدور غير معروف!');
-        }
+    const { data, error } = await supabase
+      .from('employees')
+      .select('*')
+      .eq('username', username)
+      .eq('password_hash', password)
+      .single();
+
+    if (error || !data) {
+      alert('خطأ في تسجيل الدخول: المستخدم أو كلمة المرور غير صحيحة');
+    } else {
+      alert('تم تسجيل الدخول بنجاح!');
+      switch (data.role_id) {
+        case 5:
+          window.location.href = 'adminDashboard.html';
+          break;
+        case 2:
+          window.location.href = 'teamManagerDashboard.html';
+          break;
+        case 1:
+          window.location.href = 'specialistDashboard.html';
+          break;
+        default:
+          alert('الدور غير معروف!');
       }
     }
-  </script>
+  }
+
+  window.login = login; // عشان الزرار يعرف الدالة
+</script>
+
 </body>
 
 </html>
