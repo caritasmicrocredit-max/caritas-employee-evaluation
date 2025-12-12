@@ -176,26 +176,6 @@
             cursor: not-allowed;
         }
 
-        /* قسم المعلومات */
-        .info-section {
-            margin-top: 30px;
-            padding-top: 20px;
-            border-top: 1px solid #e5e7eb;
-            text-align: center;
-        }
-
-        .info-text {
-            color: #666;
-            font-size: 13px;
-            line-height: 1.6;
-        }
-
-        .contact-info {
-            margin-top: 10px;
-            color: #667eea;
-            font-size: 12px;
-        }
-
         /* تصميم متجاوب */
         @media (max-width: 480px) {
             .login-box {
@@ -263,15 +243,8 @@
                 </button>
             </form>
 
-            <div class="info-section">
-                <div class="info-text">
-                    <p>للاستفسار أو المساعدة، يرجى التواصل مع:</p>
-                </div>
-                <div class="contact-info">
-                    📞 قسم تكنولوجيا المعلومات
-                    <br>
-                    ✉️ IT@caritas.org
-                </div>
+            <div style="margin-top: 30px; text-align: center; color: #666; font-size: 12px;">
+                <p>للاستفسار: 📞 قسم تكنولوجيا المعلومات</p>
             </div>
         </div>
     </div>
@@ -295,22 +268,14 @@
                 supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
                 console.log('✅ Supabase تم تهيئته بنجاح');
                 
-                // اختبار الاتصال
-                const connected = await testConnection();
-                
-                if (connected) {
-                    // التحقق إذا كان المستخدم مسجل دخول بالفعل
-                    const currentUser = getCurrentUser();
-                    if (currentUser) {
-                        showAlert('تم تسجيل دخولك مسبقاً، جاري التحويل...', 'info');
-                        setTimeout(() => {
-                            redirectToDashboard(currentUser.role_id);
-                        }, 1000);
-                    }
+                // التحقق إذا كان المستخدم مسجل دخول بالفعل
+                const currentUser = getCurrentUser();
+                if (currentUser) {
+                    redirectToDashboard(currentUser.role_id);
                 }
             } catch (error) {
                 console.error('❌ خطأ في تهيئة Supabase:', error);
-                showAlert('خطأ في الاتصال بالنظام. يرجى التواصل مع قسم تكنولوجيا المعلومات.', 'danger');
+                showAlert('خطأ في الاتصال بالنظام.', 'danger');
             }
         });
 
@@ -340,16 +305,15 @@
                 const result = await loginUser(username, password);
 
                 if (result.success) {
-                    showAlert('✅ تم تسجيل الدخول بنجاح! جاري التحويل...', 'success');
+                    showAlert('✅ تم تسجيل الدخول بنجاح!', 'success');
                     
                     // حفظ بيانات المستخدم
                     localStorage.setItem('currentUser', JSON.stringify(result.user));
-                    localStorage.setItem('lastLogin', new Date().toISOString());
                     
                     // الانتقال إلى لوحة التحكم المناسبة
                     setTimeout(() => {
                         redirectToDashboard(result.user.role_id);
-                    }, 1500);
+                    }, 1000);
                 } else {
                     showAlert(result.message, 'danger');
                     loginBtn.disabled = false;
@@ -357,7 +321,7 @@
                 }
             } catch (error) {
                 console.error('❌ خطأ غير متوقع:', error);
-                showAlert('حدث خطأ غير متوقع. الرجاء المحاولة مرة أخرى', 'danger');
+                showAlert('حدث خطأ. الرجاء المحاولة مرة أخرى', 'danger');
                 loginBtn.disabled = false;
                 loginBtn.textContent = 'تسجيل الدخول';
             }
@@ -393,8 +357,8 @@
 
                 console.log('✅ المستخدم موجود:', data.username);
                 
-                // تحقق من كلمة المرور
-                if (data.password_hash === password || data.password === password) {
+                // تحقق من كلمة المرور (مقارنة مباشرة لأنها مخزنة كنص عادي في البيانات)
+                if (data.password_hash === password) {
                     console.log('✅ كلمة المرور صحيحة');
                     return { 
                         success: true, 
@@ -414,33 +378,6 @@
                     success: false, 
                     message: 'حدث خطأ أثناء تسجيل الدخول' 
                 };
-            }
-        }
-
-        // دالة اختبار الاتصال بقاعدة البيانات
-        async function testConnection() {
-            try {
-                const { data, error } = await supabase
-                    .from('employees')
-                    .select('username')
-                    .limit(1);
-
-                if (error) {
-                    console.error('❌ خطأ في الاتصال:', error);
-                    showAlert('⚠️ تحذير: هناك مشكلة في الاتصال بقاعدة البيانات', 'danger');
-                    return false;
-                }
-
-                console.log('✅ الاتصال بقاعدة البيانات ناجح');
-                showAlert('✅ النظام جاهز للتسجيل', 'success');
-                setTimeout(() => {
-                    alertBox.classList.remove('show');
-                }, 2000);
-                return true;
-            } catch (error) {
-                console.error('❌ خطأ في اختبار الاتصال:', error);
-                showAlert('⚠️ تحذير: لا يمكن الاتصال بقاعدة البيانات', 'danger');
-                return false;
             }
         }
 
@@ -479,10 +416,10 @@
             alertBox.textContent = message;
             alertBox.className = `alert alert-${type} show`;
             
-            // إخفاء التنبيه بعد 5 ثواني
+            // إخفاء التنبيه بعد 3 ثواني
             setTimeout(() => {
                 alertBox.classList.remove('show');
-            }, 5000);
+            }, 3000);
         }
 
         // تفعيل إرسال النموذج بالضغط على Enter
@@ -491,11 +428,6 @@
                 loginForm.dispatchEvent(new Event('submit'));
             }
         });
-
-        // تركيز المؤشر على حقل اسم المستخدم عند تحميل الصفحة
-        setTimeout(() => {
-            document.getElementById('username').focus();
-        }, 100);
     </script>
 </body>
 </html>
