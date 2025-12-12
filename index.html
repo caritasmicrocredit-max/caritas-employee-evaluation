@@ -5,7 +5,6 @@
   <title>تسجيل الدخول - Caritas</title>
   <link rel="stylesheet" href="style.css">
   <style>
-    /* تصميم بسيط للصفحة */
     body.loginPage {
       display: flex;
       justify-content: center;
@@ -24,46 +23,19 @@
       width: 320px;
     }
 
-    .container img {
-      width: 120px;
-      margin-bottom: 20px;
-    }
-
-    .container h1 {
-      margin-bottom: 20px;
-      color: #333;
-    }
-
+    .container img { width: 120px; margin-bottom: 20px; }
+    .container h1 { margin-bottom: 20px; color: #333; }
     .container input {
-      width: 100%;
-      padding: 10px;
-      margin: 10px 0;
-      border-radius: 6px;
-      border: 1px solid #ccc;
-      font-size: 14px;
+      width: 100%; padding: 10px; margin: 10px 0; border-radius: 6px;
+      border: 1px solid #ccc; font-size: 14px;
     }
-
     .container button {
-      width: 100%;
-      padding: 12px;
-      margin-top: 15px;
-      border: none;
-      border-radius: 6px;
-      background-color: #ff7f50; /* لون متناسق مع اللوجو */
-      color: #fff;
-      font-size: 16px;
-      cursor: pointer;
+      width: 100%; padding: 12px; margin-top: 15px; border: none;
+      border-radius: 6px; background-color: #ff7f50; color: #fff;
+      font-size: 16px; cursor: pointer;
     }
-
-    .container button:hover {
-      background-color: #ff6347;
-    }
-
-    .container p {
-      margin-top: 15px;
-      font-size: 12px;
-      color: #666;
-    }
+    .container button:hover { background-color: #ff6347; }
+    .container p { margin-top: 15px; font-size: 12px; color: #666; }
   </style>
 </head>
 <body class="loginPage">
@@ -73,26 +45,20 @@
 
     <input type="text" id="username" placeholder="اسم المستخدم">
     <input type="password" id="password" placeholder="كلمة المرور">
-
-    <button onclick="login()">تسجيل الدخول</button>
-
+    <button id="loginBtn">تسجيل الدخول</button>
     <p>أدخل بياناتك للولوج للنظام</p>
   </div>
 
   <script type="module">
-    // استدعاء Supabase عبر CDN
     import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm'
 
     const supabaseUrl = 'https://pzsxhypigslcvduegvpa.supabase.co'
     const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB6c3hoeXBpZ3NsY3ZkdWVndnBhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU0OTMxOTQsImV4cCI6MjA4MTA2OTE5NH0.0LC452nPLSywGh1mKxNQedm3M_yWZ4srck-gK67iZag'
-
     const supabase = createClient(supabaseUrl, supabaseKey)
 
     async function login() {
-      const username = document.getElementById('username').value.trim();
-      const password = document.getElementById('password').value.trim();
-
-      console.log('Attempt login:', username, password)
+      const username = document.getElementById('username').value.trim()
+      const password = document.getElementById('password').value.trim()
 
       if (!username || !password) {
         alert('يرجى إدخال اسم المستخدم وكلمة المرور');
@@ -104,32 +70,33 @@
         .select('*')
         .eq('username', username)
         .eq('password_hash', password)
-        .single();
+        .single()
 
       console.log('Data:', data)
       console.log('Error:', error)
 
       if (error || !data) {
-        alert('خطأ في تسجيل الدخول: المستخدم أو كلمة المرور غير صحيحة');
+        alert('خطأ في تسجيل الدخول: المستخدم أو كلمة المرور غير صحيحة')
       } else {
-        alert('تم تسجيل الدخول بنجاح!');
+        alert('تم تسجيل الدخول بنجاح!')
         switch (data.role_id) {
           case 5:
-            window.location.href = 'adminDashboard.html';
-            break;
+            window.location.href = 'adminDashboard.html'
+            break
           case 2:
-            window.location.href = 'teamManagerDashboard.html';
-            break;
+            window.location.href = 'teamManagerDashboard.html'
+            break
           case 1:
-            window.location.href = 'specialistDashboard.html';
-            break;
+            window.location.href = 'specialistDashboard.html'
+            break
           default:
-            alert('الدور غير معروف!');
+            alert('الدور غير معروف!')
         }
       }
     }
 
-    window.login = login; // عشان الزرار يعرف الدالة
+    // ربط الدالة بزرار الدخول
+    document.getElementById('loginBtn').addEventListener('click', login)
   </script>
 </body>
 </html>
