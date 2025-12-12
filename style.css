@@ -1,0 +1,73 @@
+/* إعدادات عامة */
+body {
+  font-family: 'Arial', sans-serif;
+  margin: 0;
+  padding: 0;
+  background-color: #f4f6f8; /* خلفية هادئة */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
+
+/* إطار محتوى الصفحة */
+.container {
+  background-color: #ffffff; /* أبيض */
+  padding: 40px 50px;
+  border-radius: 15px;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+  text-align: center;
+  width: 350px;
+}
+
+/* اللوجو */
+.container img {
+  width: 120px;
+  margin-bottom: 20px;
+}
+
+/* العناوين */
+.container h1 {
+  margin-bottom: 25px;
+  color: #333;
+  font-size: 24px;
+}
+
+/* الحقول */
+.container input {
+  width: 100%;
+  padding: 12px;
+  margin: 8px 0;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  font-size: 16px;
+}
+
+/* زر تسجيل الدخول */
+.container button {
+  width: 100%;
+  padding: 12px;
+  margin-top: 15px;
+  background-color: #0077b6; /* أزرق هادئ متناسق */
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.container button:hover {
+  background-color: #0096c7; /* تغيير اللون عند المرور */
+}
+
+/* نص الرابط أو أي تعليمات */
+.container p {
+  font-size: 14px;
+  color: #555;
+  margin-top: 15px;
+}
+.container p a {
+  color: #0077b6;
+  text-decoration: none;
+}
