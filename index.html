@@ -3,13 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="نظام التقييم الشامل للموظفين - كاريتاس مصر">
-    <meta name="author" content="كاريتاس مصر">
-    
     <title>نظام تقييم الموظفين - كاريتاس مصر</title>
     
     <!-- تنسيقات CSS داخلية -->
     <style>
+        /* نفس الأنماط السابقة مع بعض الإضافات */
         * {
             margin: 0;
             padding: 0;
@@ -30,7 +28,6 @@
         .login-container {
             width: 100%;
             max-width: 420px;
-            animation: fadeIn 0.8s ease;
         }
 
         .login-card {
@@ -101,12 +98,6 @@
             color: white;
             border: none;
         }
-        
-        #alertBox.warning {
-            background: linear-gradient(135deg, #ff9f43 0%, #ee5a24 100%);
-            color: white;
-            border: none;
-        }
 
         /* نموذج */
         .form-group {
@@ -157,8 +148,6 @@
             margin-top: 10px;
             letter-spacing: 0.5px;
             box-shadow: 0 6px 20px rgba(26, 41, 128, 0.3);
-            position: relative;
-            overflow: hidden;
         }
 
         .login-btn:hover:not(:disabled) {
@@ -170,47 +159,6 @@
             opacity: 0.7;
             cursor: not-allowed;
             transform: none !important;
-        }
-
-        .login-btn::after {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-            transform: translateX(-100%);
-        }
-
-        .login-btn.loading::after {
-            animation: shimmer 1.5s infinite;
-        }
-
-        /* خيارات بديلة */
-        .alternative-options {
-            margin-top: 20px;
-            padding-top: 20px;
-            border-top: 1px solid #e0e0e0;
-            text-align: center;
-        }
-
-        .alt-btn {
-            display: inline-block;
-            padding: 10px 20px;
-            margin: 5px;
-            background: #f8f9fa;
-            color: #333;
-            border: 2px solid #e0e0e0;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 14px;
-            transition: all 0.3s ease;
-        }
-
-        .alt-btn:hover {
-            background: #e9ecef;
-            border-color: #26d0ce;
         }
 
         .system-info {
@@ -229,34 +177,9 @@
             margin-top: 15px;
         }
 
-        /* وضع البسيط */
-        body.simple-mode .login-card {
-            background: white;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-        }
-
-        body.simple-mode .form-input {
-            background: white;
-        }
-
-        /* أنيميشن */
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(-10px); }
             to { opacity: 1; transform: translateY(0); }
-        }
-
-        @keyframes shimmer {
-            100% { transform: translateX(100%); }
-        }
-
-        @keyframes pulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-            100% { transform: scale(1); }
-        }
-
-        .pulse {
-            animation: pulse 2s infinite;
         }
 
         @media (max-width: 480px) {
@@ -276,12 +199,6 @@
             .login-btn {
                 padding: 14px;
             }
-            
-            .alt-btn {
-                display: block;
-                margin: 10px 0;
-                width: 100%;
-            }
         }
     </style>
 </head>
@@ -290,21 +207,13 @@
         <div class="login-card">
             <!-- الشعار -->
             <div class="logo-section">
-                <img src="logo_caritas.png" alt="شعار كاريتاس مصر" class="logo-img" 
-                     onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTgwIiBoZWlnaHQ9IjE4MCIgdmlld0JveD0iMCAwIDE4MCAxODAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxjaXJjbGUgY3g9IjkwIiBjeT0iOTAiIHI9IjgwIiBmaWxsPSIjMWExOTgwIi8+CjxwYXRoIGQ9Ik02MCA5MEw5MCA2MEwxMjAgOTBMOTAgMTIwTDYwIDkwWiIgZmlsbD0iIzI2ZDBjZSIvPgo8dGV4dCB4PSI5MCIgeT0iMTUwIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmaWxsPSJ3aGl0ZSIgZm9udC1zaXplPSIyNCIgZm9udC1mYW1pbHk9IkFyaWFsIj5LOjwvdGV4dD4KPC9zdmc+'">
+                <img src="logo_caritas.png" alt="شعار كاريتاس مصر" class="logo-img">
                 <h1 class="title">كاريتاس مصر</h1>
                 <p class="subtitle">نظام التقييم الشامل للموظفين</p>
             </div>
 
             <!-- التنبيه -->
             <div id="alertBox"></div>
-
-            <!-- فحص التوافق -->
-            <div id="compatibilityCheck" style="display: none;">
-                <div style="text-align: center; padding: 15px; background: #fff3cd; border-radius: 10px; margin-bottom: 20px;">
-                    <p style="color: #856404; font-weight: 600;">🔍 جاري فحص إعدادات المتصفح...</p>
-                </div>
-            </div>
 
             <!-- نموذج الدخول -->
             <form id="loginForm">
@@ -338,18 +247,10 @@
                 </button>
             </form>
 
-            <!-- خيارات بديلة -->
-            <div class="alternative-options" id="altOptions" style="display: none;">
-                <p style="color: #666; margin-bottom: 10px; font-size: 14px;">خيارات بديلة:</p>
-                <button class="alt-btn" onclick="trySimpleMode()">🔄 الوضع البسيط</button>
-                <button class="alt-btn" onclick="runDiagnostic()">🔧 تشخيص المشكلة</button>
-                <button class="alt-btn" onclick="clearAllData()">🗑️ مسح جميع البيانات</button>
-            </div>
-
             <!-- معلومات النظام -->
             <div class="system-info">
                 <p>🚀 نظام التقييم الشامل - الإصدار 1.0</p>
-                <p>📊 يدعم 6 أدوار و <span id="employeeCount">--</span> موظف</p>
+                <p>📊 يدعم 6 أدوار و <span id="employeeCount">76</span> موظف</p>
                 <div class="version">© 2024 Caritas Egypt - جميع الحقوق محفوظة</div>
             </div>
         </div>
@@ -362,235 +263,74 @@
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB6c3hoeXBpZ3NsY3ZkdWVndnBhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU0OTMxOTQsImV4cCI6MjA4MTA2OTE5NH0.0LC452nPLSywGh1mKxNQedm3M_yWZ4srck-gK67iZag';
         
         // ==================== عناصر الصفحة ====================
-        let supabase = null;
+        let supabase;
         const loginForm = document.getElementById('loginForm');
         const alertBox = document.getElementById('alertBox');
         const loginBtn = document.getElementById('loginBtn');
         const employeeCount = document.getElementById('employeeCount');
-        const compatibilityCheck = document.getElementById('compatibilityCheck');
-        const altOptions = document.getElementById('altOptions');
         
         // ==================== تهيئة التطبيق ====================
         document.addEventListener('DOMContentLoaded', async () => {
             console.log('🚀 بدء تحميل نظام تسجيل الدخول...');
             
             try {
-                // فحص توافق المتصفح
-                const isCompatible = await checkBrowserCompatibility();
-                
-                if (!isCompatible) {
-                    showAlternativeOptions();
-                }
-                
                 await initializeApp();
                 
             } catch (error) {
                 console.error('❌ خطأ في التهيئة:', error);
-                showAlert('حدث خطأ في تحميل النظام. يرجى تحديث الصفحة أو استخدام الوضع البسيط.', 'error');
-                showAlternativeOptions();
+                showAlert('حدث خطأ في تحميل النظام. يرجى تحديث الصفحة.', 'error');
             }
         });
         
-        // ==================== فحص توافق المتصفح ====================
-        async function checkBrowserCompatibility() {
-            compatibilityCheck.style.display = 'block';
-            
-            const issues = [];
-            
-            // فحص 1: LocalStorage
-            try {
-                localStorage.setItem('compat_test', 'test');
-                const value = localStorage.getItem('compat_test');
-                localStorage.removeItem('compat_test');
-                
-                if (value !== 'test') {
-                    throw new Error('قيمة غير متوقعة');
-                }
-                console.log('✅ LocalStorage يعمل');
-            } catch (error) {
-                issues.push('التخزين المحلي (LocalStorage) غير مدعوم أو معطل');
-                console.warn('⚠️ LocalStorage غير متوفر:', error);
-            }
-            
-            // فحص 2: JavaScript الحديث
-            if (!window.Promise || !window.fetch) {
-                issues.push('إصدار JavaScript قديم غير مدعوم');
-                console.warn('⚠️ JavaScript قديم');
-            }
-            
-            // فحص 3: اتصال الإنترنت
-            try {
-                const online = navigator.onLine;
-                if (!online) {
-                    issues.push('الاتصال بالإنترنت غير متوفر');
-                    console.warn('⚠️ لا يوجد اتصال بالإنترنت');
-                }
-            } catch (error) {
-                console.warn('⚠️ لا يمكن التحقق من اتصال الإنترنت:', error);
-            }
-            
-            compatibilityCheck.style.display = 'none';
-            
-            if (issues.length > 0) {
-                console.warn('⚠️ مشاكل في التوافق:', issues);
-                return false;
-            }
-            
-            return true;
-        }
-        
         // ==================== تهيئة التطبيق ====================
         async function initializeApp() {
-            try {
-                // التحقق من تسجيل الدخول السابق
-                const currentUser = getCurrentUser();
-                if (currentUser) {
-                    console.log('👤 مستخدم مسجل بالفعل:', currentUser.full_name);
-                    showAlert(`مرحباً بعودتك ${currentUser.full_name}!`, 'info');
-                    setTimeout(() => redirectToDashboard(currentUser.role_id), 1000);
-                    return;
-                }
-                
-                // تحميل Supabase مع معالجة الأخطاء
-                await loadSupabaseWithRetry();
-                
-                // جلب عدد الموظفين
-                await fetchEmployeeCount();
-                
-                // إعداد المستمعين
-                setupEventListeners();
-                
-                console.log('✅ التطبيق جاهز');
-                
-            } catch (error) {
-                console.error('❌ فشل تهيئة التطبيق:', error);
-                throw error;
-            }
-        }
-        
-        // ==================== تحميل Supabase مع إعادة المحاولة ====================
-        async function loadSupabaseWithRetry(maxRetries = 3) {
-            let lastError;
-            
-            for (let attempt = 1; attempt <= maxRetries; attempt++) {
-                try {
-                    console.log(`🔄 محاولة تحميل Supabase (${attempt}/${maxRetries})...`);
-                    
-                    if (!window.supabase) {
-                        await loadSupabaseLibrary();
-                    }
-                    
-                    if (window.supabase) {
-                        supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-                        
-                        // اختبار الاتصال
-                        await testSupabaseConnection();
-                        
-                        console.log('✅ Supabase جاهز');
-                        return;
-                    }
-                    
-                } catch (error) {
-                    lastError = error;
-                    console.warn(`⚠️ فشلت المحاولة ${attempt}:`, error.message);
-                    
-                    if (attempt < maxRetries) {
-                        // انتظار قبل إعادة المحاولة
-                        await new Promise(resolve => setTimeout(resolve, 1000 * attempt));
-                    }
-                }
+            // تحميل Supabase
+            if (!window.supabase) {
+                await loadSupabase();
             }
             
-            throw lastError || new Error('فشل تحميل Supabase بعد جميع المحاولات');
+            supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+            console.log('✅ Supabase جاهز');
+            
+            // التحقق من تسجيل الدخول السابق
+            const currentUser = getCurrentUser();
+            if (currentUser) {
+                console.log('👤 مستخدم مسجل بالفعل:', currentUser.full_name);
+                redirectToDashboard(currentUser.role_id);
+                return;
+            }
+            
+            // إعداد المستمعين
+            setupEventListeners();
+            
+            // جلب عدد الموظفين
+            await fetchEmployeeCount();
         }
         
-        // ==================== تحميل مكتبة Supabase ====================
-        function loadSupabaseLibrary() {
+        // ==================== تحميل Supabase ====================
+        async function loadSupabase() {
             return new Promise((resolve, reject) => {
-                // إذا كانت المكتبة محملة بالفعل
-                if (window.supabase) {
-                    resolve();
-                    return;
-                }
-                
-                console.log('📦 جاري تحميل مكتبة Supabase...');
-                
                 const script = document.createElement('script');
                 script.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js';
-                
-                let timeoutId = setTimeout(() => {
-                    reject(new Error('تجاوز الوقت المسموح لتحميل المكتبة'));
-                }, 15000);
-                
-                script.onload = () => {
-                    clearTimeout(timeoutId);
-                    console.log('✅ تم تحميل مكتبة Supabase بنجاح');
-                    
-                    // انتظار بسيط للتأكد من تهيئة المكتبة
-                    setTimeout(() => {
-                        if (window.supabase) {
-                            resolve();
-                        } else {
-                            reject(new Error('المكتبة محملة ولكن لم تتم تهيئتها'));
-                        }
-                    }, 500);
-                };
-                
-                script.onerror = () => {
-                    clearTimeout(timeoutId);
-                    reject(new Error('فشل تحميل مكتبة Supabase. تحقق من اتصال الإنترنت.'));
-                };
-                
-                // إضافة معلمة cache busting إذا لزم الأمر
-                script.src += `?v=${Date.now()}`;
-                
+                script.onload = resolve;
+                script.onerror = reject;
                 document.head.appendChild(script);
             });
-        }
-        
-        // ==================== اختبار اتصال Supabase ====================
-        async function testSupabaseConnection() {
-            try {
-                const { data, error } = await supabase
-                    .from('employees')
-                    .select('count', { count: 'exact', head: true })
-                    .limit(1);
-                
-                if (error) {
-                    throw error;
-                }
-                
-                console.log('✅ اتصال Supabase ناجح');
-                return true;
-                
-            } catch (error) {
-                console.error('❌ فشل اختبار الاتصال:', error);
-                throw new Error(`فشل الاتصال بقاعدة البيانات: ${error.message}`);
-            }
         }
         
         // ==================== جلب عدد الموظفين ====================
         async function fetchEmployeeCount() {
             try {
-                if (!supabase) {
-                    employeeCount.textContent = 'جاري التحميل...';
-                    return;
-                }
-                
                 const { count, error } = await supabase
                     .from('employees')
                     .select('*', { count: 'exact', head: true })
                     .eq('is_active', true);
                 
-                if (!error && count !== null) {
+                if (!error && count) {
                     employeeCount.textContent = count;
-                } else {
-                    employeeCount.textContent = '--';
-                    console.warn('⚠️ لا يمكن جلب عدد الموظفين:', error);
                 }
             } catch (error) {
-                console.warn('⚠️ خطأ في جلب عدد الموظفين:', error);
-                employeeCount.textContent = '--';
+                console.warn('⚠️ لا يمكن جلب عدد الموظفين:', error);
             }
         }
         
@@ -602,28 +342,12 @@
             // الدخول بالإنتر
             document.getElementById('password').addEventListener('keypress', (e) => {
                 if (e.key === 'Enter') {
-                    e.preventDefault();
-                    handleLogin(e);
+                    loginForm.dispatchEvent(new Event('submit'));
                 }
-            });
-            
-            // تحديث حالة الاتصال
-            window.addEventListener('online', () => {
-                showAlert('✅ تم استعادة الاتصال بالإنترنت', 'success');
-            });
-            
-            window.addEventListener('offline', () => {
-                showAlert('⚠️ فقدان الاتصال بالإنترنت', 'warning');
             });
             
             // تركيز على حقل المستخدم
-            setTimeout(() => {
-                const usernameInput = document.getElementById('username');
-                if (usernameInput) {
-                    usernameInput.focus();
-                    usernameInput.select();
-                }
-            }, 500);
+            document.getElementById('username').focus();
         }
         
         // ==================== معالجة تسجيل الدخول ====================
@@ -639,21 +363,8 @@
                 return;
             }
             
-            // التحقق من اتصال الإنترنت
-            if (!navigator.onLine) {
-                showAlert('⚠️ لا يوجد اتصال بالإنترنت. يرجى التحقق من اتصالك.', 'error');
-                return;
-            }
-            
-            // التحقق من اتصال Supabase
-            if (!supabase) {
-                showAlert('❌ لم يتم تهيئة الاتصال بقاعدة البيانات. يرجى إعادة تحميل الصفحة.', 'error');
-                return;
-            }
-            
             // تعطيل الزر أثناء المعالجة
             loginBtn.disabled = true;
-            loginBtn.classList.add('loading');
             loginBtn.textContent = 'جاري التحقق...';
             
             try {
@@ -666,7 +377,7 @@
                 }
                 
             } catch (error) {
-                console.error('❌ خطأ غير متوقع في تسجيل الدخول:', error);
+                console.error('❌ خطأ غير متوقع:', error);
                 handleLoginFailure('حدث خطأ غير متوقع. يرجى المحاولة مرة أخرى');
             }
         }
@@ -676,13 +387,6 @@
             console.log(`🔐 محاولة دخول: ${username}`);
             
             try {
-                if (!supabase) {
-                    return { 
-                        success: false, 
-                        message: 'الاتصال بالخادم غير متوفر' 
-                    };
-                }
-                
                 // البحث عن المستخدم
                 const { data, error } = await supabase
                     .from('employees')
@@ -693,24 +397,16 @@
                 
                 if (error) {
                     console.error('🔍 خطأ في البحث:', error.message);
-                    
-                    if (error.code === 'PGRST116') {
-                        return { 
-                            success: false, 
-                            message: 'المستخدم غير موجود' 
-                        };
-                    }
-                    
                     return { 
                         success: false, 
-                        message: 'خطأ في الاتصال بالخادم' 
+                        message: 'بيانات الدخول غير صحيحة' 
                     };
                 }
                 
                 if (!data) {
                     return { 
                         success: false, 
-                        message: 'بيانات الدخول غير صحيحة' 
+                        message: 'المستخدم غير موجود' 
                     };
                 }
                 
@@ -733,7 +429,7 @@
                 console.error('❌ خطأ في المصادقة:', error);
                 return { 
                     success: false, 
-                    message: 'خطأ في الاتصال بالخادم. تأكد من اتصال الإنترنت.' 
+                    message: 'خطأ في الاتصال بالخادم' 
                 };
             }
         }
@@ -745,58 +441,20 @@
             // حفظ بيانات المستخدم مع الدور بالعربية
             const userData = {
                 ...user,
-                role_name_ar: user.roles?.role_name_ar || getRoleName(user.role_id),
-                login_timestamp: new Date().toISOString()
+                role_name_ar: user.roles?.role_name_ar || getRoleName(user.role_id)
             };
             
-            // محاولة حفظ البيانات في وسائط تخزين مختلفة
-            const storageSaved = await saveUserData(userData);
-            
-            if (!storageSaved) {
-                showAlert('⚠️ تعذر حفظ بيانات الجلسة. قد تحتاج لإعادة تسجيل الدخول إذا أعدت تحميل الصفحة.', 'warning');
-            }
+            localStorage.setItem('caritas_user', JSON.stringify(userData));
+            localStorage.setItem('caritas_last_login', new Date().toISOString());
             
             // عرض رسالة النجاح
-            showAlert(`✅ مرحباً ${user.full_name}! تم تسجيل دخولك بنجاح.`, 'success');
+            showAlert(`مرحباً ${user.full_name}! تم تسجيل دخولك بنجاح.`, 'success');
             loginBtn.textContent = 'تم ✓';
-            loginBtn.classList.remove('loading');
-            
-            // إضافة تأثير بصري
-            loginBtn.classList.add('pulse');
             
             // التحويل إلى لوحة التحكم بعد تأخير قصير
             setTimeout(() => {
                 redirectToDashboard(user.role_id);
             }, 1200);
-        }
-        
-        // ==================== حفظ بيانات المستخدم ====================
-        async function saveUserData(userData) {
-            const storageMethods = [
-                { name: 'localStorage', method: localStorage },
-                { name: 'sessionStorage', method: sessionStorage }
-            ];
-            
-            let saved = false;
-            
-            for (const storage of storageMethods) {
-                try {
-                    storage.method.setItem('caritas_user', JSON.stringify(userData));
-                    storage.method.setItem('caritas_last_login', new Date().toISOString());
-                    
-                    // اختبار القراءة
-                    const testData = storage.method.getItem('caritas_user');
-                    if (testData) {
-                        console.log(`✅ تم الحفظ في ${storage.name}`);
-                        saved = true;
-                        break;
-                    }
-                } catch (error) {
-                    console.warn(`⚠️ فشل الحفظ في ${storage.name}:`, error.message);
-                }
-            }
-            
-            return saved;
         }
         
         // ==================== فشل تسجيل الدخول ====================
@@ -807,54 +465,33 @@
             
             // إعادة تفعيل الزر
             loginBtn.disabled = false;
-            loginBtn.classList.remove('loading');
             loginBtn.textContent = 'دخول النظام';
             
             // التركيز وإختيار النص
             const usernameInput = document.getElementById('username');
-            if (usernameInput) {
-                usernameInput.focus();
-                usernameInput.select();
-            }
-            
-            // إظهار خيارات بديلة بعد عدة محاولات فاشلة
-            showAlternativeOptions();
+            usernameInput.focus();
+            usernameInput.select();
         }
         
         // ==================== توجيه المستخدم حسب الدور ====================
         function redirectToDashboard(roleId) {
-            console.log(`🔄 توجيه الدور ${roleId}`);
-            
-            const dashboards = {
-                1: 'specialistDashboard.html',      // أخصائي ميداني
-                2: 'teamManagerDashboard.html',     // مسؤول فريق
-                3: 'branchManagerDashboard.html',   // مدير فرع
-                4: 'projectManagerDashboard.html',  // مدير نشاط
-                5: 'staffDashboard.html',           // إداري
-                6: 'staffDashboard.html',           // المركز الرئيسي
-                7: 'dashboard.html'                 // مسئول النظام
-            };
-            
-            const targetPage = dashboards[roleId] || 'index.html';
-            console.log(`📍 التحويل إلى: ${targetPage}`);
-            
-            // حفظ آخر صفحة تمت زيارتها
-            try {
-                localStorage.setItem('caritas_last_page', targetPage);
-                sessionStorage.setItem('caritas_last_page', targetPage);
-            } catch (error) {
-                console.warn('⚠️ فشل حفظ آخر صفحة:', error);
-            }
-            
-            // الانتقال مع معالجة الأخطاء
-            try {
-                window.location.href = targetPage;
-            } catch (error) {
-                console.error('❌ فشل التحويل:', error);
-                showAlert('فشل التحويل. يرجى النقر على الرابط التالي:', 'error');
-                showAlert(`<a href="${targetPage}" style="color: white; text-decoration: underline;">انقر هنا للانتقال</a>`, 'info');
-            }
-        }
+    console.log(`🔄 توجيه الدور ${roleId}`);
+    
+    const dashboards = {
+         1: 'specialistDashboard.html',      // أخصائي ميداني (48 مستخدم)
+        2: 'teamManagerDashboard.html',     // مسؤول فريق (6 مستخدمين)
+        3: 'branchManagerDashboard.html',   // مدير فرع (6 مستخدمين)
+        4: 'projectManagerDashboard.html',  // مدير نشاط (مايكل عزوز)
+        5: 'staffDashboard.html',           // إداري (18 مستخدم) ← تغيير هنا
+        6: 'staffDashboard.html',           // المركز الرئيسي (3 مستخدمين) ← تغيير هنا
+        7: 'dashboard.html'                 // مسئول النظام
+    };
+    
+    const targetPage = dashboards[roleId] || 'index.html';
+    console.log(`📍 التحويل إلى: ${targetPage}`);
+    
+    window.location.href = targetPage;
+}
         
         // ==================== الحصول على اسم الدور بالعربية ====================
         function getRoleName(roleId) {
@@ -864,231 +501,31 @@
                 3: 'مدير فرع',
                 4: 'مدير النشاط',
                 5: 'إداري',
-                6: 'المركز الرئيسي',
-                7: 'مسئول النظام'
+                6: 'المركز الرئيسي'
             };
             return roles[roleId] || 'دور غير معروف';
         }
         
-        // ==================== الحصول على المستخدم الحالي ====================
+        // ==================== وظائف مساعدة ====================
         function getCurrentUser() {
             try {
-                // محاولة localStorage أولاً
-                let userData = localStorage.getItem('caritas_user');
-                
-                // إذا لم توجد في localStorage، جرب sessionStorage
-                if (!userData) {
-                    userData = sessionStorage.getItem('caritas_user');
-                }
-                
-                if (userData) {
-                    const user = JSON.parse(userData);
-                    
-                    // التحقق من صلاحية البيانات
-                    if (user && user.id && user.full_name) {
-                        
-                        // التحقق من تاريخ انتهاء الصلاحية (24 ساعة)
-                        const lastLogin = localStorage.getItem('caritas_last_login') || 
-                                          sessionStorage.getItem('caritas_last_login');
-                        
-                        if (lastLogin) {
-                            const loginTime = new Date(lastLogin);
-                            const now = new Date();
-                            const hoursDiff = (now - loginTime) / (1000 * 60 * 60);
-                            
-                            if (hoursDiff < 24) {
-                                return user;
-                            } else {
-                                console.log('⏰ انتهت صلاحية الجلسة (أكثر من 24 ساعة)');
-                            }
-                        } else {
-                            return user;
-                        }
-                    }
-                }
-                
-                // إذا كانت البيانات غير صالحة، احذفها
-                clearUserData();
-                return null;
-                
-            } catch (error) {
-                console.error('❌ خطأ في قراءة بيانات المستخدم:', error);
-                clearUserData();
-                return null;
-            }
-        }
-        
-        // ==================== مسح بيانات المستخدم ====================
-        function clearUserData() {
-            try {
+                const userData = localStorage.getItem('caritas_user');
+                return userData ? JSON.parse(userData) : null;
+            } catch {
                 localStorage.removeItem('caritas_user');
-                localStorage.removeItem('caritas_last_login');
-                localStorage.removeItem('caritas_last_page');
-                
-                sessionStorage.removeItem('caritas_user');
-                sessionStorage.removeItem('caritas_last_login');
-                sessionStorage.removeItem('caritas_last_page');
-            } catch (error) {
-                console.error('❌ خطأ في مسح البيانات:', error);
+                return null;
             }
         }
         
-        // ==================== إظهار خيارات بديلة ====================
-        function showAlternativeOptions() {
-            altOptions.style.display = 'block';
-        }
-        
-        // ==================== الوضع البسيط ====================
-        function trySimpleMode() {
-            console.log('🔄 تشغيل الوضع البسيط...');
-            
-            // إضافة صنف الوضع البسيط
-            document.body.classList.add('simple-mode');
-            
-            // تعطيل بعض الميزات المتقدمة
-            showAlert('✅ تم تفعيل الوضع البسيط. قد تكون بعض الميزات محدودة.', 'info');
-            
-            // إعادة تحميل Supabase بدون مكتبة خارجية
-            loadSupabaseLight();
-        }
-        
-        // ==================== تحميل Supabase خفيف ====================
-        async function loadSupabaseLight() {
-            try {
-                // استخدام fetch مباشرة للتحقق من الاتصال
-                const response = await fetch(`${SUPABASE_URL}/rest/v1/employees?select=count&limit=1`, {
-                    headers: {
-                        'apikey': SUPABASE_KEY,
-                        'Authorization': `Bearer ${SUPABASE_KEY}`
-                    }
-                });
-                
-                if (response.ok) {
-                    console.log('✅ اتصال Supabase مباشر ناجح');
-                    showAlert('✅ تم استعادة الاتصال بالخادم', 'success');
-                } else {
-                    throw new Error(`خطأ ${response.status}`);
-                }
-                
-            } catch (error) {
-                console.error('❌ فشل الاتصال المباشر:', error);
-                showAlert('⚠️ لا يزال هناك مشكلة في الاتصال. جرب لاحقاً.', 'warning');
-            }
-        }
-        
-        // ==================== تشخيص المشكلة ====================
-        function runDiagnostic() {
-            console.log('🔧 تشغيل التشخيص...');
-            
-            // فتح صفحة التشخيص
-            const diagnosticUrl = 'diagnostic.html';
-            
-            try {
-                window.open(diagnosticUrl, '_blank');
-            } catch (error) {
-                // إذا فشل window.open، استخدم نافذة جديدة
-                const newWindow = window.open('', '_blank');
-                if (newWindow) {
-                    newWindow.document.write(`
-                        <html dir="rtl">
-                        <head><title>تشخيص النظام</title></head>
-                        <body>
-                            <h1>🔧 صفحة التشخيص</h1>
-                            <p>جاري التحويل...</p>
-                            <script>
-                                window.location.href = '${diagnosticUrl}';
-                            <\/script>
-                        </body>
-                        </html>
-                    `);
-                } else {
-                    showAlert('⚠️ تعذر فتح نافذة جديدة. يرجى السماح بالنوافذ المنبثقة.', 'warning');
-                }
-            }
-        }
-        
-        // ==================== مسح جميع البيانات ====================
-        function clearAllData() {
-            if (confirm('⚠️ هل أنت متأكد من مسح جميع البيانات المخزنة محلياً؟\n\nسيتم تسجيل خروجك من جميع الأجهزة.')) {
-                try {
-                    // مسح localStorage
-                    localStorage.clear();
-                    
-                    // مسح sessionStorage
-                    sessionStorage.clear();
-                    
-                    // مسح cookies
-                    document.cookie.split(";").forEach(function(c) {
-                        document.cookie = c.replace(/^ +/, "")
-                            .replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
-                    });
-                    
-                    showAlert('✅ تم مسح جميع البيانات المخزنة بنجاح.', 'success');
-                    
-                    // إعادة تحميل الصفحة بعد ثانية
-                    setTimeout(() => {
-                        location.reload();
-                    }, 1000);
-                    
-                } catch (error) {
-                    console.error('❌ فشل مسح البيانات:', error);
-                    showAlert('❌ فشل مسح بعض البيانات.', 'error');
-                }
-            }
-        }
-        
-        // ==================== وظائف مساعدة ====================
-        function showAlert(message, type = 'info') {
+        function showAlert(message, type) {
             alertBox.textContent = message;
-            alertBox.innerHTML = message; // للسماح بـ HTML
             alertBox.className = `${type} show`;
             
-            // إخفاء التنبيه بعد مدة
-            const hideTime = type === 'error' ? 6000 : 4000;
+            // إخفاء التنبيه بعد 4 ثواني
             setTimeout(() => {
                 alertBox.classList.remove('show');
-            }, hideTime);
+            }, 4000);
         }
-        
-        // ==================== دالة لمعالجة الأخطاء العالمية ====================
-        window.onerror = function(message, source, lineno, colno, error) {
-            console.error('🚨 خطأ عام:', { message, source, lineno, colno, error });
-            
-            // لا تعرض جميع الأخطاء للمستخدم، فقط المهمة منها
-            if (message.includes('Supabase') || message.includes('Network')) {
-                showAlert('⚠️ مشكلة في الاتصال. جرب الوضع البسيط.', 'warning');
-                showAlternativeOptions();
-            }
-            
-            return true;
-        };
-        
-        // ==================== دالة لمعالجة وعود غير معالجة ====================
-        window.addEventListener('unhandledrejection', function(event) {
-            console.error('🚨 وعد غير معالج:', event.reason);
-            
-            if (event.reason && event.reason.message && 
-                (event.reason.message.includes('fetch') || 
-                 event.reason.message.includes('network') ||
-                 event.reason.message.includes('Supabase'))) {
-                showAlert('⚠️ مشكلة في الشبكة. تحقق من اتصال الإنترنت.', 'warning');
-            }
-        });
-        
-        // ==================== إضافة معلومات إضافية للتصحيح ====================
-        console.log('🌍 معلومات النظام:', {
-            userAgent: navigator.userAgent,
-            online: navigator.onLine,
-            language: navigator.language,
-            cookiesEnabled: navigator.cookieEnabled,
-            localStorage: typeof localStorage !== 'undefined' ? 'متاح' : 'غير متاح',
-            sessionStorage: typeof sessionStorage !== 'undefined' ? 'متاح' : 'غير متاح',
-            url: window.location.href,
-            timestamp: new Date().toISOString()
-        });
-        
-        // ==================== تهيئة سريعة عند تحميل الصفحة ====================
-        console.log('✅ صفحة تسجيل الدخول جاهزة');
     </script>
 </body>
 </html>
