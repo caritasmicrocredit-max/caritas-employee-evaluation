@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>تشخيص المشاكل - نظام التقييم</title>
+    <style>
+        body { font-family: Arial; padding: 20px; direction: rtl; }
+        .test { margin: 15px 0; padding: 15px; border: 1px solid #ddd; }
+        .success { background: #d4edda; color: #155724; }
+        .error { background: #f8d7da; color: #721c24; }
+        button { padding: 10px 20px; margin: 5px; }
+    </style>
+</head>
+<body>
+    <h1>🔧 صفحة تشخيص المشاكل</h1>
+    
+    <div id="tests">
+        <div class="test" id="localStorageTest">
+            <h3>فحص LocalStorage</h3>
+            <p>جاري الفحص...</p>
+        </div>
+        
+        <div class="test" id="supabaseTest">
+            <h3>فحص اتصال Supabase</h3>
+            <p>جاري الفحص...</p>
+        </div>
+        
+        <div class="test" id="internetTest">
+            <h3>فحص اتصال الإنترنت</h3>
+            <p>جاري الفحص...</p>
+        </div>
+    </div>
+    
+    <div id="results" style="margin-top: 30px; display: none;">
+        <h2>نتائج التشخيص</h2>
+        <div id="resultContent"></div>
+        <button onclick="location.href='index.html'">🔄 العودة للصفحة الرئيسية</button>
+    </div>
+    
+    <script>
+        async function runDiagnostics() {
+            const results = [];
+            
+            // اختبار 1: LocalStorage
+            try {
+                localStorage.setItem('diagnostic_test', 'test_value');
+                const value = localStorage.getItem('diagnostic_test');
+                localStorage.removeItem('diagnostic_test');
+                
+                if (value === 'test_value') {
+                    document.getElementById('localStorageTest').className = 'test success';
+                    document.getElementById('localStorageTest').innerHTML = '<h3>✅ LocalStorage يعمل بشكل صحيح</h3>';
+                    results.push('✅ LocalStorage: يعمل');
+                } else {
+                    throw new Error('قيمة غير متوقعة');
+                }
+            } catch (e) {
+                document.getElementById('localStorageTest').className = 'test error';
+                document.getElementById('localStorageTest').innerHTML = `<h3>❌ LocalStorage لا يعمل</h3><p>${e.message}</p>`;
+                results.push('❌ LocalStorage: لا يعمل');
+            }
+            
+            // اختبار 2: اتصال الإنترنت
+            try {
+                const response = await fetch('https://api.ipify.org?format=json', { 
+                    mode: 'no-cors',
+                    cache: 'no-cache'
+                });
+                document.getElementById('internetTest').className = 'test success';
+                document.getElementById('internetTest').innerHTML = '<h3>✅ اتصال الإنترنت يعمل</h3>';
+                results.push('✅ الإنترنت: متصل');
+            } catch (e) {
+                document.getElementById('internetTest').className = 'test error';
+                document.getElementById('internetTest').innerHTML = `<h3>❌ مشكلة في اتصال الإنترنت</h3><p>${e.message}</p>`;
+                results.push('❌ الإنترنت: غير متصل');
+            }
+            
+            // اختبار 3: اتصال Supabase
+            try {
+                const SUPABASE_URL = 'https://pzsxhypigslcvduegvpa.supabase.co';
+                const response = await fetch(`${SUPABASE_URL}/rest/v1/`, {
+                    headers: {
+                        'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB6c3hoeXBpZ3NsY3ZkdWVndnBhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU0OTMxOTQsImV4cCI6MjA4MTA2OTE5NH0.0LC452nPLSywGh1mKxNQedm3M_yWZ4srck-gK67iZag'
+                    }
+                });
+                
+                if (response.status === 200 || response.status === 404) {
+                    document.getElementById('supabaseTest').className = 'test success';
+                    document.getElementById('supabaseTest').innerHTML = '<h3>✅ الاتصال بـ Supabase يعمل</h3>';
+                    results.push('✅ Supabase: متصل');
+                } else {
+                    throw new Error(`رمز الحالة: ${response.status}`);
+                }
+            } catch (e) {
+                document.getElementById('supabaseTest').className = 'test error';
+                document.getElementById('supabaseTest').innerHTML = `<h3>❌ مشكلة في الاتصال بـ Supabase</h3><p>${e.message}</p>`;
+                results.push('❌ Supabase: غير متصل');
+            }
+            
+            // عرض النتائج
+            document.getElementById('resultContent').innerHTML = `
+                <h3>ملخص النتائج:</h3>
+                <ul>${results.map(r => `<li>${r}</li>`).join('')}</ul>
+                ${results.some(r => r.includes('❌')) ? 
+                    '<div style="background: #fff3cd; padding: 15px; border-radius: 5px; margin-top: 20px;"><strong>توصيات:</strong><br>1. جرب متصفح آخر<br>2. تحقق من إعدادات الأمان<br>3. اتصال بالإنترنت<br>4. أعد تحميل الصفحة (Ctrl+F5)</div>' : 
+                    '<div style="background: #d4edda; padding: 15px; border-radius: 5px; margin-top: 20px;">✅ جميع الاختبارات ناجحة! يمكنك العودة للصفحة الرئيسية.</div>'}
+            `;
+            document.getElementById('results').style.display = 'block';
+        }
+        
+        // تشغيل التشخيص عند تحميل الصفحة
+        runDiagnostics();
+    </script>
+</body>
+</html>
