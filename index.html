@@ -3,147 +3,529 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>تسجيل الدخول - نظام التقييم</title>
-    <link rel="stylesheet" href="css/style.css">
+    <title>نظام تقييم الموظفين - كاريتاس مصر</title>
+    
+    <!-- تنسيقات CSS داخلية -->
+    <style>
+        /* نفس الأنماط السابقة مع بعض الإضافات */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #1a2980 0%, #26d0ce 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            direction: rtl;
+        }
+
+        .login-container {
+            width: 100%;
+            max-width: 420px;
+        }
+
+        .login-card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.25);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .logo-section {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .logo-img {
+            max-width: 180px;
+            height: auto;
+            margin-bottom: 15px;
+            filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.1));
+        }
+
+        .title {
+            font-size: 28px;
+            font-weight: 700;
+            color: #1a2980;
+            margin-bottom: 8px;
+        }
+
+        .subtitle {
+            font-size: 16px;
+            color: #26d0ce;
+            font-weight: 500;
+        }
+
+        /* التنبيهات */
+        #alertBox {
+            padding: 16px 20px;
+            border-radius: 12px;
+            margin-bottom: 25px;
+            display: none;
+            text-align: center;
+            font-size: 15px;
+            animation: fadeIn 0.3s ease;
+        }
+        
+        #alertBox.show {
+            display: block;
+        }
+        
+        #alertBox.success {
+            background: linear-gradient(135deg, #1dd1a1 0%, #10ac84 100%);
+            color: white;
+            border: none;
+        }
+        
+        #alertBox.error {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a52 100%);
+            color: white;
+            border: none;
+        }
+        
+        #alertBox.info {
+            background: linear-gradient(135deg, #54a0ff 0%, #2e86de 100%);
+            color: white;
+            border: none;
+        }
+
+        /* نموذج */
+        .form-group {
+            margin-bottom: 25px;
+            position: relative;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 10px;
+            color: #333;
+            font-weight: 600;
+            font-size: 15px;
+            padding-right: 5px;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 16px 20px;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            background: #f8f9fa;
+            color: #333;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: #26d0ce;
+            background: white;
+            box-shadow: 0 0 0 4px rgba(38, 208, 206, 0.15);
+            transform: translateY(-2px);
+        }
+
+        /* زر تسجيل الدخول */
+        .login-btn {
+            width: 100%;
+            padding: 18px;
+            background: linear-gradient(135deg, #1a2980 0%, #26d0ce 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 17px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 10px;
+            letter-spacing: 0.5px;
+            box-shadow: 0 6px 20px rgba(26, 41, 128, 0.3);
+        }
+
+        .login-btn:hover:not(:disabled) {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(26, 41, 128, 0.4);
+        }
+
+        .login-btn:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        .system-info {
+            margin-top: 25px;
+            padding-top: 20px;
+            border-top: 1px solid #e0e0e0;
+            text-align: center;
+            font-size: 13px;
+            color: #666;
+            line-height: 1.6;
+        }
+
+        .version {
+            font-size: 12px;
+            color: #999;
+            margin-top: 15px;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @media (max-width: 480px) {
+            .login-card {
+                padding: 30px 25px;
+            }
+            
+            .logo-img {
+                max-width: 140px;
+            }
+            
+            .title {
+                font-size: 24px;
+            }
+            
+            .form-input,
+            .login-btn {
+                padding: 14px;
+            }
+        }
+    </style>
 </head>
 <body>
     <div class="login-container">
-        <div class="login-box">
-            <div class="login-header">
-                <h1>📊 نظام التقييم الشامل</h1>
-                <p>مرحباً بك! قم بتسجيل الدخول للمتابعة</p>
+        <div class="login-card">
+            <!-- الشعار -->
+            <div class="logo-section">
+                <img src="logo_caritas.png" alt="شعار كاريتاس مصر" class="logo-img">
+                <h1 class="title">كاريتاس مصر</h1>
+                <p class="subtitle">نظام التقييم الشامل للموظفين</p>
             </div>
 
-            <div id="alertBox" class="alert alert-danger"></div>
+            <!-- التنبيه -->
+            <div id="alertBox"></div>
 
+            <!-- نموذج الدخول -->
             <form id="loginForm">
                 <div class="form-group">
-                    <label for="username">اسم المستخدم</label>
+                    <label for="username" class="form-label">👤 اسم المستخدم</label>
                     <input 
                         type="text" 
                         id="username" 
-                        class="form-control" 
-                        placeholder="أدخل اسم المستخدم"
+                        class="form-input" 
+                        placeholder="أدخل اسم المستخدم الخاص بك"
                         required
                         autocomplete="username"
+                        autofocus
                     >
                 </div>
 
                 <div class="form-group">
-                    <label for="password">كلمة المرور</label>
+                    <label for="password" class="form-label">🔒 كلمة المرور</label>
                     <input 
                         type="password" 
                         id="password" 
-                        class="form-control" 
+                        class="form-input" 
                         placeholder="أدخل كلمة المرور"
                         required
                         autocomplete="current-password"
                     >
                 </div>
 
-                <button type="submit" class="btn btn-primary" id="loginBtn">
-                    تسجيل الدخول
+                <button type="submit" class="login-btn" id="loginBtn">
+                    دخول النظام
                 </button>
             </form>
 
-            <div style="margin-top: 24px; padding-top: 24px; border-top: 1px solid #e5e7eb;">
-                <p style="font-size: 13px; color: #6b7280; text-align: center; margin-bottom: 12px;">
-                    <strong>حسابات تجريبية:</strong>
-                </p>
-                <div style="font-size: 12px; color: #6b7280; line-height: 1.8;">
-                    <div>👤 <strong>مدير عام:</strong> admin / admin123</div>
-                    <div>👥 <strong>مسؤول فريق:</strong> ahmed.team / pass123</div>
-                    <div>📝 <strong>أخصائي:</strong> mohamed.spec / pass123</div>
-                </div>
+            <!-- معلومات النظام -->
+            <div class="system-info">
+                <p>🚀 نظام التقييم الشامل - الإصدار 1.0</p>
+                <p>📊 يدعم 6 أدوار و <span id="employeeCount">76</span> موظف</p>
+                <div class="version">© 2024 Caritas Egypt - جميع الحقوق محفوظة</div>
             </div>
         </div>
     </div>
 
-    <!-- Supabase -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    
-    <!-- ملف الاتصال بقاعدة البيانات -->
-    <script src="js/supabaseClient.js"></script>
-    
-    <!-- كود تسجيل الدخول -->
+    <!-- كود JavaScript -->
     <script>
+        // ==================== إعدادات ====================
+        const SUPABASE_URL = 'https://pzsxhypigslcvduegvpa.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB6c3hoeXBpZ3NsY3ZkdWVndnBhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU0OTMxOTQsImV4cCI6MjA4MTA2OTE5NH0.0LC452nPLSywGh1mKxNQedm3M_yWZ4srck-gK67iZag';
+        
+        // ==================== عناصر الصفحة ====================
+        let supabase;
         const loginForm = document.getElementById('loginForm');
         const alertBox = document.getElementById('alertBox');
         const loginBtn = document.getElementById('loginBtn');
-
-        // التحقق إذا كان المستخدم مسجل دخول بالفعل
-        window.addEventListener('DOMContentLoaded', () => {
-            const currentUser = getCurrentUser();
-            if (currentUser) {
-                window.location.href = 'dashboard.html';
+        const employeeCount = document.getElementById('employeeCount');
+        
+        // ==================== تهيئة التطبيق ====================
+        document.addEventListener('DOMContentLoaded', async () => {
+            console.log('🚀 بدء تحميل نظام تسجيل الدخول...');
+            
+            try {
+                await initializeApp();
+                
+            } catch (error) {
+                console.error('❌ خطأ في التهيئة:', error);
+                showAlert('حدث خطأ في تحميل النظام. يرجى تحديث الصفحة.', 'error');
             }
         });
-
-        // معالجة تسجيل الدخول
-        loginForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
+        
+        // ==================== تهيئة التطبيق ====================
+        async function initializeApp() {
+            // تحميل Supabase
+            if (!window.supabase) {
+                await loadSupabase();
+            }
+            
+            supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+            console.log('✅ Supabase جاهز');
+            
+            // التحقق من تسجيل الدخول السابق
+            const currentUser = getCurrentUser();
+            if (currentUser) {
+                console.log('👤 مستخدم مسجل بالفعل:', currentUser.full_name);
+                redirectToDashboard(currentUser.role_id);
+                return;
+            }
+            
+            // إعداد المستمعين
+            setupEventListeners();
+            
+            // جلب عدد الموظفين
+            await fetchEmployeeCount();
+        }
+        
+        // ==================== تحميل Supabase ====================
+        async function loadSupabase() {
+            return new Promise((resolve, reject) => {
+                const script = document.createElement('script');
+                script.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js';
+                script.onload = resolve;
+                script.onerror = reject;
+                document.head.appendChild(script);
+            });
+        }
+        
+        // ==================== جلب عدد الموظفين ====================
+        async function fetchEmployeeCount() {
+            try {
+                const { count, error } = await supabase
+                    .from('employees')
+                    .select('*', { count: 'exact', head: true })
+                    .eq('is_active', true);
+                
+                if (!error && count) {
+                    employeeCount.textContent = count;
+                }
+            } catch (error) {
+                console.warn('⚠️ لا يمكن جلب عدد الموظفين:', error);
+            }
+        }
+        
+        // ==================== إعداد المستمعين ====================
+        function setupEventListeners() {
+            // معالجة النموذج
+            loginForm.addEventListener('submit', handleLogin);
+            
+            // الدخول بالإنتر
+            document.getElementById('password').addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    loginForm.dispatchEvent(new Event('submit'));
+                }
+            });
+            
+            // تركيز على حقل المستخدم
+            document.getElementById('username').focus();
+        }
+        
+        // ==================== معالجة تسجيل الدخول ====================
+        async function handleLogin(event) {
+            event.preventDefault();
             
             const username = document.getElementById('username').value.trim();
             const password = document.getElementById('password').value;
-
-            // التحقق من البيانات
+            
+            // التحقق الأساسي
             if (!username || !password) {
-                showAlert('الرجاء إدخال اسم المستخدم وكلمة المرور', 'danger');
+                showAlert('الرجاء إدخال اسم المستخدم وكلمة المرور', 'error');
                 return;
             }
-
-            // تعطيل الزر أثناء التحميل
+            
+            // تعطيل الزر أثناء المعالجة
             loginBtn.disabled = true;
-            loginBtn.textContent = 'جاري تسجيل الدخول...';
-
+            loginBtn.textContent = 'جاري التحقق...';
+            
             try {
-                const result = await login(username, password);
-
+                const result = await authenticateUser(username, password);
+                
                 if (result.success) {
-                    showAlert('تم تسجيل الدخول بنجاح! جاري التحويل...', 'success');
-                    setTimeout(() => {
-                        window.location.href = 'dashboard.html';
-                    }, 1000);
+                    await handleLoginSuccess(result.user);
                 } else {
-                    showAlert(result.message, 'danger');
-                    loginBtn.disabled = false;
-                    loginBtn.textContent = 'تسجيل الدخول';
+                    handleLoginFailure(result.message);
                 }
+                
             } catch (error) {
-                console.error('خطأ:', error);
-                showAlert('حدث خطأ غير متوقع. الرجاء المحاولة مرة أخرى', 'danger');
-                loginBtn.disabled = false;
-                loginBtn.textContent = 'تسجيل الدخول';
+                console.error('❌ خطأ غير متوقع:', error);
+                handleLoginFailure('حدث خطأ غير متوقع. يرجى المحاولة مرة أخرى');
             }
-        });
-
-        // عرض رسالة تنبيه
+        }
+        
+        // ==================== مصادقة المستخدم ====================
+        async function authenticateUser(username, password) {
+            console.log(`🔐 محاولة دخول: ${username}`);
+            
+            try {
+                // البحث عن المستخدم
+                const { data, error } = await supabase
+                    .from('employees')
+                    .select('*, roles(role_name_ar)')
+                    .eq('username', username)
+                    .eq('is_active', true)
+                    .single();
+                
+                if (error) {
+                    console.error('🔍 خطأ في البحث:', error.message);
+                    return { 
+                        success: false, 
+                        message: 'بيانات الدخول غير صحيحة' 
+                    };
+                }
+                
+                if (!data) {
+                    return { 
+                        success: false, 
+                        message: 'المستخدم غير موجود' 
+                    };
+                }
+                
+                console.log('✅ وجد المستخدم:', data.full_name);
+                
+                // التحقق من كلمة المرور
+                if (data.password_hash === password) {
+                    return { 
+                        success: true, 
+                        user: data 
+                    };
+                } else {
+                    return { 
+                        success: false, 
+                        message: 'كلمة المرور غير صحيحة' 
+                    };
+                }
+                
+            } catch (error) {
+                console.error('❌ خطأ في المصادقة:', error);
+                return { 
+                    success: false, 
+                    message: 'خطأ في الاتصال بالخادم' 
+                };
+            }
+        }
+        
+        // ==================== نجاح تسجيل الدخول ====================
+        async function handleLoginSuccess(user) {
+            console.log('🎉 تسجيل الدخول ناجح:', user.full_name);
+            
+            // حفظ بيانات المستخدم مع الدور بالعربية
+            const userData = {
+                ...user,
+                role_name_ar: user.roles?.role_name_ar || getRoleName(user.role_id)
+            };
+            
+            localStorage.setItem('caritas_user', JSON.stringify(userData));
+            localStorage.setItem('caritas_last_login', new Date().toISOString());
+            
+            // عرض رسالة النجاح
+            showAlert(`مرحباً ${user.full_name}! تم تسجيل دخولك بنجاح.`, 'success');
+            loginBtn.textContent = 'تم ✓';
+            
+            // التحويل إلى لوحة التحكم بعد تأخير قصير
+            setTimeout(() => {
+                redirectToDashboard(user.role_id);
+            }, 1200);
+        }
+        
+        // ==================== فشل تسجيل الدخول ====================
+        function handleLoginFailure(message) {
+            console.log('❌ فشل تسجيل الدخول:', message);
+            
+            showAlert(message, 'error');
+            
+            // إعادة تفعيل الزر
+            loginBtn.disabled = false;
+            loginBtn.textContent = 'دخول النظام';
+            
+            // التركيز وإختيار النص
+            const usernameInput = document.getElementById('username');
+            usernameInput.focus();
+            usernameInput.select();
+        }
+        
+        // ==================== توجيه المستخدم حسب الدور ====================
+        function redirectToDashboard(roleId) {
+    console.log(`🔄 توجيه الدور ${roleId}`);
+    
+    const dashboards = {
+         1: 'specialistDashboard.html',      // أخصائي ميداني (48 مستخدم)
+        2: 'teamManagerDashboard.html',     // مسؤول فريق (6 مستخدمين)
+        3: 'branchManagerDashboard.html',   // مدير فرع (6 مستخدمين)
+        4: 'projectManagerDashboard.html',  // مدير نشاط (مايكل عزوز)
+        5: 'staffDashboard.html',           // إداري (18 مستخدم) ← تغيير هنا
+        6: 'staffDashboard.html',           // المركز الرئيسي (3 مستخدمين) ← تغيير هنا
+        7: 'dashboard.html'                 // مسئول النظام
+    };
+    
+    const targetPage = dashboards[roleId] || 'index.html';
+    console.log(`📍 التحويل إلى: ${targetPage}`);
+    
+    window.location.href = targetPage;
+}
+        
+        // ==================== الحصول على اسم الدور بالعربية ====================
+        function getRoleName(roleId) {
+            const roles = {
+                1: 'أخصائي ميداني',
+                2: 'مسؤول فريق',
+                3: 'مدير فرع',
+                4: 'مدير النشاط',
+                5: 'إداري',
+                6: 'المركز الرئيسي'
+            };
+            return roles[roleId] || 'دور غير معروف';
+        }
+        
+        // ==================== وظائف مساعدة ====================
+        function getCurrentUser() {
+            try {
+                const userData = localStorage.getItem('caritas_user');
+                return userData ? JSON.parse(userData) : null;
+            } catch {
+                localStorage.removeItem('caritas_user');
+                return null;
+            }
+        }
+        
         function showAlert(message, type) {
             alertBox.textContent = message;
-            alertBox.className = `alert alert-${type} show`;
+            alertBox.className = `${type} show`;
             
+            // إخفاء التنبيه بعد 4 ثواني
             setTimeout(() => {
                 alertBox.classList.remove('show');
-            }, 5000);
+            }, 4000);
         }
-
-        // ملء تلقائي للحساب التجريبي عند النقر
-        document.querySelectorAll('div[style*="line-height"] > div').forEach(div => {
-            div.style.cursor = 'pointer';
-            div.addEventListener('click', function() {
-                const text = this.textContent;
-                if (text.includes('admin')) {
-                    document.getElementById('username').value = 'admin';
-                    document.getElementById('password').value = 'admin123';
-                } else if (text.includes('ahmed.team')) {
-                    document.getElementById('username').value = 'ahmed.team';
-                    document.getElementById('password').value = 'pass123';
-                } else if (text.includes('mohamed.spec')) {
-                    document.getElementById('username').value = 'mohamed.spec';
-                    document.getElementById('password').value = 'pass123';
-                }
-            });
-        });
     </script>
 </body>
 </html>
