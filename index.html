@@ -5,9 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>نظام تقييم الموظفين - كاريتاس مصر</title>
     
+    <!-- تحميل مكتبة Supabase من CDN (ثابت، لا ديناميكي) -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
     <!-- تنسيقات CSS داخلية -->
     <style>
-        /* نفس الأنماط السابقة مع بعض الإضافات */
         * {
             margin: 0;
             padding: 0;
@@ -259,9 +261,9 @@
     <!-- كود JavaScript -->
     <script>
         // ==================== إعدادات ====================
-        const SUPABASE_URL = 'https://pzsxhypigslcvduegvpa.supabase.co';
+        const SUPABASE_URL = 'https://pzsxhypigslcvduegvpa.supabase.co'; // ← تم إزالة المسافات الزائدة
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB6c3hoeXBpZ3NsY3ZkdWVndnBhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU0OTMxOTQsImV4cCI6MjA4MTA2OTE5NH0.0LC452nPLSywGh1mKxNQedm3M_yWZ4srck-gK67iZag';
-        
+
         // ==================== عناصر الصفحة ====================
         let supabase;
         const loginForm = document.getElementById('loginForm');
@@ -275,7 +277,6 @@
             
             try {
                 await initializeApp();
-                
             } catch (error) {
                 console.error('❌ خطأ في التهيئة:', error);
                 showAlert('حدث خطأ في تحميل النظام. يرجى تحديث الصفحة.', 'error');
@@ -284,12 +285,8 @@
         
         // ==================== تهيئة التطبيق ====================
         async function initializeApp() {
-            // تحميل Supabase
-            if (!window.supabase) {
-                await loadSupabase();
-            }
-            
-            supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+            // إنشاء عميل Supabase مباشرة (المكتبة محملة مسبقًا من CDN)
+            supabase = supabase.createClient(SUPABASE_URL.trim(), SUPABASE_KEY.trim());
             console.log('✅ Supabase جاهز');
             
             // التحقق من تسجيل الدخول السابق
@@ -307,17 +304,6 @@
             await fetchEmployeeCount();
         }
         
-        // ==================== تحميل Supabase ====================
-        async function loadSupabase() {
-            return new Promise((resolve, reject) => {
-                const script = document.createElement('script');
-                script.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js';
-                script.onload = resolve;
-                script.onerror = reject;
-                document.head.appendChild(script);
-            });
-        }
-        
         // ==================== جلب عدد الموظفين ====================
         async function fetchEmployeeCount() {
             try {
@@ -326,7 +312,7 @@
                     .select('*', { count: 'exact', head: true })
                     .eq('is_active', true);
                 
-                if (!error && count) {
+                if (!error && count !== null) {
                     employeeCount.textContent = count;
                 }
             } catch (error) {
@@ -336,17 +322,14 @@
         
         // ==================== إعداد المستمعين ====================
         function setupEventListeners() {
-            // معالجة النموذج
             loginForm.addEventListener('submit', handleLogin);
             
-            // الدخول بالإنتر
             document.getElementById('password').addEventListener('keypress', (e) => {
                 if (e.key === 'Enter') {
                     loginForm.dispatchEvent(new Event('submit'));
                 }
             });
             
-            // تركيز على حقل المستخدم
             document.getElementById('username').focus();
         }
         
@@ -357,13 +340,11 @@
             const username = document.getElementById('username').value.trim();
             const password = document.getElementById('password').value;
             
-            // التحقق الأساسي
             if (!username || !password) {
                 showAlert('الرجاء إدخال اسم المستخدم وكلمة المرور', 'error');
                 return;
             }
             
-            // تعطيل الزر أثناء المعالجة
             loginBtn.disabled = true;
             loginBtn.textContent = 'جاري التحقق...';
             
@@ -375,7 +356,6 @@
                 } else {
                     handleLoginFailure(result.message);
                 }
-                
             } catch (error) {
                 console.error('❌ خطأ غير متوقع:', error);
                 handleLoginFailure('حدث خطأ غير متوقع. يرجى المحاولة مرة أخرى');
@@ -387,7 +367,6 @@
             console.log(`🔐 محاولة دخول: ${username}`);
             
             try {
-                // البحث عن المستخدم
                 const { data, error } = await supabase
                     .from('employees')
                     .select('*, roles(role_name_ar)')
@@ -395,50 +374,23 @@
                     .eq('is_active', true)
                     .single();
                 
-                if (error) {
-                    console.error('🔍 خطأ في البحث:', error.message);
-                    return { 
-                        success: false, 
-                        message: 'بيانات الدخول غير صحيحة' 
-                    };
+                if (error || !data) {
+                    return { success: false, message: 'بيانات الدخول غير صحيحة' };
                 }
                 
-                if (!data) {
-                    return { 
-                        success: false, 
-                        message: 'المستخدم غير موجود' 
-                    };
-                }
-                
-                console.log('✅ وجد المستخدم:', data.full_name);
-                
-                // التحقق من كلمة المرور
                 if (data.password_hash === password) {
-                    return { 
-                        success: true, 
-                        user: data 
-                    };
+                    return { success: true, user: data };
                 } else {
-                    return { 
-                        success: false, 
-                        message: 'كلمة المرور غير صحيحة' 
-                    };
+                    return { success: false, message: 'كلمة المرور غير صحيحة' };
                 }
-                
             } catch (error) {
                 console.error('❌ خطأ في المصادقة:', error);
-                return { 
-                    success: false, 
-                    message: 'خطأ في الاتصال بالخادم' 
-                };
+                return { success: false, message: 'خطأ في الاتصال بالخادم' };
             }
         }
         
         // ==================== نجاح تسجيل الدخول ====================
         async function handleLoginSuccess(user) {
-            console.log('🎉 تسجيل الدخول ناجح:', user.full_name);
-            
-            // حفظ بيانات المستخدم مع الدور بالعربية
             const userData = {
                 ...user,
                 role_name_ar: user.roles?.role_name_ar || getRoleName(user.role_id)
@@ -447,11 +399,9 @@
             localStorage.setItem('caritas_user', JSON.stringify(userData));
             localStorage.setItem('caritas_last_login', new Date().toISOString());
             
-            // عرض رسالة النجاح
             showAlert(`مرحباً ${user.full_name}! تم تسجيل دخولك بنجاح.`, 'success');
             loginBtn.textContent = 'تم ✓';
             
-            // التحويل إلى لوحة التحكم بعد تأخير قصير
             setTimeout(() => {
                 redirectToDashboard(user.role_id);
             }, 1200);
@@ -459,41 +409,31 @@
         
         // ==================== فشل تسجيل الدخول ====================
         function handleLoginFailure(message) {
-            console.log('❌ فشل تسجيل الدخول:', message);
-            
             showAlert(message, 'error');
-            
-            // إعادة تفعيل الزر
             loginBtn.disabled = false;
             loginBtn.textContent = 'دخول النظام';
-            
-            // التركيز وإختيار النص
             const usernameInput = document.getElementById('username');
             usernameInput.focus();
             usernameInput.select();
         }
         
-        // ==================== توجيه المستخدم حسب الدور ====================
+        // ==================== توجيه حسب الدور ====================
         function redirectToDashboard(roleId) {
-    console.log(`🔄 توجيه الدور ${roleId}`);
-    
-    const dashboards = {
-         1: 'specialistDashboard.html',      // أخصائي ميداني (48 مستخدم)
-        2: 'teamManagerDashboard.html',     // مسؤول فريق (6 مستخدمين)
-        3: 'branchManagerDashboard.html',   // مدير فرع (6 مستخدمين)
-        4: 'projectManagerDashboard.html',  // مدير نشاط (مايكل عزوز)
-        5: 'staffDashboard.html',           // إداري (18 مستخدم) ← تغيير هنا
-        6: 'staffDashboard.html',           // المركز الرئيسي (3 مستخدمين) ← تغيير هنا
-        7: 'dashboard.html'                 // مسئول النظام
-    };
-    
-    const targetPage = dashboards[roleId] || 'index.html';
-    console.log(`📍 التحويل إلى: ${targetPage}`);
-    
-    window.location.href = targetPage;
-}
+            const dashboards = {
+                1: 'specialistDashboard.html',
+                2: 'teamManagerDashboard.html',
+                3: 'branchManagerDashboard.html',
+                4: 'projectManagerDashboard.html',
+                5: 'staffDashboard.html',
+                6: 'staffDashboard.html',
+                7: 'dashboard.html'
+            };
+            
+            const targetPage = dashboards[roleId] || 'index.html';
+            window.location.href = targetPage;
+        }
         
-        // ==================== الحصول على اسم الدور بالعربية ====================
+        // ==================== اسم الدور بالعربية ====================
         function getRoleName(roleId) {
             const roles = {
                 1: 'أخصائي ميداني',
@@ -520,8 +460,6 @@
         function showAlert(message, type) {
             alertBox.textContent = message;
             alertBox.className = `${type} show`;
-            
-            // إخفاء التنبيه بعد 4 ثواني
             setTimeout(() => {
                 alertBox.classList.remove('show');
             }, 4000);
