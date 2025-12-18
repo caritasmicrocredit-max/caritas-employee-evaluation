@@ -5,9 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>نظام تقييم الموظفين - كاريتاس مصر</title>
     
-    <!-- تنسيقات CSS داخلية -->
+    <!-- تحميل Supabase مسبقاً -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+    
     <style>
-        /* نفس الأنماط السابقة مع بعض الإضافات */
         * {
             margin: 0;
             padding: 0;
@@ -99,6 +100,12 @@
             border: none;
         }
 
+        .alertBox.warning {
+            background: linear-gradient(135deg, #ff9f43 0%, #ee5a24 100%);
+            color: white;
+            border: none;
+        }
+
         /* نموذج */
         .form-group {
             margin-bottom: 25px;
@@ -177,6 +184,36 @@
             margin-top: 15px;
         }
 
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+        }
+
+        .error-panel {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .error-panel h4 {
+            color: #856404;
+            margin-bottom: 10px;
+        }
+
+        .error-panel button {
+            background: #1a2980;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(-10px); }
             to { opacity: 1; transform: translateY(0); }
@@ -207,7 +244,8 @@
         <div class="login-card">
             <!-- الشعار -->
             <div class="logo-section">
-                <img src="logo_caritas.png" alt="شعار كاريتاس مصر" class="logo-img">
+                <img src="logo_caritas.png" alt="شعار كاريتاس مصر" class="logo-img" 
+                     onerror="this.onerror=null; this.style.display='none';">
                 <h1 class="title">كاريتاس مصر</h1>
                 <p class="subtitle">نظام التقييم الشامل للموظفين</p>
             </div>
@@ -215,8 +253,11 @@
             <!-- التنبيه -->
             <div id="alertBox"></div>
 
+            <!-- لوحة التحميل/الخطأ -->
+            <div id="statusPanel"></div>
+
             <!-- نموذج الدخول -->
-            <form id="loginForm">
+            <form id="loginForm" style="display: none;">
                 <div class="form-group">
                     <label for="username" class="form-label">👤 اسم المستخدم</label>
                     <input 
@@ -250,7 +291,7 @@
             <!-- معلومات النظام -->
             <div class="system-info">
                 <p>🚀 نظام التقييم الشامل - الإصدار 1.0</p>
-                <p>📊 يدعم 6 أدوار و <span id="employeeCount">76</span> موظف</p>
+                <p>📊 يدعم 6 أدوار و <span id="employeeCount">--</span> موظف</p>
                 <div class="version">© 2024 Caritas Egypt - جميع الحقوق محفوظة</div>
             </div>
         </div>
@@ -263,59 +304,87 @@
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB6c3hoeXBpZ3NsY3ZkdWVndnBhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU0OTMxOTQsImV4cCI6MjA4MTA2OTE5NH0.0LC452nPLSywGh1mKxNQedm3M_yWZ4srck-gK67iZag';
         
         // ==================== عناصر الصفحة ====================
-        let supabase;
-        const loginForm = document.getElementById('loginForm');
-        const alertBox = document.getElementById('alertBox');
-        const loginBtn = document.getElementById('loginBtn');
-        const employeeCount = document.getElementById('employeeCount');
+        let supabase = null;
+        let isInitialized = false;
         
         // ==================== تهيئة التطبيق ====================
-        document.addEventListener('DOMContentLoaded', async () => {
+        document.addEventListener('DOMContentLoaded', function() {
             console.log('🚀 بدء تحميل نظام تسجيل الدخول...');
+            showLoading('جاري تحميل النظام...');
             
-            try {
-                await initializeApp();
-                
-            } catch (error) {
-                console.error('❌ خطأ في التهيئة:', error);
-                showAlert('حدث خطأ في تحميل النظام. يرجى تحديث الصفحة.', 'error');
-            }
+            // بدء التهيئة بعد تحميل الصفحة
+            setTimeout(initializeApp, 100);
         });
         
         // ==================== تهيئة التطبيق ====================
         async function initializeApp() {
-            // تحميل Supabase
-            if (!window.supabase) {
-                await loadSupabase();
+            try {
+                // 1. التحقق من Supabase
+                if (typeof window.supabase === 'undefined') {
+                    showError('لم يتم تحميل مكتبة Supabase. يرجى تحديث الصفحة.');
+                    return;
+                }
+                
+                // 2. إنشاء عميل Supabase
+                supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+                console.log('✅ Supabase تم تهيئته');
+                
+                // 3. اختبار الاتصال
+                await testConnection();
+                
+                // 4. التحقق من تسجيل الدخول السابق
+                const currentUser = getCurrentUser();
+                if (currentUser) {
+                    console.log('👤 مستخدم مسجل بالفعل:', currentUser.full_name);
+                    showAlert(`مرحباً بعودتك ${currentUser.full_name}!`, 'success');
+                    setTimeout(() => redirectToDashboard(currentUser.role_id), 1500);
+                    return;
+                }
+                
+                // 5. جلب عدد الموظفين
+                await fetchEmployeeCount();
+                
+                // 6. إظهار نموذج الدخول
+                document.getElementById('loginForm').style.display = 'block';
+                document.getElementById('statusPanel').style.display = 'none';
+                
+                // 7. إعداد المستمعين
+                setupEventListeners();
+                
+                isInitialized = true;
+                console.log('✅ النظام جاهز');
+                
+            } catch (error) {
+                console.error('❌ خطأ في التهيئة:', error);
+                handleInitializationError(error);
             }
-            
-            supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-            console.log('✅ Supabase جاهز');
-            
-            // التحقق من تسجيل الدخول السابق
-            const currentUser = getCurrentUser();
-            if (currentUser) {
-                console.log('👤 مستخدم مسجل بالفعل:', currentUser.full_name);
-                redirectToDashboard(currentUser.role_id);
-                return;
-            }
-            
-            // إعداد المستمعين
-            setupEventListeners();
-            
-            // جلب عدد الموظفين
-            await fetchEmployeeCount();
         }
         
-        // ==================== تحميل Supabase ====================
-        async function loadSupabase() {
-            return new Promise((resolve, reject) => {
-                const script = document.createElement('script');
-                script.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js';
-                script.onload = resolve;
-                script.onerror = reject;
-                document.head.appendChild(script);
-            });
+        // ==================== اختبار الاتصال ====================
+        async function testConnection() {
+            try {
+                showLoading('جاري اختبار الاتصال بالخادم...');
+                
+                // محاولة بسيطة للاتصال
+                const { data, error } = await supabase
+                    .from('employees')
+                    .select('id')
+                    .limit(1);
+                
+                if (error) {
+                    if (error.code === 'PGRST301' || error.message.includes('JWT')) {
+                        throw new Error('مفتاح API غير صالح أو منتهي الصلاحية');
+                    }
+                    throw error;
+                }
+                
+                console.log('✅ اتصال Supabase ناجح');
+                return true;
+                
+            } catch (error) {
+                console.error('❌ فشل اختبار الاتصال:', error);
+                throw new Error(`فشل الاتصال بالخادم: ${error.message}`);
+            }
         }
         
         // ==================== جلب عدد الموظفين ====================
@@ -326,33 +395,64 @@
                     .select('*', { count: 'exact', head: true })
                     .eq('is_active', true);
                 
-                if (!error && count) {
-                    employeeCount.textContent = count;
+                if (!error && count !== null) {
+                    document.getElementById('employeeCount').textContent = count;
+                } else {
+                    document.getElementById('employeeCount').textContent = '--';
                 }
             } catch (error) {
                 console.warn('⚠️ لا يمكن جلب عدد الموظفين:', error);
+                document.getElementById('employeeCount').textContent = '--';
             }
+        }
+        
+        // ==================== معالجة خطأ التهيئة ====================
+        function handleInitializationError(error) {
+            let errorMessage = 'حدث خطأ في تحميل النظام.';
+            let detailedMessage = error.message || 'خطأ غير معروف';
+            
+            if (detailedMessage.includes('API') || detailedMessage.includes('JWT')) {
+                errorMessage = 'مشكلة في إعدادات الاتصال بالخادم.';
+            } else if (detailedMessage.includes('Network') || detailedMessage.includes('fetch')) {
+                errorMessage = 'مشكلة في اتصال الإنترنت. تحقق من اتصالك.';
+            }
+            
+            showError(`${errorMessage}<br><small>${detailedMessage}</small>`, true);
         }
         
         // ==================== إعداد المستمعين ====================
         function setupEventListeners() {
+            const loginForm = document.getElementById('loginForm');
+            const loginBtn = document.getElementById('loginBtn');
+            
             // معالجة النموذج
             loginForm.addEventListener('submit', handleLogin);
             
             // الدخول بالإنتر
             document.getElementById('password').addEventListener('keypress', (e) => {
                 if (e.key === 'Enter') {
-                    loginForm.dispatchEvent(new Event('submit'));
+                    e.preventDefault();
+                    handleLogin(e);
                 }
             });
             
             // تركيز على حقل المستخدم
-            document.getElementById('username').focus();
+            setTimeout(() => {
+                const usernameInput = document.getElementById('username');
+                if (usernameInput) {
+                    usernameInput.focus();
+                }
+            }, 500);
         }
         
         // ==================== معالجة تسجيل الدخول ====================
         async function handleLogin(event) {
             event.preventDefault();
+            
+            if (!isInitialized || !supabase) {
+                showAlert('النظام غير جاهز بعد. يرجى الانتظار...', 'error');
+                return;
+            }
             
             const username = document.getElementById('username').value.trim();
             const password = document.getElementById('password').value;
@@ -363,8 +463,16 @@
                 return;
             }
             
+            // التحقق من اتصال الإنترنت
+            if (!navigator.onLine) {
+                showAlert('⚠️ لا يوجد اتصال بالإنترنت. يرجى التحقق من اتصالك.', 'error');
+                return;
+            }
+            
             // تعطيل الزر أثناء المعالجة
+            const loginBtn = document.getElementById('loginBtn');
             loginBtn.disabled = true;
+            const originalText = loginBtn.textContent;
             loginBtn.textContent = 'جاري التحقق...';
             
             try {
@@ -379,6 +487,9 @@
             } catch (error) {
                 console.error('❌ خطأ غير متوقع:', error);
                 handleLoginFailure('حدث خطأ غير متوقع. يرجى المحاولة مرة أخرى');
+            } finally {
+                loginBtn.disabled = false;
+                loginBtn.textContent = originalText;
             }
         }
         
@@ -396,7 +507,16 @@
                     .single();
                 
                 if (error) {
-                    console.error('🔍 خطأ في البحث:', error.message);
+                    console.error('🔍 خطأ في البحث:', error);
+                    
+                    // رسائل خطأ محددة
+                    if (error.code === 'PGRST116') {
+                        return { 
+                            success: false, 
+                            message: 'المستخدم غير موجود' 
+                        };
+                    }
+                    
                     return { 
                         success: false, 
                         message: 'بيانات الدخول غير صحيحة' 
@@ -438,23 +558,42 @@
         async function handleLoginSuccess(user) {
             console.log('🎉 تسجيل الدخول ناجح:', user.full_name);
             
-            // حفظ بيانات المستخدم مع الدور بالعربية
+            // حفظ بيانات المستخدم
             const userData = {
                 ...user,
-                role_name_ar: user.roles?.role_name_ar || getRoleName(user.role_id)
+                role_name_ar: user.roles?.role_name_ar || getRoleName(user.role_id),
+                login_time: new Date().toISOString()
             };
             
-            localStorage.setItem('caritas_user', JSON.stringify(userData));
-            localStorage.setItem('caritas_last_login', new Date().toISOString());
+            // محاولة حفظ في localStorage
+            try {
+                localStorage.setItem('caritas_user', JSON.stringify(userData));
+                localStorage.setItem('caritas_last_login', new Date().toISOString());
+                
+                // اختبار ما إذا تم الحفظ
+                const testRead = localStorage.getItem('caritas_user');
+                if (!testRead) {
+                    throw new Error('فشل حفظ البيانات');
+                }
+                
+            } catch (storageError) {
+                console.warn('⚠️ فشل حفظ في localStorage:', storageError);
+                // حاول في sessionStorage
+                try {
+                    sessionStorage.setItem('caritas_user', JSON.stringify(userData));
+                } catch (sessionError) {
+                    console.error('❌ فشل في جميع وسائل التخزين:', sessionError);
+                    showAlert('⚠️ تعذر حفظ بيانات الجلسة', 'warning');
+                }
+            }
             
             // عرض رسالة النجاح
-            showAlert(`مرحباً ${user.full_name}! تم تسجيل دخولك بنجاح.`, 'success');
-            loginBtn.textContent = 'تم ✓';
+            showAlert(`✅ مرحباً ${user.full_name}! تم تسجيل دخولك بنجاح.`, 'success');
             
-            // التحويل إلى لوحة التحكم بعد تأخير قصير
+            // التحويل بعد تأخير
             setTimeout(() => {
                 redirectToDashboard(user.role_id);
-            }, 1200);
+            }, 1500);
         }
         
         // ==================== فشل تسجيل الدخول ====================
@@ -463,37 +602,36 @@
             
             showAlert(message, 'error');
             
-            // إعادة تفعيل الزر
-            loginBtn.disabled = false;
-            loginBtn.textContent = 'دخول النظام';
-            
-            // التركيز وإختيار النص
+            // التركيز على حقل المستخدم
             const usernameInput = document.getElementById('username');
-            usernameInput.focus();
-            usernameInput.select();
+            if (usernameInput) {
+                usernameInput.focus();
+                usernameInput.select();
+            }
         }
         
         // ==================== توجيه المستخدم حسب الدور ====================
         function redirectToDashboard(roleId) {
-    console.log(`🔄 توجيه الدور ${roleId}`);
-    
-    const dashboards = {
-         1: 'specialistDashboard.html',      // أخصائي ميداني (48 مستخدم)
-        2: 'teamManagerDashboard.html',     // مسؤول فريق (6 مستخدمين)
-        3: 'branchManagerDashboard.html',   // مدير فرع (6 مستخدمين)
-        4: 'projectManagerDashboard.html',  // مدير نشاط (مايكل عزوز)
-        5: 'staffDashboard.html',           // إداري (18 مستخدم) ← تغيير هنا
-        6: 'staffDashboard.html',           // المركز الرئيسي (3 مستخدمين) ← تغيير هنا
-        7: 'dashboard.html'                 // مسئول النظام
-    };
-    
-    const targetPage = dashboards[roleId] || 'index.html';
-    console.log(`📍 التحويل إلى: ${targetPage}`);
-    
-    window.location.href = targetPage;
-}
+            console.log(`🔄 توجيه الدور ${roleId}`);
+            
+            const dashboards = {
+                1: 'specialistDashboard.html',
+                2: 'teamManagerDashboard.html',
+                3: 'branchManagerDashboard.html',
+                4: 'projectManagerDashboard.html',
+                5: 'staffDashboard.html',
+                6: 'staffDashboard.html',
+                7: 'dashboard.html'
+            };
+            
+            const targetPage = dashboards[roleId] || 'index.html';
+            console.log(`📍 التحويل إلى: ${targetPage}`);
+            
+            // استخدام location.replace بدلاً من href لمنع مشاكل التخزين المؤقت
+            window.location.replace(targetPage);
+        }
         
-        // ==================== الحصول على اسم الدور بالعربية ====================
+        // ==================== الحصول على اسم الدور ====================
         function getRoleName(roleId) {
             const roles = {
                 1: 'أخصائي ميداني',
@@ -501,31 +639,95 @@
                 3: 'مدير فرع',
                 4: 'مدير النشاط',
                 5: 'إداري',
-                6: 'المركز الرئيسي'
+                6: 'المركز الرئيسي',
+                7: 'مسئول النظام'
             };
             return roles[roleId] || 'دور غير معروف';
         }
         
-        // ==================== وظائف مساعدة ====================
+        // ==================== الحصول على المستخدم الحالي ====================
         function getCurrentUser() {
             try {
-                const userData = localStorage.getItem('caritas_user');
-                return userData ? JSON.parse(userData) : null;
-            } catch {
-                localStorage.removeItem('caritas_user');
-                return null;
+                // جرب localStorage أولاً
+                let userData = localStorage.getItem('caritas_user');
+                
+                // إذا لم يوجد، جرب sessionStorage
+                if (!userData) {
+                    userData = sessionStorage.getItem('caritas_user');
+                }
+                
+                if (userData) {
+                    const user = JSON.parse(userData);
+                    
+                    // التحقق من البيانات الأساسية
+                    if (user && user.id && user.full_name && user.role_id) {
+                        return user;
+                    }
+                }
+            } catch (error) {
+                console.warn('⚠️ خطأ في قراءة بيانات المستخدم:', error);
             }
+            
+            return null;
         }
         
-        function showAlert(message, type) {
-            alertBox.textContent = message;
-            alertBox.className = `${type} show`;
+        // ==================== وظائف عرض الحالة ====================
+        function showLoading(message) {
+            const panel = document.getElementById('statusPanel');
+            panel.innerHTML = `
+                <div class="loading">
+                    <p>${message}</p>
+                    <div style="margin-top: 10px; font-size: 12px; color: #999;">
+                        قد تستغرق العملية بضع ثوانٍ...
+                    </div>
+                </div>
+            `;
+            panel.style.display = 'block';
+        }
+        
+        function showError(message, showRetry = true) {
+            const panel = document.getElementById('statusPanel');
+            panel.innerHTML = `
+                <div class="error-panel">
+                    <h4>⚠️ حدث خطأ</h4>
+                    <p>${message}</p>
+                    ${showRetry ? `
+                        <div style="margin-top: 15px;">
+                            <button onclick="retryInitialization()">🔄 إعادة المحاولة</button>
+                            <button onclick="location.reload()" style="background: #6c757d; margin-right: 10px;">↻ تحديث الصفحة</button>
+                        </div>
+                    ` : ''}
+                </div>
+            `;
+            panel.style.display = 'block';
+        }
+        
+        function showAlert(message, type = 'info') {
+            const alertBox = document.getElementById('alertBox');
+            alertBox.innerHTML = message;
+            alertBox.className = `alertBox ${type} show`;
             
-            // إخفاء التنبيه بعد 4 ثواني
+            // إخفاء بعد وقت
             setTimeout(() => {
                 alertBox.classList.remove('show');
-            }, 4000);
+            }, type === 'error' ? 5000 : 3000);
         }
+        
+        // ==================== وظائف مساعدة ====================
+        function retryInitialization() {
+            document.getElementById('statusPanel').innerHTML = '';
+            initializeApp();
+        }
+        
+        // ==================== تسجيل معلومات التصحيح ====================
+        console.log('🌍 معلومات المتصفح:', {
+            userAgent: navigator.userAgent.substring(0, 100) + '...',
+            online: navigator.onLine,
+            language: navigator.language,
+            platform: navigator.platform,
+            cookies: navigator.cookieEnabled
+        });
+        
     </script>
 </body>
 </html>
