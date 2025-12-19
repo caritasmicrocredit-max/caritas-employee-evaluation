@@ -903,14 +903,12 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
     <script>
-        // ==================== إعدادات ====================
-        const SUPABASE_URL = 'https://pzsxhypigslcvduegvpa.supabase.co';
-        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB6c3hoeXBpZ3NsY3ZkdWVndnBhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU0OTMxOTQsImV4cCI6MjA4MTA2OTE5NH0.0LC452nPLSywGh1mKxNQedm3M_yWZ4srck-gK67iZag';
-        // ✅ السطر المهم جدًا (ده اللي كان ناقص)
-    const supabase = window.supabase.createClient(
-        SUPABASE_URL.trim(),
-        SUPABASE_KEY.trim()
-    );
+       // ==================== إعدادات الاتصال ====================
+const SUPABASE_URL = 'https://pzsxhypigslcvduegvpa.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB6c3hoeXBpZ3NsY3ZkdWVndnBhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU0OTMxOTQsImV4cCI6MjA4MTA2OTE5NH0.0LC452nPLSywGh1mKxNQedm3M_yWZ4srck-gK67iZag';
+
+// تعريف supabase باستخدام let بدلاً من const لضمان الاستقرار
+let supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
         // ==================== متغيرات ====================
         let currentUser = null;
         let selectedEmployee = null;
