@@ -3,13 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>نظام تقييم الموظفين - كاريتاس مصر</title>
     
-    <!-- تحميل مكتبة Supabase من CDN (ثابت، لا ديناميكي) -->
+    <!-- ✅ منع الكاش عبر الهيدرات -->
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    
+    <title>نظام التقييم السنوي 2025 - كاريتاس مصر</title>
+    
+    <!-- تحميل Supabase من CDN (ثابت) -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     
-    <!-- تنسيقات CSS داخلية -->
     <style>
+        /* نفس التنسيقات السابقة */
         * {
             margin: 0;
             padding: 0;
@@ -68,7 +74,6 @@
             font-weight: 500;
         }
 
-        /* التنبيهات */
         #alertBox {
             padding: 16px 20px;
             border-radius: 12px;
@@ -101,7 +106,6 @@
             border: none;
         }
 
-        /* نموذج */
         .form-group {
             margin-bottom: 25px;
             position: relative;
@@ -135,7 +139,6 @@
             transform: translateY(-2px);
         }
 
-        /* زر تسجيل الدخول */
         .login-btn {
             width: 100%;
             padding: 18px;
@@ -207,17 +210,14 @@
 <body>
     <div class="login-container">
         <div class="login-card">
-            <!-- الشعار -->
             <div class="logo-section">
                 <img src="logo_caritas.png" alt="شعار كاريتاس مصر" class="logo-img">
                 <h1 class="title">كاريتاس مصر</h1>
-                <p class="subtitle">نظام التقييم الشامل للموظفين</p>
+                <p class="subtitle">نظام التقييم السنوي 2025</p> <!-- ✅ تم التحديث -->
             </div>
 
-            <!-- التنبيه -->
             <div id="alertBox"></div>
 
-            <!-- نموذج الدخول -->
             <form id="loginForm">
                 <div class="form-group">
                     <label for="username" class="form-label">👤 اسم المستخدم</label>
@@ -249,31 +249,39 @@
                 </button>
             </form>
 
-            <!-- معلومات النظام -->
             <div class="system-info">
-                <p>🚀 نظام التقييم الشامل - الإصدار 1.0</p>
+                <p>🚀 نظام التقييم السنوي - الإصدار 1.0</p> <!-- ✅ تم التحديث -->
                 <p>📊 يدعم 6 أدوار و <span id="employeeCount">76</span> موظف</p>
-                <div class="version">© 2024 Caritas Egypt - جميع الحقوق محفوظة</div>
+                <div class="version">© 2025 Caritas Egypt - جميع الحقوق محفوظة</div> <!-- ✅ تم التحديث -->
             </div>
         </div>
     </div>
 
-    <!-- كود JavaScript -->
     <script>
+        // ✅ تنظيف الكاش فور تحميل الصفحة (خيار إضافي في JS)
+        if ('caches' in window) {
+            caches.keys().then(names => {
+                names.forEach(name => caches.delete(name));
+            });
+        }
+
         // ==================== إعدادات ====================
-        const SUPABASE_URL = 'https://pzsxhypigslcvduegvpa.supabase.co'; // ← تم إزالة المسافات الزائدة
+        const SUPABASE_URL = 'https://pzsxhypigslcvduegvpa.supabase.co';
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB6c3hoeXBpZ3NsY3ZkdWVndnBhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU0OTMxOTQsImV4cCI6MjA4MTA2OTE5NH0.0LC452nPLSywGh1mKxNQedm3M_yWZ4srck-gK67iZag';
 
-        // ==================== عناصر الصفحة ====================
-        let supabase;
+        // ❗ لا تُعرّف "let supabase;" هنا إذا كنت ستستخدم المتغير العالمي من المكتبة
+        // لأن المكتبة تُعرّف "supabase" تلقائيًا في النطاق العام عند التحميل من CDN
+
+        // لكن لتجنب أي تعارض، سنستخدم متغيرًا جديدًا:
+        let client; // ← اسم مختلف تمامًا
+
         const loginForm = document.getElementById('loginForm');
         const alertBox = document.getElementById('alertBox');
         const loginBtn = document.getElementById('loginBtn');
         const employeeCount = document.getElementById('employeeCount');
         
-        // ==================== تهيئة التطبيق ====================
         document.addEventListener('DOMContentLoaded', async () => {
-            console.log('🚀 بدء تحميل نظام تسجيل الدخول...');
+            console.log('🚀 بدء تحميل نظام التقييم السنوي 2025...');
             
             try {
                 await initializeApp();
@@ -283,31 +291,25 @@
             }
         });
         
-        // ==================== تهيئة التطبيق ====================
         async function initializeApp() {
-            // إنشاء عميل Supabase مباشرة (المكتبة محملة مسبقًا من CDN)
-            supabase = supabase.createClient(SUPABASE_URL.trim(), SUPABASE_KEY.trim());
-            console.log('✅ Supabase جاهز');
-            
-            // التحقق من تسجيل الدخول السابق
+            // ✅ استخدام اسم متغير مختلف لتجنب التعارض
+            client = supabase.createClient(SUPABASE_URL.trim(), SUPABASE_KEY.trim());
+            console.log('✅ اتصال Supabase ناجح');
+
             const currentUser = getCurrentUser();
             if (currentUser) {
-                console.log('👤 مستخدم مسجل بالفعل:', currentUser.full_name);
+                console.log('👤 مستخدم مسجل:', currentUser.full_name);
                 redirectToDashboard(currentUser.role_id);
                 return;
             }
             
-            // إعداد المستمعين
             setupEventListeners();
-            
-            // جلب عدد الموظفين
             await fetchEmployeeCount();
         }
         
-        // ==================== جلب عدد الموظفين ====================
         async function fetchEmployeeCount() {
             try {
-                const { count, error } = await supabase
+                const { count, error } = await client
                     .from('employees')
                     .select('*', { count: 'exact', head: true })
                     .eq('is_active', true);
@@ -320,23 +322,16 @@
             }
         }
         
-        // ==================== إعداد المستمعين ====================
         function setupEventListeners() {
             loginForm.addEventListener('submit', handleLogin);
-            
             document.getElementById('password').addEventListener('keypress', (e) => {
-                if (e.key === 'Enter') {
-                    loginForm.dispatchEvent(new Event('submit'));
-                }
+                if (e.key === 'Enter') loginForm.requestSubmit();
             });
-            
             document.getElementById('username').focus();
         }
         
-        // ==================== معالجة تسجيل الدخول ====================
         async function handleLogin(event) {
             event.preventDefault();
-            
             const username = document.getElementById('username').value.trim();
             const password = document.getElementById('password').value;
             
@@ -350,7 +345,6 @@
             
             try {
                 const result = await authenticateUser(username, password);
-                
                 if (result.success) {
                     await handleLoginSuccess(result.user);
                 } else {
@@ -358,16 +352,13 @@
                 }
             } catch (error) {
                 console.error('❌ خطأ غير متوقع:', error);
-                handleLoginFailure('حدث خطأ غير متوقع. يرجى المحاولة مرة أخرى');
+                handleLoginFailure('حدث خطأ غير متوقع. يرجى المحاولة لاحقًا.');
             }
         }
         
-        // ==================== مصادقة المستخدم ====================
         async function authenticateUser(username, password) {
-            console.log(`🔐 محاولة دخول: ${username}`);
-            
             try {
-                const { data, error } = await supabase
+                const { data, error } = await client
                     .from('employees')
                     .select('*, roles(role_name_ar)')
                     .eq('username', username)
@@ -389,7 +380,6 @@
             }
         }
         
-        // ==================== نجاح تسجيل الدخول ====================
         async function handleLoginSuccess(user) {
             const userData = {
                 ...user,
@@ -407,17 +397,13 @@
             }, 1200);
         }
         
-        // ==================== فشل تسجيل الدخول ====================
         function handleLoginFailure(message) {
             showAlert(message, 'error');
             loginBtn.disabled = false;
             loginBtn.textContent = 'دخول النظام';
-            const usernameInput = document.getElementById('username');
-            usernameInput.focus();
-            usernameInput.select();
+            document.getElementById('username').select();
         }
         
-        // ==================== توجيه حسب الدور ====================
         function redirectToDashboard(roleId) {
             const dashboards = {
                 1: 'specialistDashboard.html',
@@ -428,12 +414,10 @@
                 6: 'staffDashboard.html',
                 7: 'dashboard.html'
             };
-            
             const targetPage = dashboards[roleId] || 'index.html';
             window.location.href = targetPage;
         }
         
-        // ==================== اسم الدور بالعربية ====================
         function getRoleName(roleId) {
             const roles = {
                 1: 'أخصائي ميداني',
@@ -446,11 +430,9 @@
             return roles[roleId] || 'دور غير معروف';
         }
         
-        // ==================== وظائف مساعدة ====================
         function getCurrentUser() {
             try {
-                const userData = localStorage.getItem('caritas_user');
-                return userData ? JSON.parse(userData) : null;
+                return JSON.parse(localStorage.getItem('caritas_user'));
             } catch {
                 localStorage.removeItem('caritas_user');
                 return null;
@@ -460,9 +442,7 @@
         function showAlert(message, type) {
             alertBox.textContent = message;
             alertBox.className = `${type} show`;
-            setTimeout(() => {
-                alertBox.classList.remove('show');
-            }, 4000);
+            setTimeout(() => alertBox.classList.remove('show'), 4000);
         }
     </script>
 </body>
