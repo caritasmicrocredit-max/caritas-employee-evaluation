@@ -901,13 +901,15 @@
         </div>
     </div>
 
+    <!-- تحميل Supabase من CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
         // ==================== إعدادات ====================
         const SUPABASE_URL = 'https://pzsxhypigslcvduegvpa.supabase.co';
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB6c3hoeXBpZ3NsY3ZkdWVndnBhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU0OTMxOTQsImV4cCI6MjA4MTA2OTE5NH0.0LC452nPLSywGh1mKxNQedm3M_yWZ4srck-gK67iZag';
         
         // ==================== متغيرات ====================
-        let supabase;
+        let client; // استخدام اسم مختلف لتجنب التعارض
         let currentUser = null;
         let selectedEmployee = null;
         let myEmployees = [];
@@ -978,27 +980,8 @@
 
         // ==================== تهيئة Supabase ====================
         async function initializeSupabase() {
-            return new Promise((resolve, reject) => {
-                if (window.supabase) {
-                    supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-                    console.log('✅ Supabase client initialized');
-                    resolve();
-                    return;
-                }
-                
-                const script = document.createElement('script');
-                script.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js';
-                script.onload = () => {
-                    supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-                    console.log('✅ Supabase loaded and initialized');
-                    resolve();
-                };
-                script.onerror = () => {
-                    console.error('❌ Failed to load Supabase');
-                    reject(new Error('Failed to load Supabase'));
-                };
-                document.head.appendChild(script);
-            });
+            client = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+            console.log('✅ Supabase client initialized');
         }
 
         // ==================== إعداد الأحداث ====================
@@ -1022,12 +1005,12 @@
                 console.log('👥 جلب الموظفين للتقييم...');
                 
                 // جلب الموظفين الذين يديرهم مباشرة (مسؤولو الفرق، إداريون، أخصائيون مباشرون)
-                const { data: employeesData, error: employeesError } = await supabase
+                const { data: employeesData, error: employeesError } = await client
                     .from('employees')
                     .select('*')
-                    .or(`manager_id.eq.${currentUser.id},and(branch.eq.${currentUser.branch},role_id.eq.5,manager_id.is.null)`)
+                    .eq('manager_id', currentUser.id)
                     .eq('is_active', true)
-                    .neq('role_id', 3) // لا يجلب مديري فروع آخرين
+                    .neq('role_id', 3)
                     .order('full_name');
 
                 if (employeesError) {
@@ -1042,7 +1025,7 @@
                 renderEmployeesList();
 
                 // 2. جلب دورة التقييم النشطة
-                const { data: cycleData, error: cycleError } = await supabase
+                const { data: cycleData, error: cycleError } = await client
                     .from('evaluation_cycles')
                     .select('*')
                     .eq('is_active', true)
@@ -1055,7 +1038,7 @@
 
                 // 3. جلب أسئلة التقييم لجميع المستويات
                 console.log('📝 جلب أسئلة التقييم...');
-                const { data: questionsData, error: qError } = await supabase
+                const { data: questionsData, error: qError } = await client
                     .from('evaluation_questions')
                     .select('*')
                     .eq('is_active', true)
@@ -1096,7 +1079,7 @@
                 // جلب التقييمات للموظفين الحاليين فقط
                 const employeeIds = myEmployees.map(e => e.id);
                 
-                const { data, error } = await supabase
+                const { data, error } = await client
                     .from('evaluation_results')
                     .select('*')
                     .eq('evaluator_id', currentUser.id)
@@ -1516,7 +1499,7 @@
                 let errorCount = 0;
 
                 for (const evalData of evaluationsToSubmit) {
-                    const { error } = await supabase
+                    const { error } = await client
                         .from('evaluation_results')
                         .upsert(evalData, { 
                             onConflict: 'cycle_id,evaluated_employee_id,evaluator_id,question_id' 
