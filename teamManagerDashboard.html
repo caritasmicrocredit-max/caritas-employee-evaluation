@@ -3,7 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>لوحة مسؤول الفريق - نظام التقييم</title>
+    
+    <!-- ✅ منع الكاش -->
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    
+    <title>لوحة مسؤول الفريق - نظام التقييم السنوي 2025</title>
+    
+    <!-- ✅ تحميل Supabase من CDN (ثابت) -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     
     <style>
         :root {
@@ -822,8 +831,8 @@
         const SUPABASE_URL = 'https://pzsxhypigslcvduegvpa.supabase.co';
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB6c3hoeXBpZ3NsY3ZkdWVndnBhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU0OTMxOTQsImV4cCI6MjA4MTA2OTE5NH0.0LC452nPLSywGh1mKxNQedm3M_yWZ4srck-gK67iZag';
         
-        // ==================== متغيرات ====================
-        let supabase;
+        // ✅ استخدام اسم متغير مختلف لتجنب التعارض
+        let supabaseClient;
         let currentUser = null;
         let selectedEmployee = null;
         let myEmployees = [];
@@ -847,8 +856,17 @@
             try {
                 // التحقق من تسجيل الدخول
                 currentUser = JSON.parse(localStorage.getItem('caritas_user'));
-                if (!currentUser || currentUser.role_id !== 2) {
+                if (!currentUser) {
                     window.location.href = 'index.html';
+                    return;
+                }
+                
+                // التحقق من دور مسؤول الفريق (role_id 2)
+                if (currentUser.role_id !== 2) {
+                    showAlert('⛔ ليس لديك صلاحية الوصول لهذه الصفحة', 'error');
+                    setTimeout(() => {
+                        window.location.href = 'index.html';
+                    }, 2000);
                     return;
                 }
 
@@ -857,9 +875,10 @@
                 document.getElementById('userRole').textContent = `${currentUser.role_name_ar} - ${currentUser.branch}`;
                 document.getElementById('userAvatar').textContent = currentUser.full_name.charAt(0);
 
-                // تهيئة Supabase
-                await initializeSupabase();
-                
+                // ✅ إنشاء عميل Supabase باستخدام المكتبة المحملة من CDN
+                supabaseClient = supabase.createClient(SUPABASE_URL.trim(), SUPABASE_KEY.trim());
+                console.log('✅ Supabase client initialized');
+
                 // تحميل البيانات
                 await loadData();
                 
@@ -873,33 +892,6 @@
                 showAlert('حدث خطأ في تحميل البيانات', 'error');
             }
         });
-
-        // ==================== تهيئة Supabase ====================
-        async function initializeSupabase() {
-            return new Promise((resolve, reject) => {
-                // إذا كانت المكتبة محملة بالفعل
-                if (window.supabase) {
-                    supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-                    console.log('✅ Supabase client initialized');
-                    resolve();
-                    return;
-                }
-                
-                // تحميل مكتبة Supabase
-                const script = document.createElement('script');
-                script.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js';
-                script.onload = () => {
-                    supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-                    console.log('✅ Supabase loaded and initialized');
-                    resolve();
-                };
-                script.onerror = () => {
-                    console.error('❌ Failed to load Supabase');
-                    reject(new Error('Failed to load Supabase'));
-                };
-                document.head.appendChild(script);
-            });
-        }
 
         // ==================== إعداد الأحداث ====================
         function setupEventListeners() {
@@ -926,8 +918,10 @@
         // ==================== تحميل البيانات ====================
         async function loadData() {
             try {
+                console.log('🔍 تحميل بيانات مسؤول الفريق:', currentUser.full_name);
+                
                 // 1. جلب الأخصائيين تحت إشرافي
-                const { data: employeesData, error: empError } = await supabase
+                const { data: employeesData, error: empError } = await supabaseClient
                     .from('employees')
                     .select('*')
                     .eq('manager_id', currentUser.id)
@@ -935,13 +929,19 @@
                     .eq('is_active', true)
                     .order('full_name');
 
-                if (empError) throw empError;
+                if (empError) {
+                    console.error('❌ خطأ في جلب الأخصائيين:', empError);
+                    showAlert('حدث خطأ في تحميل بيانات الأخصائيين', 'error');
+                    myEmployees = [];
+                } else {
+                    myEmployees = employeesData || [];
+                    console.log(`✅ تم تحميل ${myEmployees.length} أخصائي`);
+                }
                 
-                myEmployees = employeesData || [];
                 renderEmployeeList();
 
                 // 2. جلب دورة التقييم النشطة
-                const { data: cycleData, error: cycleError } = await supabase
+                const { data: cycleData, error: cycleError } = await supabaseClient
                     .from('evaluation_cycles')
                     .select('*')
                     .eq('is_active', true)
@@ -949,19 +949,25 @@
 
                 if (!cycleError && cycleData) {
                     currentCycle = cycleData;
+                    console.log('✅ تم تحميل دورة التقييم:', currentCycle.name);
                 }
 
                 // 3. جلب أسئلة التقييم للمستوى 1
-                const { data: questionsData, error: qError } = await supabase
+                const { data: questionsData, error: qError } = await supabaseClient
                     .from('evaluation_questions')
                     .select('*')
                     .eq('level_id', 1)
                     .eq('is_active', true)
                     .order('question_order');
 
-                if (qError) throw qError;
-                
-                questions = questionsData || [];
+                if (qError) {
+                    console.error('❌ خطأ في جلب الأسئلة:', qError);
+                    showAlert('حدث خطأ في تحميل أسئلة التقييم', 'error');
+                    questions = [];
+                } else {
+                    questions = questionsData || [];
+                    console.log(`✅ تم تحميل ${questions.length} سؤال للتقييم`);
+                }
 
                 // 4. جلب التقييمات السابقة
                 await loadExistingEvaluations();
@@ -975,28 +981,47 @@
         // ==================== تحميل التقييمات السابقة ====================
         async function loadExistingEvaluations() {
             try {
-                const { data, error } = await supabase
+                console.log('📊 جلب التقييمات السابقة...');
+                
+                if (myEmployees.length === 0) {
+                    evaluations = {};
+                    updateProgress();
+                    return;
+                }
+                
+                // جلب التقييمات للأخصائيين الحاليين فقط
+                const employeeIds = myEmployees.map(e => e.id);
+                
+                const { data, error } = await supabaseClient
                     .from('evaluation_results')
                     .select('*')
-                    .eq('evaluator_id', currentUser.id);
+                    .eq('evaluator_id', currentUser.id)
+                    .in('evaluated_employee_id', employeeIds);
 
-                if (error) throw error;
-
-                // تنظيم التقييمات حسب الموظف
-                evaluations = {};
-                if (data) {
-                    data.forEach(record => {
-                        if (!evaluations[record.evaluated_employee_id]) {
-                            evaluations[record.evaluated_employee_id] = {};
-                        }
-                        evaluations[record.evaluated_employee_id][record.question_id] = record;
-                    });
+                if (error) {
+                    console.warn('⚠️ خطأ في جلب التقييمات:', error);
+                    evaluations = {};
+                } else {
+                    evaluations = {};
+                    if (data && data.length > 0) {
+                        data.forEach(record => {
+                            if (!evaluations[record.evaluated_employee_id]) {
+                                evaluations[record.evaluated_employee_id] = {};
+                            }
+                            evaluations[record.evaluated_employee_id][record.question_id] = record;
+                        });
+                        console.log(`✅ تم تحميل ${data.length} تقييم سابق`);
+                    } else {
+                        evaluations = {};
+                        console.log('ℹ️ لا توجد تقييمات سابقة');
+                    }
                 }
 
                 updateProgress();
 
             } catch (error) {
                 console.error('❌ خطأ في تحميل التقييمات:', error);
+                evaluations = {};
             }
         }
 
@@ -1032,8 +1057,8 @@
                 li.innerHTML = `
                     <div class="employee-name">${employee.full_name}</div>
                     <div style="font-size: 13px; color: #666; margin: 5px 0;">
-                        <span style="background: ${percentage === 100 ? '#d1fae5' : '#fef3c7'}; 
-                              color: ${percentage === 100 ? '#065f46' : '#92400e'}; 
+                        <span style="background: ${percentage === 100 ? '#d1fae5' : percentage > 0 ? '#fef3c7' : '#f1f5f9'}; 
+                              color: ${percentage === 100 ? '#065f46' : percentage > 0 ? '#92400e' : '#64748b'}; 
                               padding: 3px 10px; border-radius: 15px;">
                             ${answeredQuestions}/${totalQuestions} سؤال
                         </span>
@@ -1179,7 +1204,8 @@
                 evaluator_id: currentUser.id,
                 score: score,
                 comment: comment,
-                created_at: new Date().toISOString()
+                created_at: new Date().toISOString(),
+                cycle_id: currentCycle?.id
             };
 
             updateButtons();
@@ -1279,7 +1305,7 @@
                         cycle_id: currentCycle?.id
                     };
 
-                    const { error } = await supabase
+                    const { error } = await supabaseClient
                         .from('evaluation_results')
                         .upsert(evaluationWithCycle, { 
                             onConflict: 'cycle_id,evaluated_employee_id,evaluator_id,question_id' 
