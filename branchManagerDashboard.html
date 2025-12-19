@@ -780,7 +780,8 @@
                     </div>
                     
                     <div id="questionsContainer">
-                        </div>
+                        <!-- سيتم إضافة الأسئلة هنا -->
+                    </div>
 
                     <div class="controls">
                         <button class="btn btn-save" id="saveBtn" onclick="saveEvaluation()" disabled>
@@ -800,6 +801,7 @@
         </main>
     </div>
 
+    <!-- قسم التقارير -->
     <div class="reports-section" id="reportsSection">
         <div style="margin-bottom: 30px;">
             <h2 style="color: var(--primary-color); font-size: 28px; display: flex; align-items: center; gap: 15px;">
@@ -873,10 +875,12 @@
         </div>
     </div>
 
+    <!-- زر التقارير العائم -->
     <button id="toggleReportsBtn" class="floating-reports-btn">
         📊 التقارير
     </button>
 
+    <!-- نافذة التقرير المودال -->
     <div id="reportModal" class="report-modal">
         <div class="report-modal-content">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; padding-bottom: 20px; border-bottom: 3px solid #f0f0f0;">
@@ -884,7 +888,8 @@
                 <button onclick="closeReportModal()" style="background: none; border: none; font-size: 32px; cursor: pointer; color: #666;">&times;</button>
             </div>
             <div id="reportContent" style="font-size: 16px;">
-                </div>
+                <!-- محتوى التقرير سيتم إضافته هنا -->
+            </div>
             <div style="margin-top: 40px; display: flex; gap: 20px; justify-content: flex-end;">
                 <button onclick="closeReportModal()" style="padding: 15px 30px; background: #64748b; color: white; border: none; border-radius: 12px; cursor: pointer; font-size: 16px; font-weight: 600;">
                     إغلاق
@@ -900,9 +905,9 @@
         // ==================== إعدادات ====================
         const SUPABASE_URL = 'https://pzsxhypigslcvduegvpa.supabase.co';
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB6c3hoeXBpZ3NsY3ZkdWVndnBhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU0OTMxOTQsImV4cCI6MjA4MTA2OTE5NH0.0LC452nPLSywGh1mKxNQedm3M_yWZ4srck-gK67iZag';
-
+        
         // ==================== متغيرات ====================
-        let supabaseClient;
+        let supabase;
         let currentUser = null;
         let selectedEmployee = null;
         let myEmployees = [];
@@ -912,62 +917,79 @@
 
         // خيارات التقييم
         const RATING_OPTIONS = [
-            { score: 10, label: 'ممتاز', description: 'يتجاوز التوقعات باستمرار' },
-            { score: 8, label: 'جيد جداً', description: 'يفي بالتوقعات ويتجاوزها أحياناً' },
-            { score: 6, label: 'جيد', description: 'يفي بالتوقعات الأساسية' },
-            { score: 4, label: 'يحتاج تحسين', description: 'لا يفي ببعض التوقعات الأساسية' }
+            { score: 10, label: 'ممتاز', description: 'أداء يفوق التوقعات' },
+            { score: 8, label: 'جيد جداً', description: 'أداء فوق المستوى المطلوب' },
+            { score: 6, label: 'جيد', description: 'أداء مقبول' },
+            { score: 4, label: 'يحتاج لتحسين', description: 'دون المستوى المطلوب' },
+            { score: 2, label: 'غير مرضي', description: 'أداء ضعيف جداً' }
         ];
 
-        // مستويات التقييم
+        // معلومات المستويات
         const EVALUATION_LEVELS = {
-            1: { name: 'المستوى 1 (الأخصائي المباشر)', description: 'التقييم الفني والميداني للأخصائيين المباشرين' },
-            2: { name: 'المستوى 2 (مسؤول فريق)', description: 'تقييم المهارات الإشرافية والقيادية لمسؤولي الفرق' },
-            4: { name: 'المستوى 4 (الإداريون)', description: 'تقييم الكفاءة الإدارية والتنظيمية' }
+            1: { name: 'أخصائي ميداني', description: 'تقييم الأداء الميداني والمهارات العملية' },
+            2: { name: 'مسؤول فريق', description: 'تقييم مهارات الإشراف والقيادة' },
+            3: { name: 'مدير فرع', description: 'تقييم مهارات الإدارة العليا' },
+            4: { name: 'إداري', description: 'تقييم المهارات الإدارية والتنظيمية' },
+            5: { name: 'المركز الرئيسي', description: 'تقييم المهارات المركزية والتنسيقية' }
         };
 
-        // ==================== التشغيل الرئيسي ====================
+        // ==================== تحميل الصفحة ====================
         document.addEventListener('DOMContentLoaded', async () => {
-            checkAuth();
+            console.log('🚀 بدء تحميل لوحة مدير الفروع للتقييم...');
+            
             try {
+                // التحقق من تسجيل الدخول
+                currentUser = JSON.parse(localStorage.getItem('caritas_user'));
+                if (!currentUser) {
+                    window.location.href = 'index.html';
+                    return;
+                }
+                
+                // التحقق من دور مدير الفروع (role_id 3)
+                if (currentUser.role_id !== 3) {
+                    showAlert('⛔ ليس لديك صلاحية الوصول لهذه الصفحة', 'error');
+                    setTimeout(() => {
+                        window.location.href = 'index.html';
+                    }, 2000);
+                    return;
+                }
+
+                // عرض معلومات المستخدم
+                document.getElementById('userName').textContent = currentUser.full_name;
+                document.getElementById('userRole').textContent = `مدير فرع - ${currentUser.branch || 'غير محدد'}`;
+                document.getElementById('userAvatar').textContent = currentUser.full_name.charAt(0);
+
+                // تهيئة Supabase
                 await initializeSupabase();
+                
+                // تحميل البيانات
                 await loadData();
+                
+                // إعداد الأحداث
                 setupEventListeners();
-                updateUI();
+                
+                console.log('✅ تم تحميل الصفحة بنجاح');
+                
             } catch (error) {
-                console.error('Initialization error:', error);
-                showAlert('حدث خطأ أثناء تحميل البيانات. يرجى إعادة المحاولة.', 'error');
+                console.error('❌ خطأ في تحميل الصفحة:', error);
+                showAlert('حدث خطأ في تحميل البيانات', 'error');
             }
         });
-
-        function checkAuth() {
-            const userData = localStorage.getItem('caritas_user');
-            if (!userData) {
-                window.location.href = 'index.html';
-                return;
-            }
-            currentUser = JSON.parse(userData);
-            
-            // التحقق من أن المستخدم مدير فرع (Role 4)
-            if (currentUser.role_id !== 4) {
-                alert('عذراً، هذه الصفحة مخصصة لمديري الفروع فقط.');
-                window.location.href = 'index.html';
-            }
-        }
 
         // ==================== تهيئة Supabase ====================
         async function initializeSupabase() {
             return new Promise((resolve, reject) => {
                 if (window.supabase) {
-                    supabaseClient = window.supabase.createClient(SUPABASE_URL.trim(), SUPABASE_KEY.trim());
+                    supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
                     console.log('✅ Supabase client initialized');
                     resolve();
                     return;
                 }
-
+                
                 const script = document.createElement('script');
                 script.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js';
                 script.onload = () => {
-                    supabaseClient = window.supabase.createClient(SUPABASE_URL.trim(), SUPABASE_KEY.trim());
+                    supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
                     console.log('✅ Supabase loaded and initialized');
                     resolve();
                 };
@@ -977,83 +999,6 @@
                 };
                 document.head.appendChild(script);
             });
-        }
-
-        // ==================== تحميل البيانات ====================
-        async function loadData() {
-            try {
-                // 1. تحميل الموظفين التابعين لنفس الفرع باستثناء الأدوار غير المطلوبة (مثل مدير الفرع نفسه)
-                const { data: empData, error: empError } = await supabaseClient
-                    .from('employees')
-                    .select('*')
-                    .eq('branch', currentUser.branch)
-                    .eq('is_active', true)
-                    .neq('role_id', 3) // استثناء الأدوار التي لا يتم تقييمها هنا إذا لزم الأمر
-                    .neq('id', currentUser.id) // استثناء المدير نفسه من قائمة التقييم
-                    .order('full_name');
-
-                if (empError) throw empError;
-                myEmployees = empData || [];
-
-                // 2. تحميل الأسئلة
-                const { data: qData, error: qError } = await supabaseClient
-                    .from('questions')
-                    .select('*')
-                    .order('order_in_level');
-
-                if (qError) throw qError;
-                questions = qData || [];
-
-                // 3. تحميل الدورة النشطة
-                const { data: cycleData, error: cycleError } = await supabaseClient
-                    .from('evaluation_cycles')
-                    .select('*')
-                    .eq('is_active', true)
-                    .single();
-
-                if (cycleError && cycleError.code !== 'PGRST116') throw cycleError;
-                currentCycle = cycleData;
-
-                if (currentCycle) {
-                    await loadExistingEvaluations();
-                }
-
-                renderEmployeesList();
-                updateStats();
-
-            } catch (error) {
-                console.error('Error loading data:', error);
-                showAlert('فشل تحميل بيانات الموظفين', 'error');
-            }
-        }
-
-        async function loadExistingEvaluations() {
-            if (!currentCycle || myEmployees.length === 0) return;
-
-            try {
-                const { data, error } = await supabaseClient
-                    .from('evaluations')
-                    .select('*')
-                    .eq('cycle_id', currentCycle.id)
-                    .in('employee_id', myEmployees.map(e => e.id));
-
-                if (error) throw error;
-
-                // تحويل البيانات لشكل يسهل الوصول إليه
-                evaluations = {};
-                data.forEach(eval => {
-                    if (!evaluations[eval.employee_id]) {
-                        evaluations[eval.employee_id] = {};
-                    }
-                    evaluations[eval.employee_id][eval.question_id] = {
-                        score: eval.score,
-                        comment: eval.comment,
-                        is_final: eval.is_final
-                    };
-                });
-            } catch (error) {
-                console.error('Error loading evaluations:', error);
-            }
         }
 
         // ==================== إعداد الأحداث ====================
@@ -1068,54 +1013,194 @@
             });
         }
 
-        // ==================== وظائف الواجهة ====================
-        function updateUI() {
-            const avatar = document.getElementById('userAvatar');
-            const name = document.getElementById('userName');
-            
-            if (currentUser) {
-                avatar.textContent = currentUser.full_name.charAt(0);
-                name.textContent = `مرحباً، ${currentUser.full_name}`;
+        // ==================== تحميل البيانات ====================
+        async function loadData() {
+            try {
+                console.log('🔍 تحميل بيانات مدير الفرع:', currentUser.full_name);
+                
+                // 1. جلب الموظفين الذين يمكن لمدير الفرع تقييمهم
+                console.log('👥 جلب الموظفين للتقييم...');
+                
+                // جلب الموظفين الذين يديرهم مباشرة (مسؤولو الفرق، إداريون، أخصائيون مباشرون)
+                const { data: employeesData, error: employeesError } = await supabase
+                    .from('employees')
+                    .select('*')
+                    .or(`manager_id.eq.${currentUser.id},and(branch.eq.${currentUser.branch},role_id.eq.5,manager_id.is.null)`)
+                    .eq('is_active', true)
+                    .neq('role_id', 3) // لا يجلب مديري فروع آخرين
+                    .order('full_name');
+
+                if (employeesError) {
+                    console.error('❌ خطأ في جلب الموظفين:', employeesError);
+                    showAlert('حدث خطأ في تحميل بيانات الموظفين', 'error');
+                    myEmployees = [];
+                } else {
+                    myEmployees = employeesData || [];
+                    console.log(`✅ تم تحميل ${myEmployees.length} موظف للتقييم`);
+                }
+                
+                renderEmployeesList();
+
+                // 2. جلب دورة التقييم النشطة
+                const { data: cycleData, error: cycleError } = await supabase
+                    .from('evaluation_cycles')
+                    .select('*')
+                    .eq('is_active', true)
+                    .single();
+
+                if (!cycleError && cycleData) {
+                    currentCycle = cycleData;
+                    console.log('✅ تم تحميل دورة التقييم:', currentCycle.name);
+                }
+
+                // 3. جلب أسئلة التقييم لجميع المستويات
+                console.log('📝 جلب أسئلة التقييم...');
+                const { data: questionsData, error: qError } = await supabase
+                    .from('evaluation_questions')
+                    .select('*')
+                    .eq('is_active', true)
+                    .order('level_id, question_order');
+
+                if (qError) {
+                    console.error('❌ خطأ في جلب الأسئلة:', qError);
+                    showAlert('حدث خطأ في تحميل أسئلة التقييم', 'error');
+                    questions = [];
+                } else {
+                    questions = questionsData || [];
+                    console.log(`✅ تم تحميل ${questions.length} سؤال للتقييم`);
+                }
+
+                // 4. جلب التقييمات السابقة
+                await loadExistingEvaluations();
+
+                // 5. تحديث الإحصائيات العامة
+                updateGeneralStats();
+
+            } catch (error) {
+                console.error('❌ خطأ في تحميل البيانات:', error);
+                throw error;
             }
         }
 
-        function renderEmployeesList(filteredList = null) {
-            const list = filteredList || myEmployees;
+        // ==================== تحميل التقييمات السابقة ====================
+        async function loadExistingEvaluations() {
+            try {
+                console.log('📊 جلب التقييمات السابقة...');
+                
+                if (myEmployees.length === 0) {
+                    evaluations = {};
+                    updateProgress();
+                    return;
+                }
+                
+                // جلب التقييمات للموظفين الحاليين فقط
+                const employeeIds = myEmployees.map(e => e.id);
+                
+                const { data, error } = await supabase
+                    .from('evaluation_results')
+                    .select('*')
+                    .eq('evaluator_id', currentUser.id)
+                    .in('evaluated_employee_id', employeeIds);
+
+                if (error) {
+                    console.warn('⚠️ خطأ في جلب التقييمات:', error);
+                    evaluations = {};
+                } else {
+                    evaluations = {};
+                    if (data && data.length > 0) {
+                        data.forEach(record => {
+                            if (!evaluations[record.evaluated_employee_id]) {
+                                evaluations[record.evaluated_employee_id] = {};
+                            }
+                            evaluations[record.evaluated_employee_id][record.question_id] = record;
+                        });
+                        console.log(`✅ تم تحميل ${data.length} تقييم سابق`);
+                    } else {
+                        evaluations = {};
+                        console.log('ℹ️ لا توجد تقييمات سابقة');
+                    }
+                }
+
+                updateProgress();
+
+            } catch (error) {
+                console.error('❌ خطأ في تحميل التقييمات:', error);
+                evaluations = {};
+            }
+        }
+
+        // ==================== عرض قائمة الموظفين ====================
+        function renderEmployeesList() {
             const container = document.getElementById('employeesList');
+            const totalElement = document.getElementById('totalEmployees');
+            const noEmployeesMsg = document.getElementById('noEmployeesMessage');
+            const evaluationForm = document.getElementById('evaluationForm');
             
-            if (list.length === 0) {
-                container.innerHTML = '<li style="text-align: center; padding: 30px; color: #666;">لا يوجد موظفون</li>';
+            if (myEmployees.length === 0) {
+                container.innerHTML = '<li style="text-align: center; padding: 30px; color: #666; font-size: 16px;">لا يوجد موظفين تحت إشرافك</li>';
+                totalElement.textContent = '0';
+                noEmployeesMsg.style.display = 'block';
+                evaluationForm.style.display = 'none';
                 return;
             }
 
-            container.innerHTML = '';
-            list.forEach(employee => {
-                const li = document.createElement('li');
-                li.className = `employee-item ${selectedEmployee?.id === employee.id ? 'active' : ''}`;
-                
-                const evalData = evaluations[employee.id] || {};
-                const evaluationLevel = getEvaluationLevel(employee);
-                const employeeQuestions = questions.filter(q => q.level_id === evaluationLevel);
-                const totalQuestions = employeeQuestions.length;
-                const answeredCount = Object.keys(evalData).length;
-                const percentage = totalQuestions > 0 ? Math.round((answeredCount / totalQuestions) * 100) : 0;
-                
-                const isFinal = Object.values(evalData).some(v => v.is_final);
-                const status = isFinal ? 'تم التقييم' : (answeredCount > 0 ? 'قيد التقييم' : 'لم يبدأ');
-                const roleText = getRoleName(employee.role_id);
+            document.getElementById('totalEmployees').textContent = myEmployees.length;
+            noEmployeesMsg.style.display = 'none';
+            
+            // فلترة الموظفين حسب النوع المختار
+            filterEmployeesList();
+        }
 
+        // ==================== فلترة قائمة الموظفين ====================
+        function filterEmployeesList() {
+            const filterValue = document.getElementById('employeeFilter').value;
+            const container = document.getElementById('employeesList');
+            
+            let filteredEmployees = myEmployees;
+            
+            if (filterValue === 'team_managers') {
+                filteredEmployees = myEmployees.filter(e => e.role_id === 2);
+            } else if (filterValue === 'admins') {
+                filteredEmployees = myEmployees.filter(e => e.role_id === 5);
+            } else if (filterValue === 'field_specialists') {
+                filteredEmployees = myEmployees.filter(e => e.role_id === 1);
+            }
+            
+            container.innerHTML = '';
+
+            if (filteredEmployees.length === 0) {
+                container.innerHTML = '<li style="text-align: center; padding: 30px; color: #666; font-size: 16px;">لا يوجد موظفين في هذا التصنيف</li>';
+                return;
+            }
+
+            filteredEmployees.forEach(employee => {
+                const li = document.createElement('li');
+                li.className = 'employee-item';
+                
+                // حساب حالة التقييم
+                const employeeEvals = evaluations[employee.id] || {};
+                const answeredQuestions = Object.keys(employeeEvals).length;
+                const employeeQuestions = questions.filter(q => q.level_id === getEvaluationLevel(employee)).length;
+                const percentage = employeeQuestions > 0 ? Math.round((answeredQuestions / employeeQuestions) * 100) : 0;
+                
+                // تحديد دور الموظف
+                let roleText = '';
+                if (employee.role_id === 2) roleText = '👥 مسؤول فريق';
+                else if (employee.role_id === 5) roleText = '💼 إداري';
+                else if (employee.role_id === 1) roleText = '🎯 أخصائي ميداني';
+                
                 li.innerHTML = `
-                    <div style="display: flex; justify-content: space-between; align-items: flex-start;">
-                        <div>
-                            <div class="employee-name">${employee.full_name}</div>
-                            <div style="font-size: 12px; color: ${isFinal ? '#10b981' : '#f59e0b'}; margin-bottom: 5px;">${status}</div>
-                        </div>
-                        <span style="font-size: 12px; background: ${percentage === 100 ? '#d1fae5' : percentage > 0 ? '#fef3c7' : '#f1f5f9'}; color: ${percentage === 100 ? '#065f46' : percentage > 0 ? '#92400e' : '#64748b'}; padding: 3px 10px; border-radius: 15px;">
+                    <div class="employee-name">${employee.full_name}</div>
+                    <div style="font-size: 13px; color: #666; margin: 5px 0;">
+                        <span style="background: ${percentage === 100 ? '#d1fae5' : percentage > 0 ? '#fef3c7' : '#f1f5f9'}; 
+                              color: ${percentage === 100 ? '#065f46' : percentage > 0 ? '#92400e' : '#64748b'}; 
+                              padding: 3px 10px; border-radius: 15px;">
                             ${percentage}% مكتمل
                         </span>
                     </div>
                     <div class="employee-role">${roleText}</div>
                 `;
+                
                 li.onclick = () => selectEmployee(employee);
                 container.appendChild(li);
             });
@@ -1144,9 +1229,10 @@
             const avatar = document.getElementById('selectedEmployeeAvatar');
             const name = document.getElementById('selectedEmployeeName');
             const info = document.getElementById('selectedEmployeeInfo');
-
+            
             avatar.textContent = employee.full_name.charAt(0);
             avatar.style.background = `linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%)`;
+            
             name.textContent = employee.full_name;
             info.textContent = `${employee.branch} • ${getRoleName(employee.role_id)}`;
 
@@ -1169,11 +1255,33 @@
             const roles = {
                 1: 'أخصائي ميداني',
                 2: 'مسؤول فريق',
-                3: 'مدير برنامج',
-                4: 'مدير فرع',
-                5: 'إداري'
+                3: 'مدير فرع',
+                4: 'مستوى غير محدد',
+                5: 'إداري',
+                6: 'مركز رئيسي'
             };
-            return roles[roleId] || 'موظف';
+            return roles[roleId] || 'غير محدد';
+        }
+
+        // ==================== تحديث حالة التقييم ====================
+        function updateStatus() {
+            if (!selectedEmployee) return;
+
+            const employeeEvals = evaluations[selectedEmployee.id] || {};
+            const answeredQuestions = Object.keys(employeeEvals).length;
+            const employeeQuestions = questions.filter(q => q.level_id === getEvaluationLevel(selectedEmployee)).length;
+
+            let statusText = `تم الإجابة على ${answeredQuestions} من ${employeeQuestions} سؤال`;
+            
+            if (answeredQuestions === employeeQuestions && employeeQuestions > 0) {
+                statusText += ' ✅ جاهز للإرسال';
+            } else if (answeredQuestions > 0) {
+                statusText += ' ⏳ جاري التقييم';
+            } else {
+                statusText = 'لم يبدأ التقييم بعد';
+            }
+
+            document.getElementById('evaluationStatus').textContent = statusText;
         }
 
         // ==================== عرض الأسئلة ====================
@@ -1181,15 +1289,16 @@
             if (!selectedEmployee) return;
 
             const container = document.getElementById('questionsContainer');
-            const evaluationLevel = getEvaluationLevel(selectedEmployee);
-            const employeeQuestions = questions.filter(q => q.level_id === evaluationLevel);
-
             container.innerHTML = '';
 
+            const evaluationLevel = getEvaluationLevel(selectedEmployee);
+            const employeeQuestions = questions.filter(q => q.level_id === evaluationLevel);
+            
             if (employeeQuestions.length === 0) {
                 container.innerHTML = `
-                    <div style="text-align: center; padding: 40px; background: #fffbeb; border-radius: 15px; border: 2px solid #fef3c7; color: #92400e;">
-                        لا توجد أسئلة محددة لهذا المستوى الوظيفي حالياً.
+                    <div style="text-align: center; padding: 40px; color: #666;">
+                        <h4 style="margin-bottom: 10px;">لا توجد أسئلة لهذا المستوى</h4>
+                        <p>يرجى التواصل مع المسؤول لإضافة أسئلة التقييم</p>
                     </div>
                 `;
                 return;
@@ -1197,19 +1306,21 @@
 
             employeeQuestions.forEach((question, index) => {
                 const evaluation = evaluations[selectedEmployee.id]?.[question.id];
+                
                 const card = document.createElement('div');
                 card.className = 'question-card';
-                
                 card.innerHTML = `
                     <div class="question-header">
                         <div class="question-number">${index + 1}</div>
                         <div class="question-category">${question.category}</div>
                     </div>
+                    
                     <div class="question-text">${question.question_text}</div>
+                    
                     <div class="rating-options">
                         ${RATING_OPTIONS.map(option => `
                             <div class="rating-option ${evaluation?.score === option.score ? 'selected' : ''}" 
-                                 data-score="${option.score}" 
+                                 data-score="${option.score}"
                                  data-question="${question.id}"
                                  onclick="selectRating('${question.id}', ${option.score})">
                                 <span class="rating-label">${option.label}</span>
@@ -1218,235 +1329,655 @@
                             </div>
                         `).join('')}
                     </div>
+                    
                     <textarea class="comment-box" 
-                              id="comment-${question.id}" 
+                              id="comment-${question.id}"
                               placeholder="اكتب تعليقك هنا (اختياري)..."
                               oninput="updateEvaluation('${question.id}')">${evaluation?.comment || ''}</textarea>
                 `;
+                
                 container.appendChild(card);
             });
         }
 
         // ==================== اختيار التقييم ====================
         function selectRating(questionId, score) {
-            const isFinal = Object.values(evaluations[selectedEmployee.id] || {}).some(v => v.is_final);
-            if (isFinal) return;
+            if (!selectedEmployee) return;
 
+            // تحديث الواجهة
+            document.querySelectorAll(`[data-question="${questionId}"]`).forEach(option => {
+                option.classList.remove('selected');
+            });
+            event.target.closest('.rating-option').classList.add('selected');
+
+            // حفظ التقييم
+            updateEvaluation(questionId, score);
+        }
+
+        // ==================== تحديث التقييم ====================
+        function updateEvaluation(questionId, score = null) {
+            if (!selectedEmployee || !questionId) return;
+
+            const comment = document.getElementById(`comment-${questionId}`).value;
+            
+            if (score === null) {
+                // جلب النتيجة المختارة
+                const selectedOption = document.querySelector(`[data-question="${questionId}"].selected`);
+                score = selectedOption ? parseInt(selectedOption.dataset.score) : null;
+            }
+
+            if (!score) return;
+
+            // حفظ في الذاكرة
             if (!evaluations[selectedEmployee.id]) {
                 evaluations[selectedEmployee.id] = {};
             }
-
+            
             evaluations[selectedEmployee.id][questionId] = {
+                question_id: questionId,
+                evaluated_employee_id: selectedEmployee.id,
+                evaluator_id: currentUser.id,
                 score: score,
-                comment: document.getElementById(`comment-${questionId}`).value,
-                is_final: false
+                comment: comment,
+                created_at: new Date().toISOString(),
+                cycle_id: currentCycle?.id
             };
 
-            // تحديث الواجهة
-            const options = document.querySelectorAll(`[data-question="${questionId}"]`);
-            options.forEach(opt => {
-                opt.classList.remove('selected');
-                if (parseInt(opt.dataset.score) === score) {
-                    opt.classList.add('selected');
-                }
-            });
-
             updateButtons();
+            updateProgress();
             updateStatus();
         }
 
-        function updateEvaluation(questionId) {
-            if (!evaluations[selectedEmployee.id]) {
-                evaluations[selectedEmployee.id] = {};
-            }
-            
-            if (evaluations[selectedEmployee.id][questionId]) {
-                evaluations[selectedEmployee.id][questionId].comment = document.getElementById(`comment-${questionId}`).value;
-            }
-        }
-
-        // ==================== حفظ التقييم ====================
-        async function saveEvaluation() {
-            if (!selectedEmployee || !currentCycle) return;
-
-            const saveBtn = document.getElementById('saveBtn');
-            saveBtn.disabled = true;
-            saveBtn.textContent = '⌛ جاري الحفظ...';
-
-            try {
-                const employeeEvals = evaluations[selectedEmployee.id];
-                const upsertData = Object.entries(employeeEvals).map(([qId, data]) => ({
-                    employee_id: selectedEmployee.id,
-                    question_id: qId,
-                    cycle_id: currentCycle.id,
-                    evaluator_id: currentUser.id,
-                    score: data.score,
-                    comment: data.comment,
-                    is_final: false,
-                    updated_at: new Date()
-                }));
-
-                const { error } = await supabaseClient
-                    .from('evaluations')
-                    .upsert(upsertData);
-
-                if (error) throw error;
-
-                showAlert('تم حفظ المسودة بنجاح', 'success');
-                renderEmployeesList();
-            } catch (error) {
-                console.error('Error saving:', error);
-                showAlert('فشل في حفظ التقييم', 'error');
-            } finally {
-                saveBtn.disabled = false;
-                saveBtn.textContent = '💾 حفظ مؤقت';
-            }
-        }
-
-        async function submitEvaluation() {
-            if (!confirm('هل أنت متأكد من إرسال التقييم النهائي؟ لا يمكن التعديل بعد الإرسال.')) return;
-
-            const submitBtn = document.getElementById('submitBtn');
-            submitBtn.disabled = true;
-            submitBtn.textContent = '⌛ جاري الإرسال...';
-
-            try {
-                const employeeEvals = evaluations[selectedEmployee.id];
-                const upsertData = Object.entries(employeeEvals).map(([qId, data]) => ({
-                    employee_id: selectedEmployee.id,
-                    question_id: qId,
-                    cycle_id: currentCycle.id,
-                    evaluator_id: currentUser.id,
-                    score: data.score,
-                    comment: data.comment,
-                    is_final: true,
-                    updated_at: new Date()
-                }));
-
-                const { error } = await supabaseClient
-                    .from('evaluations')
-                    .upsert(upsertData);
-
-                if (error) throw error;
-
-                // تحديث الحالة محلياً
-                Object.keys(evaluations[selectedEmployee.id]).forEach(qId => {
-                    evaluations[selectedEmployee.id][qId].is_final = true;
-                });
-
-                showAlert('تم إرسال التقييم النهائي بنجاح', 'success');
-                renderEmployeesList();
-                updateButtons();
-                updateStatus();
-                updateStats();
-
-            } catch (error) {
-                console.error('Error submitting:', error);
-                showAlert('فشل في إرسال التقييم', 'error');
-            } finally {
-                submitBtn.disabled = false;
-                submitBtn.textContent = '✅ إرسال التقييم النهائي';
-            }
-        }
-
-        // ==================== وظائف مساعدة ====================
+        // ==================== تحديث الأزرار ====================
         function updateButtons() {
-            if (!selectedEmployee) return;
-
-            const evalData = evaluations[selectedEmployee.id] || {};
-            const isFinal = Object.values(evalData).some(v => v.is_final);
-            const evaluationLevel = getEvaluationLevel(selectedEmployee);
-            const totalQuestions = questions.filter(q => q.level_id === evaluationLevel).length;
-            const answeredCount = Object.keys(evalData).length;
-
-            const saveBtn = document.getElementById('saveBtn');
-            const submitBtn = document.getElementById('submitBtn');
-
-            saveBtn.disabled = isFinal || answeredCount === 0;
-            submitBtn.disabled = isFinal || answeredCount < totalQuestions;
-
-            // تعطيل التعديل على خيارات التقييم إذا كان نهائياً
-            if (isFinal) {
-                document.querySelectorAll('.comment-box').forEach(box => box.disabled = true);
-            }
-        }
-
-        function updateStatus() {
-            const statusDiv = document.getElementById('evaluationStatus');
             if (!selectedEmployee) {
-                statusDiv.textContent = 'حالة التقييم: غير محدد';
+                document.getElementById('saveBtn').disabled = true;
+                document.getElementById('submitBtn').disabled = true;
                 return;
             }
 
-            const evalData = evaluations[selectedEmployee.id] || {};
-            const isFinal = Object.values(evalData).some(v => v.is_final);
-            const answeredCount = Object.keys(evalData).length;
+            const employeeEvals = evaluations[selectedEmployee.id] || {};
+            const answeredQuestions = Object.keys(employeeEvals).length;
+            const evaluationLevel = getEvaluationLevel(selectedEmployee);
+            const totalQuestions = questions.filter(q => q.level_id === evaluationLevel).length;
 
-            if (isFinal) {
-                statusDiv.textContent = 'حالة التقييم: تم الإرسال بنجاح ✅';
-                statusDiv.style.color = 'var(--success-color)';
-            } else if (answeredCount > 0) {
-                statusDiv.textContent = 'حالة التقييم: مسودة قيد العمل 📝';
-                statusDiv.style.color = 'var(--warning-color)';
-            } else {
-                statusDiv.textContent = 'حالة التقييم: لم يبدأ بعد';
-                statusDiv.style.color = 'var(--light-text)';
-            }
+            document.getElementById('saveBtn').disabled = answeredQuestions === 0;
+            document.getElementById('submitBtn').disabled = answeredQuestions < totalQuestions;
         }
 
-        function updateStats() {
-            const total = myEmployees.length;
+        // ==================== تحديث التقدم ====================
+        function updateProgress() {
             let completed = 0;
-            let pending = 0;
-            let totalScores = 0;
-            let totalEvaluatedQuestions = 0;
-
-            myEmployees.forEach(emp => {
-                const evalData = evaluations[emp.id] || {};
-                const isFinal = Object.values(evalData).some(v => v.is_final);
-                const answeredCount = Object.keys(evalData).length;
-
-                if (isFinal) completed++;
-                else if (answeredCount > 0) pending++;
-
-                Object.values(evalData).forEach(val => {
-                    totalScores += val.score;
-                    totalEvaluatedQuestions++;
-                });
+            let total = 0;
+            
+            myEmployees.forEach(employee => {
+                const evaluationLevel = getEvaluationLevel(employee);
+                const employeeQuestions = questions.filter(q => q.level_id === evaluationLevel).length;
+                const employeeEvals = evaluations[employee.id] || {};
+                completed += Object.keys(employeeEvals).length;
+                total += employeeQuestions;
             });
 
-            document.getElementById('totalEmployees').textContent = total;
-            document.getElementById('completedEvaluations').textContent = completed;
-            document.getElementById('pendingEvaluations').textContent = pending;
+            const completedEvaluations = myEmployees.filter(e => {
+                const evaluationLevel = getEvaluationLevel(e);
+                const employeeQuestions = questions.filter(q => q.level_id === evaluationLevel).length;
+                const evals = evaluations[e.id] || {};
+                return Object.keys(evals).length === employeeQuestions;
+            }).length;
             
-            const average = totalEvaluatedQuestions > 0 ? Math.round((totalScores / (totalEvaluatedQuestions * 10)) * 100) : 0;
-            document.getElementById('averageScore').textContent = `${average}%`;
+            document.getElementById('completedEvaluations').textContent = completedEvaluations;
+            document.getElementById('pendingEvaluations').textContent = myEmployees.length - completedEvaluations;
 
-            const completionPercentage = total > 0 ? Math.round((completed / total) * 100) : 0;
-            document.getElementById('progressText').textContent = `${completionPercentage}%`;
-            document.getElementById('progressFill').style.width = `${completionPercentage}%`;
+            const progress = total > 0 ? (completed / total) * 100 : 0;
+            document.getElementById('progressFill').style.width = `${progress}%`;
+            document.getElementById('progressText').textContent = `${Math.round(progress)}%`;
         }
 
-        function filterEmployeesList() {
-            const filterValue = document.getElementById('employeeFilter').value;
-            let filtered;
+        // ==================== تحديث الإحصائيات العامة ====================
+        function updateGeneralStats() {
+            const totalEmployees = myEmployees.length;
+            
+            // حساب التقييمات المكتملة
+            let completedEvaluations = 0;
+            let totalScore = 0;
+            let totalEvaluated = 0;
+            
+            myEmployees.forEach(employee => {
+                const employeeEvals = evaluations[employee.id] || {};
+                const answeredQuestions = Object.keys(employeeEvals).length;
+                
+                if (answeredQuestions > 0) {
+                    const evaluationLevel = getEvaluationLevel(employee);
+                    const employeeQuestions = questions.filter(q => q.level_id === evaluationLevel).length;
+                    
+                    if (answeredQuestions === employeeQuestions) {
+                        completedEvaluations++;
+                    }
+                    
+                    const employeeScore = Object.values(employeeEvals).reduce((sum, eval) => sum + eval.score, 0);
+                    totalScore += (employeeScore / (answeredQuestions * 10)) * 100;
+                    totalEvaluated++;
+                }
+            });
+            
+            const averageScore = totalEvaluated > 0 ? Math.round(totalScore / totalEvaluated) : 0;
+            
+            document.getElementById('totalEmployees').textContent = totalEmployees;
+            document.getElementById('completedEvaluations').textContent = completedEvaluations;
+            document.getElementById('averageScore').textContent = `${averageScore}%`;
+        }
 
-            switch(filterValue) {
-                case 'team_managers':
-                    filtered = myEmployees.filter(e => e.role_id === 2);
-                    break;
-                case 'admins':
-                    filtered = myEmployees.filter(e => e.role_id === 5);
-                    break;
-                case 'field_specialists':
-                    filtered = myEmployees.filter(e => e.role_id === 1);
-                    break;
-                default:
-                    filtered = myEmployees;
+        // ==================== حفظ التقييم مؤقتاً ====================
+        async function saveEvaluation() {
+            if (!selectedEmployee) return;
+
+            try {
+                showAlert('جاري حفظ التقييم...', 'info');
+                
+                // حفظ في localStorage كنسخة احتياطية
+                localStorage.setItem(`eval_${currentUser.id}_${selectedEmployee.id}`, 
+                    JSON.stringify(evaluations[selectedEmployee.id]));
+
+                showAlert('✅ تم حفظ التقييم مؤقتاً', 'success');
+                
+            } catch (error) {
+                console.error('❌ خطأ في الحفظ:', error);
+                showAlert('حدث خطأ أثناء حفظ التقييم', 'error');
+            }
+        }
+
+        // ==================== إرسال التقييم النهائي ====================
+        async function submitEvaluation() {
+            if (!selectedEmployee || !evaluations[selectedEmployee.id]) return;
+
+            const employeeEvals = evaluations[selectedEmployee.id];
+            const answeredQuestions = Object.keys(employeeEvals).length;
+            const evaluationLevel = getEvaluationLevel(selectedEmployee);
+            const totalQuestions = questions.filter(q => q.level_id === evaluationLevel).length;
+
+            if (answeredQuestions < totalQuestions) {
+                showAlert(`يجب الإجابة على جميع الأسئلة (${answeredQuestions}/${totalQuestions})`, 'error');
+                return;
             }
 
-            renderEmployeesList(filtered);
+            if (!confirm('هل أنت متأكد من إرسال التقييم النهائي؟ لا يمكن تعديله بعد الإرسال.')) {
+                return;
+            }
+
+            try {
+                showAlert('جاري إرسال التقييم...', 'info');
+                const submitBtn = document.getElementById('submitBtn');
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '⏳ جاري الإرسال...';
+
+                // إرسال كل تقييم إلى Supabase
+                const evaluationsToSubmit = Object.values(employeeEvals);
+                let successCount = 0;
+                let errorCount = 0;
+
+                for (const evalData of evaluationsToSubmit) {
+                    const { error } = await supabase
+                        .from('evaluation_results')
+                        .upsert(evalData, { 
+                            onConflict: 'cycle_id,evaluated_employee_id,evaluator_id,question_id' 
+                        });
+
+                    if (error) {
+                        console.error('❌ خطأ في إرسال التقييم:', error);
+                        errorCount++;
+                        continue;
+                    }
+                    successCount++;
+                }
+
+                if (errorCount === 0) {
+                    showAlert(`✅ تم إرسال ${successCount} تقييم بنجاح!`, 'success');
+                    
+                    // تحديث الواجهة
+                    setTimeout(() => {
+                        location.reload();
+                    }, 1500);
+                    
+                } else {
+                    showAlert(`⚠️ تم إرسال ${successCount} من ${evaluationsToSubmit.length} تقييم، فشل ${errorCount}`, 'error');
+                }
+
+            } catch (error) {
+                console.error('❌ خطأ في إرسال التقييم:', error);
+                showAlert('حدث خطأ أثناء إرسال التقييم', 'error');
+                
+            } finally {
+                const submitBtn = document.getElementById('submitBtn');
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '✅ إرسال التقييم النهائي';
+            }
         }
+
+        // ==================== وظائف التقارير ====================
+
+        // عرض/إخفاء قسم التقارير
+        function toggleReportsSection() {
+            const reportsSection = document.getElementById('reportsSection');
+            const toggleBtn = document.getElementById('toggleReportsBtn');
+            
+            if (reportsSection.style.display === 'none' || !reportsSection.style.display) {
+                reportsSection.style.display = 'block';
+                toggleBtn.innerHTML = '📋 العودة للتقييم';
+                loadReportsData();
+                window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+            } else {
+                reportsSection.style.display = 'none';
+                toggleBtn.innerHTML = '📊 التقارير';
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+        }
+
+        // تحميل بيانات التقارير
+        async function loadReportsData() {
+            await loadEmployeesForReports();
+            await generateTeamSummaryReport();
+            await refreshStatistics();
+        }
+
+        // تحميل قائمة الموظفين للتقارير
+        async function loadEmployeesForReports() {
+            const select = document.getElementById('employeeSelectForReport');
+            select.innerHTML = '<option value="">اختر موظفاً</option>';
+            
+            myEmployees.forEach(employee => {
+                const option = document.createElement('option');
+                option.value = employee.id;
+                option.textContent = `${employee.full_name} (${getRoleName(employee.role_id)})`;
+                select.appendChild(option);
+            });
+        }
+
+        // توليد تقرير ملخص الفريق
+        async function generateTeamSummaryReport() {
+            const container = document.getElementById('teamSummaryReport');
+            
+            if (myEmployees.length === 0) {
+                container.innerHTML = '<p style="color: #666; text-align: center; padding: 30px; font-size: 16px;">لا يوجد موظفين تحت إشرافك</p>';
+                return;
+            }
+            
+            let html = `
+                <div style="margin-bottom: 20px;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 16px;">
+                        <span style="color: #666;">عدد الموظفين:</span>
+                        <span style="font-weight: bold; color: var(--primary-color);">${myEmployees.length}</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 16px;">
+                        <span style="color: #666;">تاريخ التقرير:</span>
+                        <span style="font-weight: bold;">${new Date().toLocaleDateString('ar-SA')}</span>
+                    </div>
+                </div>
+                
+                <div style="max-height: 300px; overflow-y: auto; font-size: 16px;">
+                    <table style="width: 100%; border-collapse: collapse;">
+                        <thead>
+                            <tr style="background: #f8fafc;">
+                                <th style="padding: 15px; text-align: right; border-bottom: 2px solid #e2e8f0;">الموظف</th>
+                                <th style="padding: 15px; text-align: center; border-bottom: 2px solid #e2e8f0;">الدور</th>
+                                <th style="padding: 15px; text-align: center; border-bottom: 2px solid #e2e8f0;">حالة التقييم</th>
+                                <th style="padding: 15px; text-align: center; border-bottom: 2px solid #e2e8f0;">المتوسط%</th>
+                                <th style="padding: 15px; text-align: center; border-bottom: 2px solid #e2e8f0;">التقدير</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+            `;
+            
+            let totalAverage = 0;
+            let completedCount = 0;
+            
+            for (const employee of myEmployees) {
+                const employeeEvals = evaluations[employee.id] || {};
+                const answeredQuestions = Object.keys(employeeEvals).length;
+                const evaluationLevel = getEvaluationLevel(employee);
+                const employeeQuestions = questions.filter(q => q.level_id === evaluationLevel).length;
+                
+                // حساب المتوسط
+                let average = 0;
+                let status = 'لم يبدأ';
+                let statusColor = '#64748b';
+                
+                if (answeredQuestions > 0) {
+                    const totalScore = Object.values(employeeEvals).reduce((sum, eval) => sum + eval.score, 0);
+                    average = Math.round((totalScore / (answeredQuestions * 10)) * 100);
+                    
+                    if (answeredQuestions === employeeQuestions) {
+                        status = 'مكتمل ✅';
+                        statusColor = '#10b981';
+                        completedCount++;
+                    } else {
+                        status = `جاري (${answeredQuestions}/${employeeQuestions})`;
+                        statusColor = '#f59e0b';
+                    }
+                }
+                
+                totalAverage += average;
+                
+                html += `
+                    <tr style="border-bottom: 1px solid #e2e8f0;">
+                        <td style="padding: 15px; font-weight: 600;">${employee.full_name}</td>
+                        <td style="padding: 15px; text-align: center;">${getRoleName(employee.role_id)}</td>
+                        <td style="padding: 15px; text-align: center; color: ${statusColor};">${status}</td>
+                        <td style="padding: 15px; text-align: center; font-weight: bold; color: ${getGradeColor(average)};">${average}%</td>
+                        <td style="padding: 15px; text-align: center; font-weight: bold; color: ${getGradeColor(average)};">${getGradeFromScore(average)}</td>
+                    </tr>
+                `;
+            }
+            
+            const overallAverage = myEmployees.length > 0 ? Math.round(totalAverage / myEmployees.length) : 0;
+            
+            html += `
+                        </tbody>
+                    </table>
+                </div>
+                
+                <div style="margin-top: 25px; padding-top: 20px; border-top: 3px solid #f0f0f0; font-size: 16px;">
+                    <div style="display: flex; justify-content: space-between;">
+                        <span style="font-weight: bold; color: var(--primary-color);">المتوسط العام:</span>
+                        <span style="font-weight: bold; font-size: 18px; color: ${getGradeColor(overallAverage)};">${overallAverage}%</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; margin-top: 10px;">
+                        <span style="color: #666;">التقييمات المكتملة:</span>
+                        <span style="font-weight: bold; color: ${completedCount === myEmployees.length ? '#10b981' : '#f59e0b'};">${completedCount}/${myEmployees.length}</span>
+                    </div>
+                </div>
+            `;
+            
+            container.innerHTML = html;
+        }
+
+        // تحديث الإحصائيات
+        async function refreshStatistics() {
+            const statistics = {
+                excellent: 0,
+                veryGood: 0,
+                good: 0,
+                needsImprovement: 0,
+                total: 0,
+                average: 0
+            };
+            
+            // جمع الإحصائيات من جميع التقييمات
+            for (const employee of myEmployees) {
+                const employeeEvals = evaluations[employee.id] || {};
+                const answeredQuestions = Object.keys(employeeEvals).length;
+                
+                if (answeredQuestions > 0) {
+                    const totalScore = Object.values(employeeEvals).reduce((sum, eval) => sum + eval.score, 0);
+                    const average = Math.round((totalScore / (answeredQuestions * 10)) * 100);
+                    statistics.total++;
+                    statistics.average += average;
+                    
+                    // تصنيف حسب الدرجة
+                    if (average >= 90) statistics.excellent++;
+                    else if (average >= 80) statistics.veryGood++;
+                    else if (average >= 70) statistics.good++;
+                    else statistics.needsImprovement++;
+                }
+            }
+            
+            // تحديث الواجهة
+            const statsContainer = document.getElementById('statisticsReport');
+            const overallAverage = statistics.total > 0 ? Math.round(statistics.average / statistics.total) : 0;
+            
+            statsContainer.innerHTML = `
+                <div style="text-align: center; padding: 15px;">
+                    <div class="stat-number" style="font-size: 32px; font-weight: bold; color: ${getGradeColor(overallAverage)};">${overallAverage}%</div>
+                    <div class="stat-label" style="color: #666; margin-top: 5px;">متوسط التقييم</div>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 15px;">
+                    <div style="text-align: center;">
+                        <div class="stat-number" style="font-size: 24px; font-weight: bold; color: var(--success-color);">${statistics.excellent}</div>
+                        <div class="stat-label" style="font-size: 12px; color: #666;">ممتاز</div>
+                    </div>
+                    <div style="text-align: center;">
+                        <div class="stat-number" style="font-size: 24px; font-weight: bold; color: #3b82f6;">${statistics.veryGood}</div>
+                        <div class="stat-label" style="font-size: 12px; color: #666;">جيد جداً</div>
+                    </div>
+                    <div style="text-align: center;">
+                        <div class="stat-number" style="font-size: 24px; font-weight: bold; color: var(--warning-color);">${statistics.good}</div>
+                        <div class="stat-label" style="font-size: 12px; color: #666;">جيد</div>
+                    </div>
+                    <div style="text-align: center;">
+                        <div class="stat-number" style="font-size: 24px; font-weight: bold; color: var(--danger-color);">${statistics.needsImprovement}</div>
+                        <div class="stat-label" style="font-size: 12px; color: #666;">يحتاج تحسين</div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // توليد تقرير فردي
+        async function generateIndividualReport() {
+            const employeeId = document.getElementById('employeeSelectForReport').value;
+            if (!employeeId) return;
+            
+            const employee = myEmployees.find(e => e.id == employeeId);
+            if (!employee) return;
+            
+            const employeeEvals = evaluations[employee.id] || {};
+            const answeredQuestions = Object.keys(employeeEvals).length;
+            const evaluationLevel = getEvaluationLevel(employee);
+            const employeeQuestions = questions.filter(q => q.level_id === evaluationLevel);
+            
+            // حساب الإحصائيات
+            let totalScore = 0;
+            let questionDetails = '';
+            
+            if (answeredQuestions > 0) {
+                totalScore = Object.values(employeeEvals).reduce((sum, eval) => sum + eval.score, 0);
+                const average = Math.round((totalScore / (answeredQuestions * 10)) * 100);
+                
+                // تفاصيل الأسئلة
+                questionDetails = '<div style="margin-top: 20px;">';
+                employeeQuestions.forEach((question, index) => {
+                    const evaluation = employeeEvals[question.id];
+                    const score = evaluation?.score || 0;
+                    const comment = evaluation?.comment || 'لا يوجد تعليق';
+                    
+                    questionDetails += `
+                        <div style="margin-bottom: 15px; padding: 15px; background: #f8fafc; border-radius: 8px;">
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                                <span style="font-weight: bold; color: var(--primary-color);">س ${index + 1}: ${question.question_text}</span>
+                                <span style="font-weight: bold; color: ${getScoreColor(score)};">${score}/10</span>
+                            </div>
+                            <div style="color: #666; font-size: 14px;">
+                                <strong>التعليق:</strong> ${comment}
+                            </div>
+                        </div>
+                    `;
+                });
+                questionDetails += '</div>';
+            }
+            
+            const averageScore = answeredQuestions > 0 ? Math.round((totalScore / (answeredQuestions * 10)) * 100) : 0;
+            const grade = getGradeFromScore(averageScore);
+            
+            const reportHTML = `
+                <div style="font-family: 'Segoe UI', Arial, sans-serif;">
+                    <div style="text-align: center; margin-bottom: 30px; padding-bottom: 20px; border-bottom: 3px solid var(--primary-color);">
+                        <h1 style="color: var(--primary-color); margin-bottom: 10px;">تقرير تقييم أداء موظف</h1>
+                        <p style="color: #666;">نظام التقييم الشامل - كاريتاس مصر</p>
+                    </div>
+                    
+                    <div style="background: #f8fafc; padding: 20px; border-radius: 10px; margin-bottom: 25px;">
+                        <h3 style="color: var(--primary-color); margin-bottom: 15px;">👤 معلومات الموظف</h3>
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px;">
+                            <div>
+                                <strong>الاسم الكامل:</strong> ${employee.full_name}
+                            </div>
+                            <div>
+                                <strong>الفرع:</strong> ${employee.branch}
+                            </div>
+                            <div>
+                                <strong>الدور:</strong> ${getRoleName(employee.role_id)}
+                            </div>
+                            <div>
+                                <strong>تاريخ التقرير:</strong> ${new Date().toLocaleDateString('ar-SA')}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div style="background: #f0f9ff; padding: 20px; border-radius: 10px; margin-bottom: 25px; border-right: 5px solid ${getGradeColor(averageScore)};">
+                        <h3 style="color: var(--primary-color); margin-bottom: 15px;">📊 ملخص التقييم</h3>
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px;">
+                            <div style="text-align: center;">
+                                <div style="font-size: 36px; font-weight: bold; color: ${getGradeColor(averageScore)};">${averageScore}%</div>
+                                <div style="color: #666;">المتوسط العام</div>
+                            </div>
+                            <div style="text-align: center;">
+                                <div style="font-size: 36px; font-weight: bold; color: var(--primary-color);">${answeredQuestions}/${employeeQuestions.length}</div>
+                                <div style="color: #666;">عدد الأسئلة المجابة</div>
+                            </div>
+                            <div style="text-align: center;">
+                                <div style="font-size: 36px; font-weight: bold; color: #8b5cf6;">${grade}</div>
+                                <div style="color: #666;">التقدير النهائي</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    ${answeredQuestions > 0 ? `
+                        <div style="margin-bottom: 25px;">
+                            <h3 style="color: var(--primary-color); margin-bottom: 15px;">📝 تفاصيل التقييم</h3>
+                            ${questionDetails}
+                        </div>
+                    ` : `
+                        <div style="text-align: center; padding: 40px; background: #f8fafc; border-radius: 10px; margin-bottom: 25px;">
+                            <h4 style="color: #666;">لم يتم تقييم هذا الموظف بعد</h4>
+                            <p style="color: #999; margin-top: 10px;">يجب إكمال عملية التقييم أولاً</p>
+                        </div>
+                    `}
+                    
+                    <div style="padding: 20px; border-top: 2px solid #e2e8f0; margin-top: 30px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <div>
+                                <strong>المقيِّم:</strong> ${currentUser.full_name}<br>
+                                <strong>التوقيع:</strong> _________________
+                            </div>
+                            <div style="text-align: left;">
+                                <strong>التاريخ:</strong> ${new Date().toLocaleDateString('ar-SA')}<br>
+                                <strong>الختم:</strong> 
+                                <div style="width: 100px; height: 100px; border: 2px dashed #ccc; display: inline-block; vertical-align: middle; margin-right: 10px;"></div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div style="margin-top: 40px; padding-top: 20px; border-top: 1px solid #e2e8f0; text-align: center; color: #999; font-size: 12px;">
+                        <p>© ${new Date().getFullYear()} كاريتاس مصر - نظام التقييم الشامل للموظفين</p>
+                        <p>تم إنشاء هذا التقرير آلياً بتاريخ ${new Date().toLocaleString('ar-SA')}</p>
+                    </div>
+                </div>
+            `;
+            
+            // عرض التقرير في المودال
+            document.getElementById('reportContent').innerHTML = reportHTML;
+            document.getElementById('reportModal').style.display = 'flex';
+        }
+
+        // طباعة التقرير الحالي
+        function printCurrentReport() {
+            const printContent = document.getElementById('reportContent').innerHTML;
+            const printWindow = window.open('', '_blank');
+            
+            printWindow.document.write(`
+                <!DOCTYPE html>
+                <html dir="rtl" lang="ar">
+                <head>
+                    <meta charset="UTF-8">
+                    <title>تقرير التقييم - كاريتاس مصر</title>
+                    <style>
+                        body { 
+                            font-family: 'Segoe UI', Arial, sans-serif; 
+                            direction: rtl; 
+                            padding: 20px;
+                            margin: 0;
+                        }
+                        @media print {
+                            @page { margin: 20mm; }
+                            .no-print { display: none !important; }
+                        }
+                    </style>
+                </head>
+                <body>
+                    ${printContent}
+                    <div class="no-print" style="text-align: center; margin-top: 40px;">
+                        <button onclick="window.print()" style="padding: 12px 30px; background: var(--primary-color); color: white; border: none; border-radius: 8px; cursor: pointer; margin: 10px;">
+                            🖨️ طباعة
+                        </button>
+                        <button onclick="window.close()" style="padding: 12px 30px; background: #64748b; color: white; border: none; border-radius: 8px; cursor: pointer; margin: 10px;">
+                            إغلاق
+                        </button>
+                    </div>
+                </body>
+                </html>
+            `);
+            
+            printWindow.document.close();
+        }
+
+        // طباعة تقرير فردي مباشر
+        async function printIndividualReport() {
+            await generateIndividualReport();
+            setTimeout(printCurrentReport, 500);
+        }
+
+        // طباعة تقرير ملخص الفريق
+        async function printTeamSummary() {
+            await generateTeamSummaryReport();
+            
+            const teamSummary = document.getElementById('teamSummaryReport').innerHTML;
+            const printWindow = window.open('', '_blank');
+            
+            printWindow.document.write(`
+                <!DOCTYPE html>
+                <html dir="rtl" lang="ar">
+                <head>
+                    <meta charset="UTF-8">
+                    <title>ملخص فريق ${currentUser.full_name}</title>
+                    <style>
+                        body { font-family: 'Segoe UI', Arial, sans-serif; direction: rtl; padding: 30px; }
+                        h1 { color: #1e40af; text-align: center; }
+                        table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+                        th { background: #f8fafc; padding: 12px; border-bottom: 2px solid #e2e8f0; }
+                        td { padding: 10px; border-bottom: 1px solid #e2e8f0; }
+                        @media print {
+                            @page { margin: 20mm; }
+                            .no-print { display: none; }
+                        }
+                    </style>
+                </head>
+                <body>
+                    <h1>📊 ملخص تقييم الفريق</h1>
+                    <div style="margin-bottom: 20px;">
+                        <strong>مدير الفرع:</strong> ${currentUser.full_name}<br>
+                        <strong>الفرع:</strong> ${currentUser.branch}<br>
+                        <strong>تاريخ التقرير:</strong> ${new Date().toLocaleDateString('ar-SA')}
+                    </div>
+                    ${teamSummary}
+                    <div class="no-print" style="text-align: center; margin-top: 40px;">
+                        <button onclick="window.print()" style="padding: 12px 30px; background: #1e40af; color: white; border: none; border-radius: 8px; cursor: pointer; margin: 10px;">
+                            🖨️ طباعة
+                        </button>
+                        <button onclick="window.close()" style="padding: 12px 30px; background: #666; color: white; border: none; border-radius: 8px; cursor: pointer; margin: 10px;">
+                            إغلاق
+                        </button>
+                    </div>
+                </body>
+                </html>
+            `);
+            
+            printWindow.document.close();
+        }
+
+        // إغلاق نافذة التقرير
+        function closeReportModal() {
+            document.getElementById('reportModal').style.display = 'none';
+        }
+
+        // ==================== وظائف مساعدة ====================
 
         function showAlert(message, type) {
             const alertBox = document.getElementById('alertBox');
@@ -1490,344 +2021,6 @@
             if (percentage >= 60) return 'يحتاج تحسين';
             return 'غير مقيم';
         }
-
-        // ==================== وظائف التقارير ====================
-
-        function toggleReportsSection() {
-            const reportsSection = document.getElementById('reportsSection');
-            const toggleBtn = document.getElementById('toggleReportsBtn');
-            
-            if (reportsSection.style.display === 'none' || !reportsSection.style.display) {
-                reportsSection.style.display = 'block';
-                toggleBtn.innerHTML = '📋 العودة للتقييم';
-                loadReportsData();
-                window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
-            } else {
-                reportsSection.style.display = 'none';
-                toggleBtn.innerHTML = '📊 التقارير';
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-            }
-        }
-
-        // تحميل بيانات التقارير
-        async function loadReportsData() {
-            await loadEmployeesForReports();
-            await generateTeamSummaryReport();
-            await refreshStatistics();
-        }
-
-        // تحميل قائمة الموظفين للتقارير
-        async function loadEmployeesForReports() {
-            const select = document.getElementById('employeeSelectForReport');
-            select.innerHTML = '<option value="">اختر موظفاً</option>';
-            
-            myEmployees.forEach(employee => {
-                const option = document.createElement('option');
-                option.value = employee.id;
-                option.textContent = `${employee.full_name} (${getRoleName(employee.role_id)})`;
-                select.appendChild(option);
-            });
-        }
-
-        // توليد تقرير ملخص الفريق
-        async function generateTeamSummaryReport() {
-            const container = document.getElementById('teamSummaryReport');
-            if (myEmployees.length === 0) {
-                container.innerHTML = '<p style="color: #666; text-align: center; padding: 30px; font-size: 16px;">لا يوجد موظفين تحت إشرافك</p>';
-                return;
-            }
-
-            let html = `
-                <div style="margin-bottom: 20px;">
-                    <div style="display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 16px;">
-                        <span style="color: #666;">عدد الموظفين:</span>
-                        <span style="font-weight: bold; color: var(--primary-color);">${myEmployees.length}</span>
-                    </div>
-                    <div style="display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 16px;">
-                        <span style="color: #666;">تاريخ التقرير:</span>
-                        <span style="font-weight: bold;">${new Date().toLocaleDateString('ar-SA')}</span>
-                    </div>
-                </div>
-                <div style="overflow-x: auto;">
-                    <table style="width: 100%; border-collapse: collapse; font-size: 14px;">
-                        <thead>
-                            <tr style="background: #f1f5f9; text-align: right;">
-                                <th style="padding: 12px; border: 1px solid #e2e8f0;">الموظف</th>
-                                <th style="padding: 12px; border: 1px solid #e2e8f0;">الحالة</th>
-                                <th style="padding: 12px; border: 1px solid #e2e8f0;">الدرجة</th>
-                                <th style="padding: 12px; border: 1px solid #e2e8f0;">التقدير</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-            `;
-
-            let totalAverage = 0;
-            let completedCount = 0;
-
-            for (const employee of myEmployees) {
-                const employeeEvals = evaluations[employee.id] || {};
-                const isFinal = Object.values(employeeEvals).some(v => v.is_final);
-                const answeredQuestions = Object.keys(employeeEvals).length;
-                
-                let average = 0;
-                if (answeredQuestions > 0) {
-                    const totalScore = Object.values(employeeEvals).reduce((sum, eval) => sum + eval.score, 0);
-                    average = Math.round((totalScore / (answeredQuestions * 10)) * 100);
-                    totalAverage += average;
-                }
-
-                if (isFinal) completedCount++;
-                const status = isFinal ? 'مكتمل' : (answeredCount > 0 ? 'مسودة' : 'لم يبدأ');
-                const statusColor = isFinal ? '#10b981' : (answeredQuestions > 0 ? '#f59e0b' : '#64748b');
-
-                html += `
-                    <tr>
-                        <td style="padding: 15px; border: 1px solid #e2e8f0;">${employee.full_name}</td>
-                        <td style="padding: 15px; border: 1px solid #e2e8f0; color: ${statusColor};">${status}</td>
-                        <td style="padding: 15px; text-align: center; font-weight: bold; color: ${getGradeColor(average)};">${average}%</td>
-                        <td style="padding: 15px; text-align: center; font-weight: bold; color: ${getGradeColor(average)};">${getGradeFromScore(average)}</td>
-                    </tr>
-                `;
-            }
-
-            const overallAverage = myEmployees.length > 0 ? Math.round(totalAverage / myEmployees.length) : 0;
-
-            html += `
-                        </tbody>
-                    </table>
-                </div>
-                <div style="margin-top: 25px; padding-top: 20px; border-top: 3px solid #f0f0f0; font-size: 16px;">
-                    <div style="display: flex; justify-content: space-between;">
-                        <span style="font-weight: bold; color: var(--primary-color);">المتوسط العام:</span>
-                        <span style="font-weight: bold; font-size: 18px; color: ${getGradeColor(overallAverage)};">${overallAverage}%</span>
-                    </div>
-                    <div style="display: flex; justify-content: space-between; margin-top: 10px;">
-                        <span style="color: #666;">التقييمات المكتملة:</span>
-                        <span style="font-weight: bold; color: ${completedCount === myEmployees.length ? '#10b981' : '#f59e0b'};">${completedCount}/${myEmployees.length}</span>
-                    </div>
-                </div>
-            `;
-
-            container.innerHTML = html;
-        }
-
-        // تحديث الإحصائيات
-        async function refreshStatistics() {
-            const statistics = {
-                excellent: 0,
-                veryGood: 0,
-                good: 0,
-                needsImprovement: 0,
-                total: 0,
-                average: 0
-            };
-
-            // جمع الإحصائيات من جميع التقييمات
-            for (const employee of myEmployees) {
-                const employeeEvals = evaluations[employee.id] || {};
-                const answeredQuestions = Object.keys(employeeEvals).length;
-
-                if (answeredQuestions > 0) {
-                    const totalScore = Object.values(employeeEvals).reduce((sum, eval) => sum + eval.score, 0);
-                    const average = Math.round((totalScore / (answeredQuestions * 10)) * 100);
-                    
-                    if (average >= 90) statistics.excellent++;
-                    else if (average >= 80) statistics.veryGood++;
-                    else if (average >= 70) statistics.good++;
-                    else if (average >= 60) statistics.needsImprovement++;
-                    
-                    statistics.total++;
-                    statistics.average += average;
-                }
-            }
-
-            const overallAverage = statistics.total > 0 ? Math.round(statistics.average / statistics.total) : 0;
-
-            document.getElementById('statisticsReport').innerHTML = `
-                <div style="text-align: center; padding: 15px;">
-                    <div class="stat-number" style="font-size: 32px; font-weight: bold; color: ${getGradeColor(overallAverage)};">${overallAverage}%</div>
-                    <div class="stat-label" style="color: #666; margin-top: 5px;">متوسط التقييم</div>
-                </div>
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 15px;">
-                    <div style="text-align: center; background: #f0fdf4; padding: 10px; border-radius: 10px;">
-                        <div class="stat-number" style="font-size: 24px; font-weight: bold; color: #10b981;">${statistics.excellent}</div>
-                        <div class="stat-label" style="font-size: 12px; color: #666;">ممتاز</div>
-                    </div>
-                    <div style="text-align: center; background: #eff6ff; padding: 10px; border-radius: 10px;">
-                        <div class="stat-number" style="font-size: 24px; font-weight: bold; color: #3b82f6;">${statistics.veryGood}</div>
-                        <div class="stat-label" style="font-size: 12px; color: #666;">جيد جداً</div>
-                    </div>
-                    <div style="text-align: center; background: #fffbeb; padding: 10px; border-radius: 10px;">
-                        <div class="stat-number" style="font-size: 24px; font-weight: bold; color: #f59e0b;">${statistics.good}</div>
-                        <div class="stat-label" style="font-size: 12px; color: #666;">جيد</div>
-                    </div>
-                    <div style="text-align: center; background: #fef2f2; padding: 10px; border-radius: 10px;">
-                        <div class="stat-number" style="font-size: 24px; font-weight: bold; color: #ef4444;">${statistics.needsImprovement}</div>
-                        <div class="stat-label" style="font-size: 12px; color: #666;">يحتاج تحسين</div>
-                    </div>
-                </div>
-            `;
-        }
-
-        // تقرير فردي
-        async function generateIndividualReport() {
-            const employeeId = document.getElementById('employeeSelectForReport').value;
-            if (!employeeId) return;
-
-            const employee = myEmployees.find(e => e.id === employeeId);
-            const employeeEvals = evaluations[employeeId] || {};
-            const answeredQuestions = Object.keys(employeeEvals).length;
-            const evaluationLevel = getEvaluationLevel(employee);
-            const employeeQuestions = questions.filter(q => q.level_id === evaluationLevel);
-
-            // حساب الإحصائيات
-            let totalScore = 0;
-            let questionDetails = '';
-
-            if (answeredQuestions > 0) {
-                totalScore = Object.values(employeeEvals).reduce((sum, eval) => sum + eval.score, 0);
-                const average = Math.round((totalScore / (answeredQuestions * 10)) * 100);
-
-                // تفاصيل الأسئلة
-                questionDetails = '<div style="margin-top: 20px;">';
-                employeeQuestions.forEach((question, index) => {
-                    const evaluation = employeeEvals[question.id];
-                    const score = evaluation?.score || 0;
-                    const comment = evaluation?.comment || 'لا يوجد تعليق';
-
-                    questionDetails += `
-                        <div style="margin-bottom: 15px; padding: 15px; background: #f8fafc; border-radius: 8px;">
-                            <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
-                                <span style="font-weight: bold; color: var(--primary-color);">س ${index + 1}: ${question.question_text}</span>
-                                <span style="font-weight: bold; color: ${getScoreColor(score)};">${score}/10</span>
-                            </div>
-                            <div style="color: #666; font-size: 14px;">
-                                <strong>التعليق:</strong> ${comment}
-                            </div>
-                        </div>
-                    `;
-                });
-                questionDetails += '</div>';
-            }
-
-            const averageScore = answeredQuestions > 0 ? Math.round((totalScore / (answeredQuestions * 10)) * 100) : 0;
-            const grade = getGradeFromScore(averageScore);
-
-            const reportHTML = `
-                <div style="font-family: 'Segoe UI', Arial, sans-serif;">
-                    <div style="text-align: center; margin-bottom: 30px; padding-bottom: 20px; border-bottom: 3px solid var(--primary-color);">
-                        <h1 style="color: var(--primary-color); margin-bottom: 5px;">تقرير تقييم الأداء</h1>
-                        <p style="color: #666;">كاريتاس مصر - فرع ${employee.branch}</p>
-                    </div>
-
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 30px;">
-                        <div>
-                            <strong>اسم الموظف:</strong> ${employee.full_name}<br>
-                            <strong>الوظيفة:</strong> ${getRoleName(employee.role_id)}<br>
-                            <strong>الفرع:</strong> ${employee.branch}
-                        </div>
-                        <div>
-                            <strong>تاريخ التقرير:</strong> ${new Date().toLocaleDateString('ar-SA')}<br>
-                            <strong>الدورة التقييمية:</strong> ${currentCycle?.name || 'غير محدد'}<br>
-                            <strong>حالة التقييم:</strong> ${Object.values(employeeEvals).some(v => v.is_final) ? 'نهائي' : 'مسودة'}
-                        </div>
-                    </div>
-
-                    <div style="background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%); color: white; padding: 25px; border-radius: 15px; text-align: center; margin-bottom: 30px;">
-                        <div style="font-size: 16px; opacity: 0.9;">النتيجة الإجمالية</div>
-                        <div style="font-size: 48px; font-weight: bold;">${averageScore}%</div>
-                        <div style="font-size: 24px; font-weight: 600;">${grade}</div>
-                    </div>
-
-                    <h3 style="color: var(--primary-color); border-bottom: 2px solid #e2e8f0; padding-bottom: 10px; margin-bottom: 20px;">تفاصيل التقييم والمعايير</h3>
-                    ${questionDetails || '<p style="text-align: center; padding: 20px;">لا توجد بيانات تقييم متوفرة حالياً</p>'}
-
-                    <div style="padding: 20px; border-top: 2px solid #e2e8f0; margin-top: 30px;">
-                        <div style="display: flex; justify-content: space-between; align-items: center;">
-                            <div>
-                                <strong>المقيِّم:</strong> ${currentUser.full_name}<br>
-                                <strong>التوقيع:</strong> _________________
-                            </div>
-                            <div style="text-align: left;">
-                                <strong>التاريخ:</strong> ${new Date().toLocaleDateString('ar-SA')}<br>
-                                <strong>الختم:</strong>
-                                <div style="width: 100px; height: 100px; border: 2px dashed #ccc; display: inline-block; vertical-align: middle; margin-right: 10px;"></div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            `;
-
-            document.getElementById('reportContent').innerHTML = reportHTML;
-            document.getElementById('reportModal').style.display = 'flex';
-        }
-
-        function closeReportModal() {
-            document.getElementById('reportModal').style.display = 'none';
-        }
-
-        function printCurrentReport() {
-            const content = document.getElementById('reportContent').innerHTML;
-            const printWindow = window.open('', '_blank');
-            printWindow.document.write(`
-                <html dir="rtl" lang="ar">
-                <head>
-                    <title>طباعة تقرير التقييم</title>
-                    <style>
-                        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 40px; }
-                        @media print {
-                            .no-print { display: none; }
-                            body { padding: 0; }
-                        }
-                    </style>
-                </head>
-                <body>
-                    ${content}
-                    <script>window.print();<\/script>
-                </body>
-                </html>
-            `);
-            printWindow.document.close();
-        }
-
-        function printTeamSummary() {
-            const content = document.getElementById('teamSummaryReport').innerHTML;
-            const printWindow = window.open('', '_blank');
-            printWindow.document.write(`
-                <html dir="rtl" lang="ar">
-                <head>
-                    <title>ملخص تقييم الفريق - فرع ${currentUser.branch}</title>
-                    <style>
-                        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 40px; }
-                        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-                        th, td { border: 1px solid #ddd; padding: 12px; text-align: right; }
-                        th { background-color: #f8fafc; }
-                    </style>
-                </head>
-                <body>
-                    <div style="text-align: center; margin-bottom: 30px; border-bottom: 3px solid #1e40af; padding-bottom: 20px;">
-                        <h1 style="color: #1e40af;">تقرير ملخص تقييم الفريق</h1>
-                        <h2>فرع ${currentUser.branch}</h2>
-                    </div>
-                    ${content}
-                    <div style="margin-top: 40px; text-align: left;">
-                        <p>توقيع مدير الفرع: _________________</p>
-                        <p>تاريخ الاعتماد: ${new Date().toLocaleDateString('ar-SA')}</p>
-                    </div>
-                    <script>window.print();<\/script>
-                </body>
-                </html>
-            `);
-            printWindow.document.close();
-        }
-
-        function printIndividualReport() {
-            generateIndividualReport();
-            setTimeout(() => {
-                printCurrentReport();
-            }, 500);
-        }
-
     </script>
 </body>
 </html>
