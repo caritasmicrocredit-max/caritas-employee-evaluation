@@ -691,7 +691,7 @@
                 </div>
                 <div class="questions-container">
                     <div class="section-title">
-                        📝 أسئلة التقييم
+                        📝 أسئلة التقييم السنوي 2025
                     </div>
                     <div id="questionsContainer">
                         <!-- سيتم إضافة الأسئلة هنا -->
@@ -807,7 +807,6 @@
         </div>
     </div>
 
-    <!-- ✅ جافا سكريبت بعد التعديل -->
     <script>
         // ==================== إعدادات ====================
         const SUPABASE_URL = 'https://pzsxhypigslcvduegvpa.supabase.co';
@@ -842,7 +841,6 @@
         document.addEventListener('DOMContentLoaded', async () => {
             console.log('🚀 بدء تحميل لوحة مدير الفروع للتقييم...');
             try {
-                // التحقق من تسجيل الدخول
                 currentUser = JSON.parse(localStorage.getItem('caritas_user'));
                 if (!currentUser) {
                     window.location.href = 'index.html';
@@ -854,16 +852,14 @@
                     return;
                 }
 
-                // عرض معلومات المستخدم
                 document.getElementById('userName').textContent = currentUser.full_name;
                 document.getElementById('userRole').textContent = `مدير فرع - ${currentUser.branch || 'غير محدد'}`;
                 document.getElementById('userAvatar').textContent = currentUser.full_name.charAt(0);
 
-                // ✅ تهيئة Supabase
+                // ✅ تهيئة Supabase (بدون تحميل ديناميكي)
                 supabaseClient = supabase.createClient(SUPABASE_URL.trim(), SUPABASE_KEY.trim());
                 console.log('✅ Supabase client initialized');
 
-                // تحميل البيانات
                 await loadData();
                 setupEventListeners();
 
@@ -877,14 +873,17 @@
         // ==================== تحميل البيانات ====================
         async function loadData() {
             try {
-                // جلب الموظفين
+                // ✅ جلب الموظفين في نفس الفرع (بدون استخدام manager_id)
                 const { data: employeesData, error: employeesError } = await supabaseClient
                     .from('employees')
                     .select('*')
-                    .or(`manager_id.eq.${currentUser.id},and(branch.eq.${currentUser.branch},role_id.eq.5,manager_id.is.null)`)
-                    .eq('is_active', true)
-                    .neq('role_id', 3)
-                    .order('full_name');
+                    .eq('branch', currentUser.branch)          // نفس الفرع
+                    .eq('is_active', true)                     // نشط فقط
+                    .not('role_id', 'eq', 3)                   // استثناء مديري الفروع
+                    .not('id', 'eq', currentUser.id)           // لا يظهر نفسه
+                    .order('role_id', { ascending: true })     // أولاً المسؤولون، ثم الأخصائيون
+                    .order('full_name', { ascending: true });
+
                 myEmployees = employeesError ? [] : employeesData || [];
                 renderEmployeesList();
 
@@ -911,13 +910,12 @@
                 updateGeneralStats();
             } catch (error) {
                 console.error('❌ خطأ في تحميل البيانات:', error);
-                throw error;
+                showAlert('حدث خطأ في تحميل بيانات الموظفين', 'error');
             }
         }
 
-        // ... (بقية الدوال تبقى كما هي، مع تغيير كل `supabase` إلى `supabaseClient`)
+        // ... (بقية الدوال كما هي، مع استخدام supabaseClient)
 
-        // مثال: loadExistingEvaluations
         async function loadExistingEvaluations() {
             try {
                 if (myEmployees.length === 0) {
@@ -953,68 +951,18 @@
             }
         }
 
-        // مثال: submitEvaluation
-        async function submitEvaluation() {
-            if (!selectedEmployee || !evaluations[selectedEmployee.id]) return;
-            const employeeEvals = evaluations[selectedEmployee.id];
-            const answeredQuestions = Object.keys(employeeEvals).length;
-            const evaluationLevel = getEvaluationLevel(selectedEmployee);
-            const totalQuestions = questions.filter(q => q.level_id === evaluationLevel).length;
-            if (answeredQuestions < totalQuestions) {
-                showAlert(`يجب الإجابة على جميع الأسئلة (${answeredQuestions}/${totalQuestions})`, 'error');
-                return;
-            }
-            if (!confirm('هل أنت متأكد من إرسال التقييم النهائي؟ لا يمكن تعديله بعد الإرسال.')) {
-                return;
-            }
-            try {
-                showAlert('جاري إرسال التقييم...', 'info');
-                const submitBtn = document.getElementById('submitBtn');
-                submitBtn.disabled = true;
-                submitBtn.innerHTML = '⏳ جاري الإرسال...';
-
-                const evaluationsToSubmit = Object.values(employeeEvals);
-                let successCount = 0;
-                let errorCount = 0;
-                for (const evalData of evaluationsToSubmit) {
-                    const { error } = await supabaseClient
-                        .from('evaluation_results')
-                        .upsert(evalData, { 
-                            onConflict: 'cycle_id,evaluated_employee_id,evaluator_id,question_id' 
-                        });
-                    if (error) {
-                        errorCount++;
-                        continue;
-                    }
-                    successCount++;
-                }
-                if (errorCount === 0) {
-                    showAlert(`✅ تم إرسال ${successCount} تقييم بنجاح!`, 'success');
-                    setTimeout(() => location.reload(), 1500);
-                } else {
-                    showAlert(`⚠️ تم إرسال ${successCount} من ${evaluationsToSubmit.length} تقييم، فشل ${errorCount}`, 'error');
-                }
-            } catch (error) {
-                console.error('❌ خطأ في إرسال التقييم:', error);
-                showAlert('حدث خطأ أثناء إرسال التقييم', 'error');
-            } finally {
-                const submitBtn = document.getElementById('submitBtn');
-                submitBtn.disabled = false;
-                submitBtn.innerHTML = '✅ إرسال التقييم النهائي';
-            }
-        }
-
-        // ==================== وظائف مساعدة ====================
         function getEvaluationLevel(employee) {
             if (employee.role_id === 2) return 2;
             if (employee.role_id === 5) return 4;
             if (employee.role_id === 1) return 1;
             return 1;
         }
+
         function getRoleName(roleId) {
             const roles = {1:'أخصائي ميداني',2:'مسؤول فريق',3:'مدير فرع',4:'مستوى غير محدد',5:'إداري',6:'مركز رئيسي'};
             return roles[roleId] || 'غير محدد';
         }
+
         function selectEmployee(employee) {/* ... */}
         function renderQuestions() {/* ... */}
         function selectRating(questionId, score) {/* ... */}
@@ -1023,35 +971,70 @@
         function updateStatus() {/* ... */}
         function updateProgress() {/* ... */}
         function updateGeneralStats() {/* ... */}
-        function saveEvaluation() {/* ... */}
-        // ... إلخ
-
-        // ==================== وظائف التقارير ====================
+        async function saveEvaluation() {/* ... */}
+        async function submitEvaluation() {/* ... */}
         function toggleReportsSection() {/* ... */}
         async function loadReportsData() {/* ... */}
-        async function generateTeamSummaryReport() {/* ... */}
-        // ... إلخ
-
-        // ==================== وظائف مساعدة عامة ====================
-        function showAlert(message, type) {
-            const alertBox = document.getElementById('alertBox');
-            alertBox.textContent = message;
-            alertBox.className = `alert alert-${type} show`;
-            setTimeout(() => alertBox.classList.remove('show'), 5000);
-        }
-        function logout() {
-            if (confirm('هل تريد تسجيل الخروج؟')) {
-                localStorage.removeItem('caritas_user');
-                window.location.href = 'index.html';
-            }
-        }
+        async function printCurrentReport() {/* ... */}
+        function closeReportModal() {/* ... */}
+        function logout() {/* ... */}
+        function showAlert(message, type) {/* ... */}
         function getGradeColor(percentage) {/* ... */}
         function getScoreColor(score) {/* ... */}
         function getGradeFromScore(percentage) {/* ... */}
         function renderEmployeesList() {/* ... */}
         function filterEmployeesList() {/* ... */}
+        function setupEventListeners() {/* ... */}
 
-        // ==================== إعداد الأحداث ====================
+        // مثال: renderEmployeesList
+        function renderEmployeesList() {
+            const container = document.getElementById('employeesList');
+            const totalElement = document.getElementById('totalEmployees');
+            const noEmployeesMsg = document.getElementById('noEmployeesMessage');
+            if (myEmployees.length === 0) {
+                container.innerHTML = '<li style="text-align:center;padding:30px;color:#666;font-size:16px;">لا يوجد موظفين تحت إشرافك</li>';
+                totalElement.textContent = '0';
+                noEmployeesMsg.style.display = 'block';
+                return;
+            }
+            totalElement.textContent = myEmployees.length;
+            noEmployeesMsg.style.display = 'none';
+            container.innerHTML = '';
+            myEmployees.forEach(employee => {
+                const li = document.createElement('li');
+                li.className = 'employee-item';
+                const employeeEvals = evaluations[employee.id] || {};
+                const answered = Object.keys(employeeEvals).length;
+                const level = getEvaluationLevel(employee);
+                const totalQ = questions.filter(q => q.level_id === level).length;
+                const pct = totalQ > 0 ? Math.round((answered / totalQ) * 100) : 0;
+                let roleText = getRoleName(employee.role_id);
+                li.innerHTML = `
+                    <div class="employee-name">${employee.full_name}</div>
+                    <div style="font-size:13px;color:#666;margin:5px 0;">
+                        <span style="background:${pct===100?'#d1fae5':pct>0?'#fef3c7':'#f1f5f9'};color:${pct===100?'#065f46':pct>0?'#92400e':'#64748b'};padding:3px 10px;border-radius:15px;">${pct}% مكتمل</span>
+                    </div>
+                    <div class="employee-role">${roleText}</div>
+                `;
+                li.onclick = () => selectEmployee(employee);
+                container.appendChild(li);
+            });
+            filterEmployeesList();
+        }
+
+        function filterEmployeesList() {
+            const filter = document.getElementById('employeeFilter').value;
+            const items = document.querySelectorAll('.employee-item');
+            items.forEach(item => {
+                const roleText = item.querySelector('.employee-role').textContent;
+                let show = true;
+                if (filter === 'team_managers' && !roleText.includes('مسؤول فريق')) show = false;
+                else if (filter === 'admins' && !roleText.includes('إداري')) show = false;
+                else if (filter === 'field_specialists' && !roleText.includes('أخصائي ميداني')) show = false;
+                item.style.display = show ? 'block' : 'none';
+            });
+        }
+
         function setupEventListeners() {
             document.getElementById('toggleReportsBtn').addEventListener('click', toggleReportsSection);
             document.getElementById('employeeFilter').addEventListener('change', filterEmployeesList);
