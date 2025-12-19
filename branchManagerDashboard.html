@@ -900,16 +900,14 @@
             </div>
         </div>
     </div>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
     <script>
-       // ==================== إعدادات الاتصال ====================
-const SUPABASE_URL = 'https://pzsxhypigslcvduegvpa.supabase.co';
-const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB6c3hoeXBpZ3NsY3ZkdWVndnBhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU0OTMxOTQsImV4cCI6MjA4MTA2OTE5NH0.0LC452nPLSywGh1mKxNQedm3M_yWZ4srck-gK67iZag';
-
-// تعريف supabase باستخدام let بدلاً من const لضمان الاستقرار
-let supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        // ==================== إعدادات ====================
+        const SUPABASE_URL = 'https://pzsxhypigslcvduegvpa.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB6c3hoeXBpZ3NsY3ZkdWVndnBhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU0OTMxOTQsImV4cCI6MjA4MTA2OTE5NH0.0LC452nPLSywGh1mKxNQedm3M_yWZ4srck-gK67iZag';
+        
         // ==================== متغيرات ====================
+        let supabase;
         let currentUser = null;
         let selectedEmployee = null;
         let myEmployees = [];
@@ -1027,9 +1025,9 @@ let supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
                 const { data: employeesData, error: employeesError } = await supabase
                     .from('employees')
                     .select('*')
-                    .or(`manager_id.eq.${currentUser.id},and(branch.eq.${currentUser.branch},role_id.eq.5,manager_id.is.null)`)
+                    .eq('manager_id', currentUser.id)
                     .eq('is_active', true)
-                    .neq('role_id', 3) // لا يجلب مديري فروع آخرين
+                    .neq('role_id', 3)
                     .order('full_name');
 
                 if (employeesError) {
