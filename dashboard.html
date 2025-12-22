@@ -30,7 +30,6 @@
             min-height: 100vh;
         }
 
-        /* الهيدر */
         .header {
             background: rgba(44, 62, 80, 0.95);
             padding: 20px 30px;
@@ -217,12 +216,14 @@
 
         .content-header {
             margin-bottom: 25px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
 
         .content-title {
             color: var(--admin-color);
             font-size: 24px;
-            margin-bottom: 10px;
             font-weight: 700;
         }
 
@@ -230,6 +231,7 @@
             color: #6c757d;
             font-size: 14px;
             line-height: 1.5;
+            margin-top: 5px;
         }
 
         /* أقسام المحتوى */
@@ -358,6 +360,7 @@
         .action-buttons {
             display: flex;
             gap: 5px;
+            flex-wrap: wrap;
         }
 
         .action-btn {
@@ -393,11 +396,21 @@
             color: #856404;
         }
 
+        .btn-permanent-delete {
+            background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+            color: white;
+        }
+
+        .btn-report {
+            background: linear-gradient(135deg, #9b59b6 0%, #8e44ad 100%);
+            color: white;
+        }
+
         .action-btn:hover {
             transform: translateY(-1px);
         }
 
-        /* قسم إدارة المستخدمين */
+        /* زر الإجراءات */
         .report-btn {
             padding: 10px 15px;
             background: linear-gradient(135deg, var(--admin-accent) 0%, #16a085 100%);
@@ -435,7 +448,7 @@
         .modal-content {
             background: white;
             width: 100%;
-            max-width: 700px;
+            max-width: 800px;
             max-height: 85vh;
             border-radius: 15px;
             padding: 25px;
@@ -623,8 +636,13 @@
             <!-- قسم إدارة التقييمات -->
             <section id="manage" class="content-section active">
                 <div class="content-header">
-                    <h2 class="content-title">📊 إدارة التقييمات</h2>
-                    <p class="content-subtitle">عرض، حذف، واستعادة التقييمات</p>
+                    <div>
+                        <h2 class="content-title">📊 إدارة التقييمات</h2>
+                        <p class="content-subtitle">عرض، حذف، استعادة، وطباعة التقارير الكاملة</p>
+                    </div>
+                    <button class="report-btn" onclick="showEmployeeEvaluations()">
+                        👤 تقارير الموظفين
+                    </button>
                 </div>
                 
                 <div class="filters-bar">
@@ -666,13 +684,14 @@
                                 <th>المقيّم</th>
                                 <th>الفرع</th>
                                 <th>المتوسط</th>
+                                <th>عدد الأسئلة</th>
                                 <th>الحالة</th>
                                 <th>الإجراءات</th>
                             </tr>
                         </thead>
                         <tbody id="evaluationsBody">
                             <tr>
-                                <td colspan="7" style="text-align: center; padding: 30px; color: #6c757d;">
+                                <td colspan="8" style="text-align: center; padding: 30px; color: #6c757d;">
                                     جاري تحميل بيانات التقييمات...
                                 </td>
                             </tr>
@@ -781,6 +800,8 @@
         let allEmployees = [];
         let allUsers = [];
         let filteredUsers = [];
+        let employeeEvaluations = {};
+        let allQuestions = [];
 
         // ==================== تهيئة النظام ====================
         document.addEventListener('DOMContentLoaded', async () => {
@@ -867,10 +888,43 @@
             }
         }
 
+        function getBranchName(branch) {
+            if (!branch) return 'غير محدد';
+            return branch.replace('فرع ', '');
+        }
+
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleDateString('ar-SA', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+        }
+
+        function getAnswerText(score) {
+            if (score >= 9) return 'ممتاز';
+            if (score >= 7) return 'جيد جداً';
+            if (score >= 5) return 'جيد';
+            if (score >= 3) return 'مقبول';
+            return 'ضعيف';
+        }
+
+        function getAnswerColor(score) {
+            if (score >= 9) return '#27ae60';
+            if (score >= 7) return '#2ecc71';
+            if (score >= 5) return '#f39c12';
+            if (score >= 3) return '#e67e22';
+            return '#e74c3c';
+        }
+
         // ==================== تحميل البيانات ====================
         async function loadAllData() {
             showLoading();
             try {
+                // تحميل الأسئلة أولاً
+                await loadQuestions();
+                
                 // تحميل التقييمات
                 await loadEvaluationsData();
                 
@@ -886,6 +940,24 @@
                 console.error('❌ خطأ في تحميل البيانات:', error);
                 hideLoading();
                 showError('حدث خطأ في تحميل البيانات');
+            }
+        }
+
+        async function loadQuestions() {
+            try {
+                const { data: questions, error: qError } = await supabaseClient
+                    .from('evaluation_questions')
+                    .select('*')
+                    .eq('is_active', true)
+                    .order('order_number', { ascending: true });
+                
+                if (qError) throw qError;
+                allQuestions = questions || [];
+                console.log(`✅ تم تحميل ${allQuestions.length} سؤال`);
+                
+            } catch (error) {
+                console.error('❌ خطأ في تحميل الأسئلة:', error);
+                allQuestions = [];
             }
         }
 
@@ -907,14 +979,11 @@
                     allEvaluations = evaluations || [];
                     filteredEvaluations = [...allEvaluations];
                     
+                    // تجميع التقييمات حسب الموظف
+                    organizeEmployeeEvaluations();
+                    
                     // تحديث الإحصائيات
-                    document.getElementById('totalEvaluations').textContent = allEvaluations.length;
-                    document.getElementById('pendingCount').textContent = allEvaluations.filter(e => 
-                        !e.is_deleted && e.status !== 'completed'
-                    ).length;
-                    document.getElementById('deletedCount').textContent = allEvaluations.filter(e => 
-                        e.is_deleted
-                    ).length;
+                    updateEvaluationStats();
                 }
                 
                 renderEvaluationsTable();
@@ -923,6 +992,46 @@
                 console.error('❌ خطأ في تحميل التقييمات:', error);
                 showError('حدث خطأ في تحميل بيانات التقييمات');
             }
+        }
+
+        function organizeEmployeeEvaluations() {
+            employeeEvaluations = {};
+            
+            allEvaluations.forEach(evaluation => {
+                const employeeId = evaluation.evaluated_employee_id;
+                if (!employeeEvaluations[employeeId]) {
+                    employeeEvaluations[employeeId] = {
+                        employee: evaluation.evaluated_employee,
+                        evaluations: [],
+                        totalScore: 0,
+                        averageScore: 0,
+                        evaluatorCount: 0
+                    };
+                }
+                
+                employeeEvaluations[employeeId].evaluations.push(evaluation);
+                employeeEvaluations[employeeId].totalScore += (evaluation.score || 0);
+                employeeEvaluations[employeeId].evaluatorCount++;
+            });
+            
+            // حساب المتوسط لكل موظف
+            Object.values(employeeEvaluations).forEach(employeeData => {
+                if (employeeData.evaluations.length > 0) {
+                    employeeData.averageScore = Math.round(
+                        (employeeData.totalScore / (employeeData.evaluations.length * 10)) * 100
+                    );
+                }
+            });
+        }
+
+        function updateEvaluationStats() {
+            document.getElementById('totalEvaluations').textContent = allEvaluations.length;
+            document.getElementById('pendingCount').textContent = allEvaluations.filter(e => 
+                !e.is_deleted && e.status !== 'completed'
+            ).length;
+            document.getElementById('deletedCount').textContent = allEvaluations.filter(e => 
+                e.is_deleted
+            ).length;
         }
 
         async function loadEmployeesData() {
@@ -996,7 +1105,7 @@
             if (filteredEvaluations.length === 0) {
                 tbody.innerHTML = `
                     <tr>
-                        <td colspan="7" style="text-align: center; padding: 30px; color: #6c757d;">
+                        <td colspan="8" style="text-align: center; padding: 30px; color: #6c757d;">
                             لا توجد تقييمات مطابقة للبحث
                         </td>
                     </tr>
@@ -1010,9 +1119,12 @@
                 const employee = evaluation.evaluated_employee;
                 const evaluatorName = evaluation.evaluator?.full_name || 'غير معروف';
                 const employeeName = employee?.full_name || 'غير معروف';
-                const branch = employee?.branch || 'غير محدد';
+                const branch = getBranchName(employee?.branch);
                 
                 const averageScore = evaluation.score ? Math.round((evaluation.score / 10) * 100) : 0;
+                
+                // حساب عدد الأسئلة
+                const questionCount = evaluation.answers ? Object.keys(evaluation.answers).length : 0;
                 
                 const statusText = evaluation.is_deleted ? 'محذوف' : 
                                  evaluation.status === 'completed' ? 'مكتمل' : 'قيد التقييم';
@@ -1026,20 +1138,24 @@
                     <td>${evaluatorName}</td>
                     <td>${branch}</td>
                     <td><strong style="color: #1abc9c">${averageScore}%</strong></td>
+                    <td>${questionCount}</td>
                     <td>
                         <span class="status-badge ${statusClass}">${statusText}</span>
                     </td>
                     <td>
                         <div class="action-buttons">
-                            <button class="action-btn btn-view" onclick="viewEvaluation('${evaluation.id}')">
-                                عرض
+                            <button class="action-btn btn-view" onclick="showDetailedReport('${evaluation.id}')">
+                                📋 عرض
                             </button>
-                            <button class="action-btn btn-print" onclick="printEvaluation('${evaluation.id}')">
+                            <button class="action-btn btn-print" onclick="printDetailedReport('${evaluation.id}')">
                                 🖨️
                             </button>
                             ${evaluation.is_deleted ? 
                                 `<button class="action-btn btn-restore" onclick="restoreEvaluation('${evaluation.id}')">
                                     🔄
+                                </button>
+                                <button class="action-btn btn-permanent-delete" onclick="permanentDeleteEvaluation('${evaluation.id}')">
+                                    ⚠️
                                 </button>` : 
                                 `<button class="action-btn btn-delete" onclick="deleteEvaluation('${evaluation.id}')">
                                     🗑️
@@ -1111,7 +1227,8 @@
             renderEvaluationsTable();
         }
 
-        async function viewEvaluation(evaluationId) {
+        // ==================== تقرير مفصل بالأسئلة ====================
+        async function showDetailedReport(evaluationId) {
             showLoading();
             try {
                 const evaluation = allEvaluations.find(e => e.id === evaluationId);
@@ -1123,6 +1240,44 @@
                 const employee = evaluation.evaluated_employee;
                 const evaluatorName = evaluation.evaluator?.full_name || 'غير معروف';
                 const averageScore = evaluation.score ? Math.round((evaluation.score / 10) * 100) : 0;
+                
+                // تحليل إجابات الأسئلة
+                let questionsHTML = '';
+                if (allQuestions.length > 0) {
+                    questionsHTML = `
+                        <div style="margin-top: 20px;">
+                            <h4 style="color: var(--admin-color); margin-bottom: 15px; border-bottom: 2px solid #1abc9c; padding-bottom: 8px;">
+                                📋 الأسئلة والإجابات (${allQuestions.length} سؤال)
+                            </h4>
+                            <div style="max-height: 400px; overflow-y: auto; padding-right: 10px;">
+                    `;
+                    
+                    allQuestions.forEach((question, index) => {
+                        const answer = evaluation.answers ? evaluation.answers[question.id] || 0 : 0;
+                        const answerText = getAnswerText(answer);
+                        const answerColor = getAnswerColor(answer);
+                        
+                        questionsHTML += `
+                            <div style="background: #f8f9fa; padding: 15px; margin-bottom: 10px; border-radius: 8px; border-right: 4px solid ${answerColor};">
+                                <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 8px;">
+                                    <strong style="color: var(--admin-color); font-size: 14px;">س ${index + 1}: ${question.question_text}</strong>
+                                    <span style="background: ${answerColor}; color: white; padding: 3px 10px; border-radius: 15px; font-size: 13px; font-weight: bold;">
+                                        ${answer}/10
+                                    </span>
+                                </div>
+                                <div style="color: #666; font-size: 14px; margin-top: 8px;">
+                                    <strong>التقييم:</strong> 
+                                    <span style="color: ${answerColor}; font-weight: bold;">${answerText}</span>
+                                </div>
+                            </div>
+                        `;
+                    });
+                    
+                    questionsHTML += `
+                            </div>
+                        </div>
+                    `;
+                }
 
                 const modalContent = `
                     <div style="padding: 15px; color: var(--admin-color);">
@@ -1131,59 +1286,59 @@
                             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
                                 <div> <strong>الموظف:</strong> ${employee?.full_name || 'غير معروف'} </div>
                                 <div> <strong>المقيّم:</strong> ${evaluatorName} </div>
-                                <div> <strong>الفرع:</strong> ${employee?.branch || 'غير محدد'} </div>
-                                <div> <strong>التاريخ:</strong> ${new Date(evaluation.created_at).toLocaleDateString('ar-SA')} </div>
+                                <div> <strong>الفرع:</strong> ${getBranchName(employee?.branch)} </div>
+                                <div> <strong>التاريخ:</strong> ${formatDate(evaluation.created_at)} </div>
                                 <div> <strong>الحالة:</strong> ${evaluation.is_deleted ? '<span style="color: #c0392b;">محذوف</span>' : 
-                                                                 evaluation.status === 'completed' ? '<span style="color: #27ae60;">مكتمل</span>' : 
-                                                                 '<span style="color: #e67e22;">قيد التقييم</span>'} </div>
-                                <div> <strong>الدرجة:</strong> <span style="color: #1abc9c; font-weight: bold;">${averageScore}%</span> </div>
+                                                                     evaluation.status === 'completed' ? '<span style="color: #27ae60;">مكتمل</span>' : 
+                                                                     '<span style="color: #e67e22;">قيد التقييم</span>'} </div>
+                                <div> <strong>الدرجة النهائية:</strong> <span style="color: #1abc9c; font-weight: bold;">${averageScore}%</span> </div>
                             </div>
                         </div>
 
-                        <div style="background: #e8f4f8; padding: 20px; border-radius: 10px; margin-bottom: 20px;">
-                            <h4 style="color: var(--admin-color); margin-bottom: 15px;">💯 التفاصيل</h4>
-                            <div style="line-height: 1.6;">
-                                <p><strong>الدرجة الكلية:</strong> ${evaluation.score || 0} / 10</p>
-                                ${evaluation.comment ? `
-                                    <p><strong>ملاحظات المقيّم:</strong></p>
-                                    <p style="margin-top: 10px; padding: 10px; background: white; border-radius: 8px;">
-                                        ${evaluation.comment}
-                                    </p>
-                                ` : '<p><strong>ملاحظات المقيّم:</strong> لا توجد ملاحظات.</p>'}
-                            </div>
+                        ${questionsHTML}
+
+                        <div style="background: #e8f4f8; padding: 20px; border-radius: 10px; margin: 20px 0;">
+                            <h4 style="color: var(--admin-color); margin-bottom: 15px;">💬 ملاحظات المقيّم</h4>
+                            <p style="margin-top: 10px; padding: 15px; background: white; border-radius: 8px; border-right: 3px solid #3498db; line-height: 1.6; font-size: 14px;">
+                                ${evaluation.comment || 'لا توجد ملاحظات مرفقة.'}
+                            </p>
                         </div>
 
-                        <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px;">
-                            <button onclick="printEvaluation('${evaluationId}')" style="padding: 10px 20px; background: #3498db; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold;">
-                                🖨️ طباعة
+                        <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px; flex-wrap: wrap;">
+                            <button onclick="printDetailedReport('${evaluationId}')" style="padding: 10px 20px; background: #3498db; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; display: flex; align-items: center; gap: 8px; font-size: 14px;">
+                                🖨️ طباعة التقرير
                             </button>
                             ${evaluation.is_deleted ? 
-                                `<button onclick="restoreEvaluation('${evaluationId}')" style="padding: 10px 20px; background: #27ae60; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold;">
+                                `<button onclick="restoreEvaluation('${evaluationId}')" style="padding: 10px 20px; background: #27ae60; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; display: flex; align-items: center; gap: 8px; font-size: 14px;">
                                     🔄 استعادة
                                 </button>` : 
-                                `<button onclick="deleteEvaluation('${evaluationId}')" style="padding: 10px 20px; background: #e74c3c; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold;">
+                                `<button onclick="deleteEvaluation('${evaluationId}')" style="padding: 10px 20px; background: #e74c3c; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; display: flex; align-items: center; gap: 8px; font-size: 14px;">
                                     🗑️ حذف
                                 </button>` 
                             }
-                            <button onclick="closeModal()" style="padding: 10px 20px; background: #6c757d; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold;">
+                            <button onclick="permanentDeleteEvaluation('${evaluationId}')" style="padding: 10px 20px; background: #dc3545; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; display: flex; align-items: center; gap: 8px; font-size: 14px;">
+                                ⚠️ حذف نهائي
+                            </button>
+                            <button onclick="closeModal()" style="padding: 10px 20px; background: #6c757d; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 14px;">
                                 إغلاق
                             </button>
                         </div>
                     </div>
                 `;
 
-                document.getElementById('modalTitle').textContent = 'تفاصيل التقييم';
+                document.getElementById('modalTitle').textContent = 'تقرير مفصل للتقييم';
                 document.getElementById('modalContent').innerHTML = modalContent;
                 document.getElementById('actionModal').style.display = 'flex';
                 hideLoading();
 
             } catch (error) {
-                console.error('❌ خطأ في عرض التقييم:', error);
+                console.error('❌ خطأ في عرض التقرير:', error);
                 hideLoading();
                 showError('حدث خطأ في عرض التفاصيل');
             }
         }
 
+        // ==================== حذف التقييم ====================
         async function deleteEvaluation(evaluationId) {
             if (!confirm('⚠️ هل أنت متأكد من حذف هذا التقييم؟\n\nيمكنك استعادته لاحقاً.')) {
                 return;
@@ -1225,6 +1380,45 @@
             }
         }
 
+        // ==================== حذف التقييم نهائياً ====================
+        async function permanentDeleteEvaluation(evaluationId) {
+            if (!confirm('⚠️ ⚠️ ⚠️ تحذير هام!\n\nهل أنت متأكد من حذف هذا التقييم نهائياً؟\n\nهذا الإجراء لا يمكن التراجع عنه!')) {
+                return;
+            }
+
+            showLoading();
+            
+            try {
+                const { error } = await supabaseClient
+                    .from('evaluation_results')
+                    .delete()
+                    .eq('id', evaluationId);
+                
+                if (error) throw error;
+
+                // إزالة من البيانات المحلية
+                allEvaluations = allEvaluations.filter(e => e.id !== evaluationId);
+                filteredEvaluations = filteredEvaluations.filter(e => e.id !== evaluationId);
+                
+                // تحديث البيانات المنظمة
+                organizeEmployeeEvaluations();
+                
+                // تحديث الإحصائيات
+                updateEvaluationStats();
+                
+                renderEvaluationsTable();
+                hideLoading();
+                closeModal();
+                alert('✅ تم حذف التقييم نهائياً بنجاح');
+
+            } catch (error) {
+                console.error('❌ خطأ في حذف التقييم:', error);
+                hideLoading();
+                showError('حدث خطأ أثناء حذف التقييم');
+            }
+        }
+
+        // ==================== استعادة التقييم ====================
         async function restoreEvaluation(evaluationId) {
             if (!confirm('⚠️ هل أنت متأكد من استعادة هذا التقييم؟')) {
                 return;
@@ -1265,8 +1459,9 @@
                 showError('حدث خطأ أثناء استعادة التقييم');
             }
         }
-        
-        async function printEvaluation(evaluationId) {
+
+        // ==================== طباعة التقرير المفصل ====================
+        async function printDetailedReport(evaluationId) {
             showLoading();
             try {
                 const evaluation = allEvaluations.find(e => e.id === evaluationId);
@@ -1278,47 +1473,236 @@
                 const employee = evaluation.evaluated_employee;
                 const evaluatorName = evaluation.evaluator?.full_name || 'غير معروف';
                 const averageScore = evaluation.score ? Math.round((evaluation.score / 10) * 100) : 0;
-
+                
+                // بناء محتوى الأسئلة
+                let questionsContent = '';
+                if (allQuestions.length > 0) {
+                    allQuestions.forEach((question, index) => {
+                        const answer = evaluation.answers ? evaluation.answers[question.id] || 0 : 0;
+                        const answerText = getAnswerText(answer);
+                        const answerColor = getAnswerColor(answer);
+                        
+                        questionsContent += `
+                            <div style="margin-bottom: 15px; padding: 12px; border-bottom: 1px dashed #ddd; page-break-inside: avoid;">
+                                <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 8px;">
+                                    <strong style="color: #2c3e50; font-size: 14px;">
+                                        س ${index + 1}: ${question.question_text}
+                                    </strong>
+                                    <span style="background: ${answerColor}; color: white; padding: 3px 10px; border-radius: 15px; font-size: 13px; font-weight: bold;">
+                                        ${answer}/10
+                                    </span>
+                                </div>
+                                <div style="color: #666; font-size: 14px;">
+                                    <strong>التقييم:</strong> 
+                                    <span style="color: ${answerColor}; font-weight: bold;">${answerText}</span>
+                                </div>
+                            </div>
+                        `;
+                    });
+                }
+                
                 const printWindow = window.open('', '_blank');
                 printWindow.document.write(`
                     <!DOCTYPE html>
                     <html dir="rtl" lang="ar">
                     <head>
                         <meta charset="UTF-8">
-                        <title>تقرير التقييم</title>
+                        <title>تقرير تقييم مفصل</title>
                         <style>
-                            body { font-family: Arial, sans-serif; direction: rtl; padding: 20px; margin: 0; }
-                            .header { text-align: center; margin-bottom: 30px; }
-                            .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin: 20px 0; padding: 15px; background: #f8f9fa; border-radius: 10px; }
-                            .footer { text-align: center; margin-top: 30px; padding-top: 15px; border-top: 1px solid #ddd; color: #666; font-size: 12px; }
-                            @media print { @page { margin: 15mm; } }
+                            @media print {
+                                @page { 
+                                    margin: 15mm;
+                                    size: A4;
+                                }
+                                body { 
+                                    font-size: 12pt; 
+                                    line-height: 1.6;
+                                }
+                                .no-print { 
+                                    display: none !important; 
+                                }
+                                .page-break {
+                                    page-break-before: always;
+                                }
+                            }
+                            
+                            body { 
+                                font-family: 'Arial', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+                                direction: rtl; 
+                                padding: 20px; 
+                                margin: 0; 
+                                color: #333;
+                                background: white;
+                            }
+                            
+                            .header { 
+                                text-align: center; 
+                                margin-bottom: 30px; 
+                                padding-bottom: 20px;
+                                border-bottom: 3px solid #1abc9c;
+                            }
+                            
+                            .header h1 { 
+                                color: #2c3e50; 
+                                margin: 0 0 10px 0;
+                                font-size: 24px;
+                            }
+                            
+                            .header h2 { 
+                                color: #7f8c8d; 
+                                margin: 0;
+                                font-size: 18px;
+                                font-weight: normal;
+                            }
+                            
+                            .info-grid { 
+                                display: grid; 
+                                grid-template-columns: 1fr 1fr; 
+                                gap: 15px; 
+                                margin: 25px 0; 
+                                padding: 20px; 
+                                background: #f8f9fa; 
+                                border-radius: 10px;
+                                border: 1px solid #ddd;
+                            }
+                            
+                            .info-grid div {
+                                padding: 8px 0;
+                                border-bottom: 1px solid #eee;
+                            }
+                            
+                            .info-grid strong {
+                                color: #2c3e50;
+                                display: inline-block;
+                                min-width: 120px;
+                            }
+                            
+                            .section-title {
+                                color: #2c3e50;
+                                margin: 25px 0 15px 0;
+                                padding-bottom: 10px;
+                                border-bottom: 2px solid #3498db;
+                                font-size: 18px;
+                            }
+                            
+                            .questions-section {
+                                margin: 20px 0;
+                                padding: 20px;
+                                background: #f0f8ff;
+                                border-radius: 10px;
+                                border: 1px solid #bce8f1;
+                            }
+                            
+                            .comment-section {
+                                margin: 25px 0;
+                                padding: 20px;
+                                background: #fef9e7;
+                                border-radius: 10px;
+                                border: 1px solid #f1c40f;
+                            }
+                            
+                            .score-badge {
+                                display: inline-block;
+                                padding: 5px 15px;
+                                background: linear-gradient(135deg, #1abc9c, #16a085);
+                                color: white;
+                                border-radius: 20px;
+                                font-weight: bold;
+                                margin-right: 10px;
+                            }
+                            
+                            .final-score {
+                                text-align: center;
+                                margin: 30px 0;
+                                padding: 20px;
+                                background: linear-gradient(135deg, #2c3e50, #34495e);
+                                color: white;
+                                border-radius: 10px;
+                                font-size: 18px;
+                            }
+                            
+                            .footer { 
+                                text-align: center; 
+                                margin-top: 40px; 
+                                padding-top: 20px; 
+                                border-top: 1px solid #ddd; 
+                                color: #666; 
+                                font-size: 12px;
+                            }
+                            
+                            .print-btn {
+                                display: inline-block;
+                                margin: 20px 10px;
+                                padding: 10px 25px;
+                                background: #3498db;
+                                color: white;
+                                border: none;
+                                border-radius: 5px;
+                                cursor: pointer;
+                                font-size: 14px;
+                                text-decoration: none;
+                            }
+                            
+                            .print-btn:hover {
+                                background: #2980b9;
+                            }
                         </style>
                     </head>
                     <body>
                         <div class="header">
-                            <h2>📄 تقرير تقييم الأداء</h2>
-                            <p>كاريتاس مصر - نظام التقييم الشامل 2025</p>
+                            <h1>📊 تقرير تقييم الأداء المفصل</h1>
+                            <h2>كاريتاس مصر - نظام التقييم الشامل 2025</h2>
                         </div>
 
                         <div class="info-grid">
                             <div><strong>الموظف:</strong> ${employee?.full_name || 'غير معروف'}</div>
                             <div><strong>المقيّم:</strong> ${evaluatorName}</div>
-                            <div><strong>الفرع:</strong> ${employee?.branch || 'غير محدد'}</div>
-                            <div><strong>التاريخ:</strong> ${new Date(evaluation.created_at).toLocaleDateString('ar-SA')}</div>
-                            <div><strong>الدرجة:</strong> ${evaluation.score || 0} / 10</div>
-                            <div><strong>النسبة:</strong> ${averageScore}%</div>
+                            <div><strong>الفرع:</strong> ${getBranchName(employee?.branch)}</div>
+                            <div><strong>التاريخ:</strong> ${formatDate(evaluation.created_at)}</div>
+                            <div><strong>الحالة:</strong> ${evaluation.is_deleted ? 'محذوف' : 
+                                                          evaluation.status === 'completed' ? 'مكتمل' : 'قيد التقييم'}</div>
                         </div>
 
-                        <div style="margin: 20px 0; padding: 15px; background: #f0f8ff; border-radius: 10px;">
-                            <h3>📝 ملاحظات المقيّم:</h3>
-                            <p>${evaluation.comment || 'لا توجد ملاحظات مرفقة.'}</p>
+                        <div class="final-score">
+                            <h3 style="margin: 0 0 10px 0; color: white;">الدرجة النهائية</h3>
+                            <div style="font-size: 36px; font-weight: bold; color: #1abc9c;">
+                                ${averageScore}%
+                            </div>
+                            <div style="margin-top: 10px; font-size: 16px;">
+                                (${evaluation.score || 0} / 10)
+                            </div>
                         </div>
-                        
+
+                        <h3 class="section-title">📋 الأسئلة والإجابات (${allQuestions.length} سؤال)</h3>
+                        <div class="questions-section">
+                            ${questionsContent || '<p style="text-align: center; color: #777;">لا توجد أسئلة متاحة</p>'}
+                        </div>
+
+                        <h3 class="section-title">💬 ملاحظات المقيّم</h3>
+                        <div class="comment-section">
+                            <p style="margin: 0; padding: 15px; background: white; border-radius: 8px; line-height: 1.8; font-size: 14px;">
+                                ${evaluation.comment || 'لا توجد ملاحظات مرفقة.'}
+                            </p>
+                        </div>
+
                         <div class="footer">
                             <p>© ${new Date().getFullYear()} كاريتاس مصر - نظام التقييم الشامل 2025</p>
                             <p>تم الطباعة بواسطة: ${currentUser.full_name}</p>
                             <p>تاريخ الطباعة: ${new Date().toLocaleString('ar-SA')}</p>
+                            <div class="no-print">
+                                <button class="print-btn" onclick="window.print()">🖨️ طباعة التقرير</button>
+                                <button class="print-btn" onclick="window.close()" style="background: #6c757d;">إغلاق</button>
+                            </div>
                         </div>
+                        
+                        <script>
+                            // الطباعة التلقائية بعد تحميل الصفحة
+                            window.onload = function() {
+                                setTimeout(() => {
+                                    window.print();
+                                }, 1000);
+                            };
+                        <\/script>
                     </body>
                     </html>
                 `);
@@ -1326,10 +1710,137 @@
                 hideLoading();
 
             } catch (error) {
-                console.error('❌ خطأ في طباعة التقييم:', error);
+                console.error('❌ خطأ في طباعة التقرير:', error);
                 hideLoading();
-                showError('حدث خطأ أثناء طباعة التقييم');
+                showError('حدث خطأ أثناء طباعة التقرير');
             }
+        }
+
+        // ==================== تقارير الموظفين ====================
+        function showEmployeeEvaluations() {
+            if (Object.keys(employeeEvaluations).length === 0) {
+                alert('⚠️ لا توجد تقييمات للموظفين');
+                return;
+            }
+
+            let modalContent = `
+                <div style="padding: 15px; color: var(--admin-color);">
+                    <h3 style="margin-bottom: 20px; color: var(--admin-color);">👥 تقارير الموظفين</h3>
+                    <p style="color: #666; margin-bottom: 20px;">عرض جميع تقييمات كل موظف مع المتوسط العام</p>
+                    
+                    <div style="max-height: 500px; overflow-y: auto; padding-right: 10px;">
+            `;
+
+            Object.values(employeeEvaluations).forEach((employeeData, index) => {
+                const employee = employeeData.employee;
+                const avgScore = employeeData.averageScore;
+                const evaluatorCount = employeeData.evaluatorCount;
+                
+                modalContent += `
+                    <div style="background: #f8f9fa; padding: 15px; margin-bottom: 15px; border-radius: 10px; border-right: 4px solid ${avgScore >= 70 ? '#27ae60' : avgScore >= 50 ? '#f39c12' : '#e74c3c'};">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                            <strong style="color: var(--admin-color); font-size: 16px;">${employee?.full_name || 'غير معروف'}</strong>
+                            <span style="background: ${avgScore >= 70 ? '#27ae60' : avgScore >= 50 ? '#f39c12' : '#e74c3c'}; color: white; padding: 5px 15px; border-radius: 20px; font-weight: bold;">
+                                ${avgScore}%
+                            </span>
+                        </div>
+                        <div style="color: #666; font-size: 14px; margin-bottom: 10px;">
+                            <div><strong>الفرع:</strong> ${getBranchName(employee?.branch)}</div>
+                            <div><strong>عدد المقيّمين:</strong> ${evaluatorCount}</div>
+                            <div><strong>عدد التقييمات:</strong> ${employeeData.evaluations.length}</div>
+                        </div>
+                        <div style="display: flex; gap: 10px;">
+                            <button onclick="showEmployeeDetailedReport('${employee?.id}')" style="padding: 8px 15px; background: #3498db; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 12px;">
+                                📊 عرض التفاصيل
+                            </button>
+                            <button onclick="printEmployeeReport('${employee?.id}')" style="padding: 8px 15px; background: #9b59b6; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 12px;">
+                                🖨️ طباعة التقرير
+                            </button>
+                        </div>
+                    </div>
+                `;
+            });
+
+            modalContent += `
+                    </div>
+                    
+                    <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px;">
+                        <button onclick="closeModal()" style="padding: 10px 20px; background: #6c757d; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold;">
+                            إغلاق
+                        </button>
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('modalTitle').textContent = 'تقارير الموظفين';
+            document.getElementById('modalContent').innerHTML = modalContent;
+            document.getElementById('actionModal').style.display = 'flex';
+        }
+
+        async function showEmployeeDetailedReport(employeeId) {
+            const employeeData = employeeEvaluations[employeeId];
+            if (!employeeData) return;
+
+            let modalContent = `
+                <div style="padding: 15px; color: var(--admin-color);">
+                    <div style="background: #f8f9fa; padding: 20px; border-radius: 10px; margin-bottom: 20px;">
+                        <h4 style="color: var(--admin-color); margin-bottom: 15px;">👤 معلومات الموظف</h4>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                            <div> <strong>الاسم:</strong> ${employeeData.employee?.full_name || 'غير معروف'} </div>
+                            <div> <strong>الفرع:</strong> ${getBranchName(employeeData.employee?.branch)} </div>
+                            <div> <strong>عدد التقييمات:</strong> ${employeeData.evaluations.length} </div>
+                            <div> <strong>عدد المقيّمين:</strong> ${employeeData.evaluatorCount} </div>
+                            <div> <strong>المتوسط العام:</strong> <span style="color: #1abc9c; font-weight: bold;">${employeeData.averageScore}%</span> </div>
+                        </div>
+                    </div>
+
+                    <h4 style="color: var(--admin-color); margin-bottom: 15px; border-bottom: 2px solid #3498db; padding-bottom: 8px;">📊 تفاصيل التقييمات</h4>
+                    <div style="max-height: 400px; overflow-y: auto; padding-right: 10px;">
+            `;
+
+            employeeData.evaluations.forEach((evaluation, index) => {
+                const evaluatorName = evaluation.evaluator?.full_name || 'غير معروف';
+                const score = evaluation.score ? Math.round((evaluation.score / 10) * 100) : 0;
+                
+                modalContent += `
+                    <div style="background: #e8f4f8; padding: 15px; margin-bottom: 10px; border-radius: 8px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                            <strong style="color: var(--admin-color);">التقييم ${index + 1}</strong>
+                            <span style="background: ${score >= 70 ? '#27ae60' : score >= 50 ? '#f39c12' : '#e74c3c'}; color: white; padding: 3px 10px; border-radius: 15px; font-weight: bold;">
+                                ${score}%
+                            </span>
+                        </div>
+                        <div style="color: #666; font-size: 14px;">
+                            <div><strong>المقيّم:</strong> ${evaluatorName}</div>
+                            <div><strong>التاريخ:</strong> ${formatDate(evaluation.created_at)}</div>
+                            <div><strong>الحالة:</strong> ${evaluation.is_deleted ? 'محذوف' : evaluation.status}</div>
+                        </div>
+                        <div style="margin-top: 10px;">
+                            <button onclick="showDetailedReport('${evaluation.id}')" style="padding: 5px 10px; background: #3498db; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">
+                                عرض التفاصيل
+                            </button>
+                        </div>
+                    </div>
+                `;
+            });
+
+            modalContent += `
+                    </div>
+                    
+                    <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px;">
+                        <button onclick="printEmployeeReport('${employeeId}')" style="padding: 10px 20px; background: #9b59b6; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold;">
+                            🖨️ طباعة التقرير الكامل
+                        </button>
+                        <button onclick="closeModal()" style="padding: 10px 20px; background: #6c757d; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold;">
+                            إغلاق
+                        </button>
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('modalTitle').textContent = `تفاصيل تقييمات ${employeeData.employee?.full_name}`;
+            document.getElementById('modalContent').innerHTML = modalContent;
+            document.getElementById('actionModal').style.display = 'flex';
         }
 
         // ==================== إدارة المستخدمين ====================
@@ -1357,7 +1868,7 @@
                     <td><strong>${user.full_name}</strong></td>
                     <td>${user.username}</td>
                     <td>${roleName}</td>
-                    <td>${user.branch}</td>
+                    <td>${getBranchName(user.branch)}</td>
                     <td>
                         ${user.is_active ? 
                             '<span class="status-badge status-completed">نشط</span>' : 
